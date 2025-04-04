@@ -18,6 +18,7 @@
   ],
   "devDependencies": {
     "@swig/coder": "workspace:*",
+    "@types/bun": "^1.2.5",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "eslint": "^9.22.0",
@@ -25,8 +26,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-organize-imports": "^4.0.0",
     "tsup": "^8.2.0",
-    "typescript": "^5.5.3",
-    "@types/bun": "^1.2.5"
+    "typescript": "^5.5.3"
   },
   "dependencies": {
     "@solana/kit": "^2.1.0"
