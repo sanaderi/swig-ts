@@ -1,0 +1,7 @@
+{
+  "rust-analyzer.linkedProjects": [
+    "packages/kit/tests/sanity/Cargo.toml",
+    "packages/classic/tests/sanity/Cargo.toml",
+    "examples/coin-toss/Cargo.toml",
+  ]
+}
