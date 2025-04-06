@@ -1,11 +1,13 @@
 import type { AccountMeta, TransactionInstruction } from '@solana/web3.js';
 import {
   getAddAuthorityV1InstructionCodec,
+  getCreateSessionV1InstructionCodec,
   getCreateV1InstructionDataCodec,
   getRemoveAuthorityV1InstructionCodec,
   getReplaceAuthorityV1InstructionCodec,
   getSignV1InstructionCodec,
   type AddAuthorityV1InstructionDataArgs,
+  type CreateSessionV1InstructionDataArgs,
   type CreateV1InstructionDataArgs,
   type RemoveAuthorityV1InstructionDataArgs,
   type ReplaceAuthorityV1InstructionDataArgs,
@@ -21,6 +23,7 @@ import {
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
 import { type ReplaceAuthorityV1BaseAccountMetas } from './replaceAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
+import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 
 /**
  *
@@ -161,5 +164,24 @@ export class SwigInstructionV1 {
     let signV1InstructionData = signV1InstructionDataEncoder.encode(data);
 
     return swigInstuction(accounts, new Uint8Array(signV1InstructionData));
+  }
+
+  static createSession<
+    T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: CreateSessionV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
+      data.authorityPayload.length,
+    ).encoder;
+
+    let createSessionV1InstructionData =
+      createSessionV1InstructionDataEncoder.encode(data);
+
+    return swigInstuction(
+      accounts,
+      new Uint8Array(createSessionV1InstructionData),
+    );
   }
 }

@@ -22,9 +22,17 @@ export class Authority {
     return new Authority(address.toBytes(), AuthorityType.Ed25519)
   }
   
+  static ed25519Session(address: PublicKey) {
+    return new Authority(address.toBytes(), AuthorityType.Ed25519Session)
+  }
+  
   static secp256k1(address: any) {
     return new Authority(address.toBytes(), AuthorityType.Secp256k1)
   }
+  
+  // static secp256k1Session(address: any) {
+  //   return new Authority(address.toBytes(), AuthorityType.Secp256k1Session)
+  // }
 
   create(args: {
     payer: PublicKey;

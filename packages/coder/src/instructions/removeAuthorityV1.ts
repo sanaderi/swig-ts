@@ -21,8 +21,8 @@ import { SwigInstructionDiscriminator as Discriminator } from './SwigInstruction
 export type RemoveAuthorityV1InstructionData = {
   discriminator: number;
   actingRoleId: number;
-  authorityToRemoveId: number;
   _padding1: ReadonlyUint8Array;
+  authorityToRemoveId: number;
   authorityPayloadLen: number;
   _padding2: ReadonlyUint8Array;
   authorityPayload: ReadonlyUint8Array;
@@ -46,8 +46,8 @@ export function getRemoveAuthorityV1InstructionCodec(payloadSize: number): {
     getStructEncoder([
       ['discriminator', getU8Encoder()],
       ['actingRoleId', getU8Encoder()],
+      ['_padding1', fixEncoderSize(getBytesEncoder(), 3)],
       ['authorityToRemoveId', getU8Encoder()],
-      ['_padding1', fixEncoderSize(getBytesEncoder(), 1)],
       ['authorityPayloadLen', getU16Encoder()],
       ['_padding2', fixEncoderSize(getBytesEncoder(), 2)],
       ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
@@ -55,7 +55,7 @@ export function getRemoveAuthorityV1InstructionCodec(payloadSize: number): {
     (value) => ({
       ...value,
       discriminator: Discriminator.RemoveAuthorityV1,
-      _padding1: Uint8Array.from(Array(1)),
+      _padding1: Uint8Array.from(Array(3)),
       _padding2: Uint8Array.from(Array(2)),
       authorityPayloadLen: payloadSize,
     }),

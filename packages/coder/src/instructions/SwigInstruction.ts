@@ -8,8 +8,9 @@ export enum SwigInstructionDiscriminator {
   CreateV1,
   AddAuthorityV1,
   RemoveAuthorityV1,
-  ReplaceAuthorityV1,
-  SignV1,
+  // ReplaceAuthorityV1,
+  SignV1 = 4,
+  // CreateSessionV1,
 }
 
 export function identifySwigInstruction(
@@ -25,12 +26,15 @@ export function identifySwigInstruction(
   if (containsBytes(data, getU8Encoder().encode(2), 0)) {
     return SwigInstructionDiscriminator.RemoveAuthorityV1;
   }
-  if (containsBytes(data, getU8Encoder().encode(3), 0)) {
-    return SwigInstructionDiscriminator.ReplaceAuthorityV1;
-  }
+  // if (containsBytes(data, getU8Encoder().encode(3), 0)) {
+  //   return SwigInstructionDiscriminator.ReplaceAuthorityV1;
+  // }
   if (containsBytes(data, getU8Encoder().encode(4), 0)) {
     return SwigInstructionDiscriminator.SignV1;
   }
+  // if (containsBytes(data, getU8Encoder().encode(5), 0)) {
+  //   return SwigInstructionDiscriminator.CreateSessionV1;
+  // }
   throw new Error(
     'The provided instruction could not be identified as a swig instruction.',
   );

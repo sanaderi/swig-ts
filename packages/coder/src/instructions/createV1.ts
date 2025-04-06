@@ -1,6 +1,4 @@
 import {
-  addDecoderSizePrefix,
-  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -8,10 +6,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  getU64Decoder,
-  getU64Encoder,
+  getU16Decoder,
+  getU16Encoder,
   getU8Decoder,
   getU8Encoder,
   transformEncoder,
@@ -31,57 +27,61 @@ export type CreateV1InstructionData = {
   discriminator: number;
   id: ReadonlyUint8Array;
   bump: number;
-  initialAuthority: AuthorityType;
-  startSlot: bigint;
-  endSlot: bigint;
+  noOfActions: number;
+  _padding: ReadonlyUint8Array;
+  authorityType: AuthorityType;
+  authorityDataLen: number;
   authorityData: ReadonlyUint8Array;
+  actions: ReadonlyUint8Array;
 };
 
 export type CreateV1InstructionDataArgs = {
   id: ReadonlyUint8Array;
   bump: number;
-  initialAuthority: AuthorityType;
-  startSlot: bigint;
-  endSlot: bigint;
+  /**
+   * no of actions to add to the role
+   */
+  noOfActions: number;
+  authorityType: AuthorityType;
   authorityData: ReadonlyUint8Array;
+  actions: ReadonlyUint8Array;
 };
 
-export function getCreateV1InstructionDataEncoder(): Encoder<CreateV1InstructionDataArgs> {
-  return transformEncoder(
+export function getCreateV1InstructionCodec() {
+  let encoder: Encoder<CreateV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
-      ['id', fixEncoderSize(getBytesEncoder(), 13)],
+      ['id', fixEncoderSize(getBytesEncoder(), 32)],
       ['bump', getU8Encoder()],
-      ['initialAuthority', getAuthorityTypeEncoder()],
-      ['startSlot', getU64Encoder()],
-      ['endSlot', getU64Encoder()],
-      [
-        'authorityData',
-        addEncoderSizePrefix(getBytesEncoder(), getU32Encoder()),
-      ],
+      ['noOfActions', getU8Encoder()],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 1)],
+      ['authorityType', getAuthorityTypeEncoder()],
+      ['authorityDataLen', getU16Encoder()],
+      ['authorityData', getBytesEncoder()],
+      ['actions', getBytesEncoder()],
     ]),
-    (value) => ({ ...value, discriminator: Discriminator.CreateV1 }),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.CreateV1,
+      _padding: Uint8Array.from(Array(1).fill(0)),
+      authorityDataLen: value.authorityData.length,
+    }),
   );
-}
 
-export function getCreateV1InstructionDataDecoder(): Decoder<CreateV1InstructionData> {
-  return getStructDecoder([
+  let decoder: Decoder<CreateV1InstructionData> = getStructDecoder([
     ['discriminator', getU8Decoder()],
-    ['id', fixDecoderSize(getBytesDecoder(), 13)],
+    ['id', fixDecoderSize(getBytesDecoder(), 32)],
     ['bump', getU8Decoder()],
-    ['initialAuthority', getAuthorityTypeDecoder()],
-    ['startSlot', getU64Decoder()],
-    ['endSlot', getU64Decoder()],
-    ['authorityData', addDecoderSizePrefix(getBytesDecoder(), getU32Decoder())],
+    ['noOfActions', getU8Decoder()],
+    ['_padding', fixDecoderSize(getBytesDecoder(), 1)],
+    ['authorityType', getAuthorityTypeDecoder()],
+    ['authorityDataLen', getU16Decoder()],
+    ['authorityData', getBytesDecoder()],
+    ['actions', getBytesDecoder()],
   ]);
-}
 
-export function getCreateV1InstructionDataCodec(): Codec<
-  CreateV1InstructionDataArgs,
-  CreateV1InstructionData
-> {
-  return combineCodec(
-    getCreateV1InstructionDataEncoder(),
-    getCreateV1InstructionDataDecoder(),
-  );
+  let codec: Codec<CreateV1InstructionDataArgs, CreateV1InstructionData> =
+    combineCodec(encoder, decoder);
+
+  return { encoder, decoder, codec };
 }

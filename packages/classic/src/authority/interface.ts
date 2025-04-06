@@ -1,6 +1,7 @@
 import type { ReadonlyUint8Array } from '@solana/kit';
 import type {
   AddAuthorityV1InstructionDataArgs,
+  CreateSessionV1InstructionDataArgs,
   RemoveAuthorityV1InstructionDataArgs,
   ReplaceAuthorityV1InstructionDataArgs,
 } from '@swig/coder';
@@ -75,6 +76,13 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
       roleId: number;
       innerInstructions: TransactionInstruction[];
+    },
+  ): TransactionInstruction;
+  
+  createSessionV1Instruction(
+    accounts: SignV1InstructionAccounts,
+    data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
+      authorityData: ReadonlyUint8Array;
     },
   ): TransactionInstruction;
 }
