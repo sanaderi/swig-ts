@@ -4,10 +4,8 @@ import {
   compactInstructions,
   getAddV1BaseAccountMetasWithAuthority,
   getRemoveV1BaseAccountMetasWithAuthority,
-  getReplaceV1BaseAccountMetasWithAuthority,
   getSignV1BaseAccountMetasWithAuthority,
 } from '../../instructions';
-import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
 import type { AuthorityInstruction } from '../interface';
 
 /**
@@ -54,25 +52,25 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-   * @param data replaceAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `ReplaceAuthorityV1` instruction
-   */
-  replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
-    let authority = new PublicKey(data.authorityData);
+  // /**
+  //  *
+  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
+  //  * @param data replaceAuthorityV1InstructionDataArgs
+  //  * @returns SwigInstruction
+  //  *
+  //  * Creates a `ReplaceAuthorityV1` instruction
+  //  */
+  // replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  //   let authority = new PublicKey(data.authorityData);
 
-    let [replaceIxAccountMetas, authorityPayload] =
-      getReplaceV1BaseAccountMetasWithAuthority(accounts, authority);
+  //   let [replaceIxAccountMetas, authorityPayload] =
+  //     getReplaceV1BaseAccountMetasWithAuthority(accounts, authority);
 
-    return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
-      ...data,
-      authorityPayload: Uint8Array.from([authorityPayload]),
-    });
-  },
+  //   return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
+  //     ...data,
+  //     authorityPayload: Uint8Array.from([authorityPayload]),
+  //   });
+  // },
 
   /**
    *
@@ -101,15 +99,15 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  createSessionV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+  // createSessionV1Instruction(accounts, data) {
+  //   let authority = new PublicKey(data.authorityData);
 
-    let [createSessionAccount, authorityPayload] =
-      getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
+  //   let [createSessionAccount, authorityPayload] =
+  //     getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
 
-    return SwigInstructionV1.createSession(createSessionAccount, {
-      ...data,
-      authorityPayload: Uint8Array.from([authorityPayload]),
-    });
-  },
+  //   return SwigInstructionV1.createSession(createSessionAccount, {
+  //     ...data,
+  //     authorityPayload: Uint8Array.from([authorityPayload]),
+  //   });
+  // },
 };

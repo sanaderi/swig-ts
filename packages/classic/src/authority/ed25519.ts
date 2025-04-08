@@ -11,3 +11,8 @@ export class Ed25519Authority extends Authority {
     super(bytes, AuthorityType.Ed25519);
   }
 }
+
+export function isEd25519Authority(authority: Authority): authority is Ed25519Authority {
+  return authority instanceof Ed25519Authority
+}
+

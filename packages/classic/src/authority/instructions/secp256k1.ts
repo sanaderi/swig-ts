@@ -4,13 +4,12 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 import type { TransactionInstruction } from '@solana/web3.js';
-import { getActionEncoder, getCompactInstructionEncoder } from '@swig/coder';
+import { getCompactInstructionEncoder } from '@swig/coder';
 import {
   SwigInstructionV1,
   compactInstructions,
   getAddAuthorityV1BaseAccountMetas,
   getRemoveAuthorityV1BaseAccountMetas,
-  getReplaceAuthorityV1BaseAccountMetas,
   getSignV1BaseAccountMetas,
 } from '../../instructions';
 import type { AuthorityInstruction } from '../interface';
@@ -31,9 +30,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     let addAuthorityIxAccountMetas =
       getAddAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(
-      getArrayEncoder(getActionEncoder()).encode(data.actions),
-    );
+    let authorityPayload = secp256k1Payload(data.actions);
 
     return SwigInstructionV1.addAuthority(addAuthorityIxAccountMetas, {
       ...data,
@@ -60,26 +57,26 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-   * @param data replaceAuthorityV1InstructionDataArgs
-   * @returns TransactionInstruction
-   *
-   * Creates a `ReplaceAuthorityV1` instruction
-   */
-  replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
-    let replaceIxAccountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
+  // /**
+  //  *
+  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
+  //  * @param data replaceAuthorityV1InstructionDataArgs
+  //  * @returns TransactionInstruction
+  //  *
+  //  * Creates a `ReplaceAuthorityV1` instruction
+  //  */
+  // replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  //   let replaceIxAccountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(
-      getArrayEncoder(getActionEncoder()).encode(data.actions),
-    );
+  //   let authorityPayload = secp256k1Payload(
+  //     getArrayEncoder(getActionEncoder()).encode(data.actions),
+  //   );
 
-    return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
-      ...data,
-      authorityPayload,
-    });
-  },
+  //   return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
+  //     ...data,
+  //     authorityPayload,
+  //   });
+  // },
 
   /**
    *
@@ -111,9 +108,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  createSessionV1Instruction(accounts, data) {
-    throw new Error('Not implemented yet');
-  },
+  // createSessionV1Instruction(accounts, data) {
+  //   throw new Error('Not implemented yet');
+  // },
 };
 
 /**

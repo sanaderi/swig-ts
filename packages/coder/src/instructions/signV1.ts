@@ -10,6 +10,7 @@ import {
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
+  getU32Encoder,
   getU8Decoder,
   getU8Encoder,
   transformEncoder,
@@ -49,10 +50,10 @@ export function getSignV1InstructionCodec(payloadSize: number): {
   let encoder: Encoder<SignV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
-      ['roleId', getU8Encoder()],
+      ['roleId', getU32Encoder()],
       ['authorityPayloadLen', getU16Encoder()],
       ['instructionPayloadLen', getU16Encoder()],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 2)],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 1)],
       ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
       [
         'compactInstructions',
@@ -64,7 +65,7 @@ export function getSignV1InstructionCodec(payloadSize: number): {
     (value) => ({
       ...value,
       discriminator: Discriminator.SignV1,
-      _padding: Uint8Array.from(Array(2)),
+      _padding: Uint8Array.from(Array(1)),
       instructionPayloadLen: value.compactInstructions.length,
       authorityPayloadLen: payloadSize,
     }),

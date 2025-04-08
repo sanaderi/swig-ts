@@ -1,16 +1,12 @@
 import type { AccountMeta, TransactionInstruction } from '@solana/web3.js';
 import {
   getAddAuthorityV1InstructionCodec,
-  getCreateSessionV1InstructionCodec,
   getCreateV1InstructionDataCodec,
   getRemoveAuthorityV1InstructionCodec,
-  getReplaceAuthorityV1InstructionCodec,
   getSignV1InstructionCodec,
   type AddAuthorityV1InstructionDataArgs,
-  type CreateSessionV1InstructionDataArgs,
   type CreateV1InstructionDataArgs,
   type RemoveAuthorityV1InstructionDataArgs,
-  type ReplaceAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
 } from '@swig/coder';
 import { swigInstuction } from '../utils';
@@ -21,9 +17,7 @@ import {
   type CreateV1InstructionAccounts,
 } from './createV1';
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
-import { type ReplaceAuthorityV1BaseAccountMetas } from './replaceAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
-import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 
 /**
  *
@@ -55,7 +49,8 @@ export class SwigInstructionV1 {
     accounts: T,
     data: CreateV1InstructionDataArgs,
   ): TransactionInstruction {
-    let createV1InstructionDataEncoder = getCreateV1InstructionDataCodec();
+    let createV1InstructionDataEncoder =
+      getCreateV1InstructionDataCodec().encoder;
 
     let createV1InstructionData = createV1InstructionDataEncoder.encode(data);
 
@@ -117,33 +112,33 @@ export class SwigInstructionV1 {
     );
   }
 
-  /**
-   *
-   * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-   * @param data replaceAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `ReplaceAuthorityV1` instruction
-   */
-  static replaceAuthority<
-    T extends [...ReplaceAuthorityV1BaseAccountMetas, ...AccountMeta[]],
-  >(
-    accounts: T,
-    data: ReplaceAuthorityV1InstructionDataArgs,
-  ): TransactionInstruction {
-    let replaceV1InstructionDataEncoder = getReplaceAuthorityV1InstructionCodec(
-      data.authorityPayload.length,
-      data.newAuthorityData.length,
-    ).encoder;
+  // /**
+  //  *
+  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
+  //  * @param data replaceAuthorityV1InstructionDataArgs
+  //  * @returns SwigInstruction
+  //  *
+  //  * Creates a `ReplaceAuthorityV1` instruction
+  //  */
+  // static replaceAuthority<
+  //   T extends [...ReplaceAuthorityV1BaseAccountMetas, ...AccountMeta[]],
+  // >(
+  //   accounts: T,
+  //   data: ReplaceAuthorityV1InstructionDataArgs,
+  // ): TransactionInstruction {
+  //   let replaceV1InstructionDataEncoder = getReplaceAuthorityV1InstructionCodec(
+  //     data.authorityPayload.length,
+  //     data.newAuthorityData.length,
+  //   ).encoder;
 
-    let replaceAuthorityV1InstructionData =
-      replaceV1InstructionDataEncoder.encode(data);
+  //   let replaceAuthorityV1InstructionData =
+  //     replaceV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(
-      accounts,
-      new Uint8Array(replaceAuthorityV1InstructionData),
-    );
-  }
+  //   return swigInstuction(
+  //     accounts,
+  //     new Uint8Array(replaceAuthorityV1InstructionData),
+  //   );
+  // }
 
   /**
    *
@@ -166,22 +161,22 @@ export class SwigInstructionV1 {
     return swigInstuction(accounts, new Uint8Array(signV1InstructionData));
   }
 
-  static createSession<
-    T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
-  >(
-    accounts: T,
-    data: CreateSessionV1InstructionDataArgs,
-  ): TransactionInstruction {
-    let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
-      data.authorityPayload.length,
-    ).encoder;
+  // static createSession<
+  //   T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
+  // >(
+  //   accounts: T,
+  //   data: CreateSessionV1InstructionDataArgs,
+  // ): TransactionInstruction {
+  //   let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
+  //     data.authorityPayload.length,
+  //   ).encoder;
 
-    let createSessionV1InstructionData =
-      createSessionV1InstructionDataEncoder.encode(data);
+  //   let createSessionV1InstructionData =
+  //     createSessionV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(
-      accounts,
-      new Uint8Array(createSessionV1InstructionData),
-    );
-  }
+  //   return swigInstuction(
+  //     accounts,
+  //     new Uint8Array(createSessionV1InstructionData),
+  //   );
+  // }
 }

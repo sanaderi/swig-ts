@@ -47,7 +47,7 @@ export type CreateV1InstructionDataArgs = {
   actions: ReadonlyUint8Array;
 };
 
-export function getCreateV1InstructionCodec() {
+export function getCreateV1InstructionDataCodec() {
   let encoder: Encoder<CreateV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],

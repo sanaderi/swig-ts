@@ -1,8 +1,9 @@
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
-import { AuthorityType, type Action } from '@swig/coder';
+import { AuthorityType } from '@swig/coder';
 import { createSwigInstruction } from '../instructions';
 import { uint8ArraysEqual } from '../utils';
 import { getAuthorityConfig } from './config';
+import type { Actions } from '../actions';
 
 export class Authority {
   constructor(
@@ -39,18 +40,17 @@ export class Authority {
     swigAddress: PublicKey;
     bump: number;
     id: Uint8Array;
-    startSlot: bigint;
-    endSlot: bigint;
+    actions: Actions
   }) {
     return createSwigInstruction(
       { payer: args.payer, swig: args.swigAddress },
       {
         bump: args.bump,
         authorityData: this.data,
-        endSlot: args.endSlot,
-        startSlot: args.startSlot,
         id: args.id,
-        initialAuthority: this.type,
+        actions: args.actions.bytes(),
+        authorityType: this.type,
+        noOfActions: args.actions.count
       },
     );
   }
@@ -78,10 +78,8 @@ export class Authority {
     swigAddress: PublicKey;
     payer: PublicKey;
     actingRoleId: number;
-    actions: Action[];
+    actions: Actions;
     newAuthority: Authority;
-    startSlot: bigint;
-    endSlot: bigint;
   }) {
     return this.instructions.addAuthorityV1Instruction(
       {
@@ -90,12 +88,11 @@ export class Authority {
       },
       {
         actingRoleId: args.actingRoleId,
-        actions: args.actions,
+        actions: args.actions.bytes(),
         authorityData: this.data,
-        startSlot: args.startSlot,
-        endSlot: args.endSlot,
         newAuthorityData: args.newAuthority.data,
         newAuthorityType: args.newAuthority.type,
+        noOfActions: args.actions.count
       },
     );
   }
@@ -119,33 +116,33 @@ export class Authority {
     );
   }
 
-  replaceAuthority(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
-    roleId: number;
-    actions: Action[];
-    newAuthority: Authority;
-    startSlot: bigint;
-    endSlot: bigint;
-    roleIdToReplace: number;
-  }) {
-    return this.instructions.replaceAuthorityV1Instruction(
-      {
-        payer: args.payer,
-        swig: args.swigAddress,
-      },
-      {
-        actingRoleId: args.roleId,
-        actions: args.actions,
-        authorityData: this.data,
-        authorityToReplaceId: args.roleIdToReplace,
-        endSlot: args.endSlot,
-        startSlot: args.startSlot,
-        newAuthorityData: args.newAuthority.data,
-        newAuthorityType: args.newAuthority.type,
-      },
-    );
-  }
+  // replaceAuthority(args: {
+  //   swigAddress: PublicKey;
+  //   payer: PublicKey;
+  //   roleId: number;
+  //   actions: Action[];
+  //   newAuthority: Authority;
+  //   startSlot: bigint;
+  //   endSlot: bigint;
+  //   roleIdToReplace: number;
+  // }) {
+  //   return this.instructions.replaceAuthorityV1Instruction(
+  //     {
+  //       payer: args.payer,
+  //       swig: args.swigAddress,
+  //     },
+  //     {
+  //       actingRoleId: args.roleId,
+  //       actions: args.actions,
+  //       authorityData: this.data,
+  //       authorityToReplaceId: args.roleIdToReplace,
+  //       endSlot: args.endSlot,
+  //       startSlot: args.startSlot,
+  //       newAuthorityData: args.newAuthority.data,
+  //       newAuthorityType: args.newAuthority.type,
+  //     },
+  //   );
+  // }
 
   isEqual(other: Authority): boolean {
     return uint8ArraysEqual(this.data, other.data) && this.type === other.type;

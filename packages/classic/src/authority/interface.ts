@@ -1,17 +1,14 @@
 import type { ReadonlyUint8Array } from '@solana/kit';
+import type { TransactionInstruction } from '@solana/web3.js';
 import type {
   AddAuthorityV1InstructionDataArgs,
-  CreateSessionV1InstructionDataArgs,
   RemoveAuthorityV1InstructionDataArgs,
-  ReplaceAuthorityV1InstructionDataArgs,
 } from '@swig/coder';
 import {
   type AddAuthorityV1InstructionAccounts,
   type RemoveAuthorityV1InstructionAccounts,
-  type ReplaceAuthorityV1InstructionAccounts,
   type SignV1InstructionAccounts,
 } from '../instructions';
-import type { TransactionInstruction } from '@solana/web3.js';
 
 /**
  * Authority Instruction Interface
@@ -47,20 +44,20 @@ export interface AuthorityInstruction {
     },
   ): TransactionInstruction;
 
-  /**
-   *
-   * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-   * @param data replaceAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `ReplaceAuthorityV1` instruction
-   */
-  replaceAuthorityV1Instruction(
-    accounts: ReplaceAuthorityV1InstructionAccounts,
-    data: Omit<ReplaceAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
-      authorityData: ReadonlyUint8Array;
-    },
-  ): TransactionInstruction;
+  // /**
+  //  *
+  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
+  //  * @param data replaceAuthorityV1InstructionDataArgs
+  //  * @returns SwigInstruction
+  //  *
+  //  * Creates a `ReplaceAuthorityV1` instruction
+  //  */
+  // replaceAuthorityV1Instruction(
+  //   accounts: ReplaceAuthorityV1InstructionAccounts,
+  //   data: Omit<ReplaceAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
+  //     authorityData: ReadonlyUint8Array;
+  //   },
+  // ): TransactionInstruction;
 
   /**
    *
@@ -78,11 +75,11 @@ export interface AuthorityInstruction {
       innerInstructions: TransactionInstruction[];
     },
   ): TransactionInstruction;
-  
-  createSessionV1Instruction(
-    accounts: SignV1InstructionAccounts,
-    data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
-      authorityData: ReadonlyUint8Array;
-    },
-  ): TransactionInstruction;
+
+  // createSessionV1Instruction(
+  //   accounts: SignV1InstructionAccounts,
+  //   data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
+  //     authorityData: ReadonlyUint8Array;
+  //   },
+  // ): TransactionInstruction;
 }

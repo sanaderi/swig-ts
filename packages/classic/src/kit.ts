@@ -100,121 +100,119 @@ export class Swig {
   }
 }
 
-export class SwigRole {
-  private readonly actions: SwigActions;
+// export class SwigRole {
+//   private readonly actions: SwigActions;
 
-  constructor(
-    private readonly role: Role,
-    public readonly swigAddress: PublicKey,
-    public readonly id: number,
-  ) {
-    this.actions = new SwigActions(this.role.actions);
-  }
+//   constructor(
+//     private readonly role: Role,
+//     public readonly swigAddress: PublicKey,
+//     public readonly id: number,
+//   ) {
+//     this.actions = new SwigActions(this.role.actions);
+//   }
 
-  get authority(): Authority {
-    return new Authority(
-      new Uint8Array(this.role.authorityData),
-      this.role.authorityType,
-    );
-  }
+//   get authority(): Authority {
+//     return new Authority(
+//       new Uint8Array(this.role.authorityData),
+//       this.role.authorityType,
+//     );
+//   }
 
-  /**
-   *
-   * @param args
-   * @returns
-   */
-  sign(args: {
-    payer: PublicKey;
-    innerInstructions: TransactionInstruction[];
-  }) {
-    return this.authority.sign({
-      swigAddress: this.swigAddress,
-      payer: args.payer,
-      innerInstructions: args.innerInstructions,
-      roleId: this.id,
-    });
-  }
+//   /**
+//    *
+//    * @param args
+//    * @returns
+//    */
+//   sign(args: {
+//     payer: PublicKey;
+//     innerInstructions: TransactionInstruction[];
+//   }) {
+//     return this.authority.sign({
+//       swigAddress: this.swigAddress,
+//       payer: args.payer,
+//       innerInstructions: args.innerInstructions,
+//       roleId: this.id,
+//     });
+//   }
 
-  addAuthority(args: {
-    payer: PublicKey;
-    actions: SwigActions;
-    newAuthority: Authority;
-    startSlot: bigint;
-    endSlot: bigint;
-  }) {
-    return this.authority.addAuthority({
-      payer: args.payer,
-      swigAddress: this.swigAddress,
-      actingRoleId: this.id,
-      actions: args.actions.rawActions(),
-      startSlot: args.startSlot,
-      endSlot: args.endSlot,
-      newAuthority: args.newAuthority,
-    });
-  }
+//   addAuthority(args: {
+//     payer: PublicKey;
+//     actions: SwigActions;
+//     newAuthority: Authority;
+//     startSlot: bigint;
+//     endSlot: bigint;
+//   }) {
+//     return this.authority.addAuthority({
+//       payer: args.payer,
+//       swigAddress: this.swigAddress,
+//       actingRoleId: this.id,
+//       actions: args.actions.rawActions(),
+//       newAuthority: args.newAuthority,
+//     });
+//   }
 
-  removeAuthority(args: { payer: PublicKey; roleToRemove: SwigRole }) {
-    return this.authority.removeAuthority({
-      payer: args.payer,
-      swigAddress: this.swigAddress,
-      roleId: this.id,
-      roleIdToRemove: args.roleToRemove.id,
-    });
-  }
+//   removeAuthority(args: { payer: PublicKey; roleToRemove: SwigRole }) {
+//     return this.authority.removeAuthority({
+//       payer: args.payer,
+//       swigAddress: this.swigAddress,
+//       roleId: this.id,
+//       roleIdToRemove: args.roleToRemove.id,
+//     });
+//   }
 
-  replaceAuthority(args: {
-    payer: PublicKey;
-    actions: SwigActions;
-    newAuthority: Authority;
-    startSlot: bigint;
-    endSlot: bigint;
-    roleToReplace: SwigRole;
-  }) {
-    return this.authority.replaceAuthority({
-      payer: args.payer,
-      swigAddress: this.swigAddress,
-      roleId: this.id,
-      actions: args.actions.rawActions(),
-      roleIdToReplace: args.roleToReplace.id,
-      endSlot: args.endSlot,
-      startSlot: args.startSlot,
-      newAuthority: args.newAuthority,
-    });
-  }
+//   // replaceAuthority(args: {
+//   //   payer: PublicKey;
+//   //   actions: SwigActions;
+//   //   newAuthority: Authority;
+//   //   startSlot: bigint;
+//   //   endSlot: bigint;
+//   //   roleToReplace: SwigRole;
+//   // }) {
+//   //   return this.authority.replaceAuthority({
+//   //     payer: args.payer,
+//   //     swigAddress: this.swigAddress,
+//   //     roleId: this.id,
+//   //     actions: args.actions.rawActions(),
+//   //     roleIdToReplace: args.roleToReplace.id,
+//   //     endSlot: args.endSlot,
+//   //     startSlot: args.startSlot,
+//   //     newAuthority: args.newAuthority,
+//   //   });
+//   // }
 
-  hasAllAction() {
-    return this.actions.hasAllAction();
-  }
+//   hasAllAction() {
+//     return this.actions.hasAllAction();
+//   }
 
-  canManageAuthority() {
-    return this.actions.canManageAuthority();
-  }
+//   canManageAuthority() {
+//     return this.actions.canManageAuthority();
+//   }
 
-  canUseProgram(programId: PublicKey) {
-    return this.actions.canUseProgram(programId);
-  }
+//   canUseProgram(programId: PublicKey) {
+//     return this.actions.canUseProgram(programId);
+//   }
 
-  canSpendSolMax() {
-    return this.actions.canSpendSolMax();
-  }
+//   canSpendSolMax() {
+//     return this.actions.canSpendSolMax();
+//   }
 
-  canSpendSol(amount?: bigint) {
-    return this.actions.canSpendSol(amount);
-  }
+//   canSpendSol(amount?: bigint) {
+//     return this.actions.canSpendSol(amount);
+//   }
 
-  canSpendAllTokensMax() {
-    return this.actions.canSpendAllTokensMax();
-  }
+//   canSpendAllTokensMax() {
+//     return this.actions.canSpendAllTokensMax();
+//   }
 
-  canSpendAllTokens(amount?: bigint) {
-    return this.actions.canSpendAllTokens(amount);
-  }
+//   canSpendAllTokens(amount?: bigint) {
+//     return this.actions.canSpendAllTokens(amount);
+//   }
 
-  canSpendTokenMax(mint: PublicKey) {
-    return this.actions.canSpendTokenMax(mint);
-  }
+//   canSpendTokenMax(mint: PublicKey) {
+//     return this.actions.canSpendTokenMax(mint);
+//   }
 
-  canSpendToken(mint: PublicKey, amount?: bigint) {
-    return this.actions.canSpendToken(mint, amount);
-  }
-}
+//   canSpendToken(mint: PublicKey, amount?: bigint) {
+//     return this.actions.canSpendToken(mint, amount);
+//   }
+// }

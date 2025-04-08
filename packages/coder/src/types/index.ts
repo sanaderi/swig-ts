@@ -1,3 +1,4 @@
+export * from "./actionHeader"
 export * from './authorityType';
 export * from "./compactInstruction"
 export * from "./permissions"
@@ -6,6 +7,6 @@ export * from "./programLimit"
 export * from "./role"
 export * from "./solLimit"
 export * from "./solRecurringLimit"
-export * from "./subaccount"
+export * from "./subAccount"
 export * from "./tokenLimit"
 export * from "./tokenRecurringLimit"
