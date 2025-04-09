@@ -7,11 +7,11 @@ import {
   TransactionInstruction,
 } from '@solana/web3.js';
 import {
-  Authority,
+  Actions,
   createSwig,
+  Ed25519Authority,
   fetchSwig,
   findSwigPda,
-  SwigActions,
 } from '@swig/classic';
 
 //
@@ -46,7 +46,7 @@ export function sleep(s: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, s * 1000));
 }
 
-console.log("starting...")
+console.log('starting...');
 
 let connection = new Connection('http://localhost:8899', 'confirmed');
 
@@ -76,7 +76,7 @@ await connection.requestAirdrop(
 
 await sleep(3);
 
-let id = randomBytes(13);
+let id = randomBytes(32);
 
 //
 // * Find a swig pda by id
@@ -89,7 +89,9 @@ let [swigAddress] = findSwigPda(id);
 // * e.g Authority.secp256k1
 // * session based Authority support
 //
-let rootAuthority = Authority.ed25519(userRootKeypair.publicKey);
+let rootAuthority = new Ed25519Authority(userRootKeypair.publicKey);
+
+let rootActions = Actions.set().all().get();
 
 //
 // * create swig
@@ -98,8 +100,7 @@ await createSwig(
   connection,
   id,
   rootAuthority,
-  0n,
-  0n,
+  rootActions,
   userRootKeypair.publicKey,
   [userRootKeypair],
 );
@@ -114,18 +115,16 @@ let swig = await fetchSwig(connection, swigAddress);
 //
 // * find role by authority
 //
-let rootRole = swig.findRoleByAuthority(
-  Authority.ed25519(userRootKeypair.publicKey),
-);
+let rootRole = swig.findRoleByAuthority(rootAuthority);
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let authorityManager = Authority.ed25519(userAuthorityManagerKeypair.publicKey);
+let authorityManager = new Ed25519Authority(userAuthorityManagerKeypair.publicKey);
 
 //
 // * helper for creating actions
 //
-let manageAuthorityActions = SwigActions.set()
+let manageAuthorityActions = Actions.set()
   // .all()
   .manageAuthority()
   // .solTemporal({
@@ -145,8 +144,6 @@ let manageAuthorityActions = SwigActions.set()
 //
 let addAuthorityInstruction = rootRole.addAuthority({
   actions: manageAuthorityActions,
-  endSlot: 0n,
-  startSlot: 0n,
   newAuthority: authorityManager,
   payer: userRootKeypair.publicKey,
 });
@@ -175,13 +172,13 @@ if (!managerRole) throw new Error('Role not found for authority');
 if (!managerRole.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
 
-let dappAuthority = Authority.ed25519(dappAuthorityKeypair.publicKey);
+let dappAuthority = new Ed25519Authority(dappAuthorityKeypair.publicKey);
 
 //
 // * allocate 0.1 max sol spend, for the dapp
 //
-let dappAuthorityActions = SwigActions.set()
-  .solManage(BigInt(0.1 * LAMPORTS_PER_SOL))
+let dappAuthorityActions = Actions.set()
+  .solLimit({amount: BigInt(0.1 * LAMPORTS_PER_SOL)})
   .get();
 
 //
@@ -189,8 +186,6 @@ let dappAuthorityActions = SwigActions.set()
 //
 let addDappAuthorityInstruction = managerRole.addAuthority({
   actions: dappAuthorityActions,
-  endSlot: 0n,
-  startSlot: 0n,
   newAuthority: dappAuthority,
   payer: userAuthorityManagerKeypair.publicKey,
 });

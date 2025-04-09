@@ -9,7 +9,7 @@ import {
   type Signer,
   type TransactionSignature,
 } from '@solana/web3.js';
-import type { SwigActions } from '../actions';
+import type { Actions } from '../actions';
 import type { Authority } from '../authority';
 import { Swig } from '../kit';
 import { createLegacyTransaction } from '../utils';
@@ -18,18 +18,16 @@ export async function createSwig(
   connection: Connection,
   id: Uint8Array,
   authority: Authority,
-  startSlot: bigint,
-  endSlot: bigint,
+  actions: Actions,
   payer: PublicKey,
   signers: Array<Signer>,
   options?: { commitment?: Commitment },
 ): Promise<TransactionSignature> {
   let createInstruction = Swig.create({
     authority,
-    endSlot,
     payer,
-    startSlot,
     id,
+    actions
   });
 
   let transaction = await createLegacyTransaction(
@@ -125,9 +123,7 @@ export async function addAuthority(
   swigAddress: PublicKey,
   authority: Authority,
   newAuthority: Authority,
-  actions: SwigActions,
-  startSlot: bigint,
-  endSlot: bigint,
+  actions: Actions,
   payer: Keypair,
   signers: Signer[] = [],
   options?: { commitment: Commitment },
@@ -146,8 +142,6 @@ export async function addAuthority(
   let addAuthorityIx = role.addAuthority({
     payer: payer.publicKey,
     actions,
-    endSlot,
-    startSlot,
     newAuthority,
   });
 
@@ -208,55 +202,55 @@ export async function removeAuthority(
   return sendAndConfirmTransaction(connection, transaction, [], options);
 }
 
-export async function replaceAuthority(
-  connection: Connection,
-  swigAddress: PublicKey,
-  authority: Authority,
-  authorityToReplace: Authority,
-  newAuthority: Authority,
-  actions: SwigActions,
-  startSlot: bigint,
-  endSlot: bigint,
-  payer: Keypair,
-  signers: Signer[] = [],
-  options?: { commitment: Commitment },
-): Promise<TransactionSignature> {
-  let swig = await fetchSwig(connection, swigAddress, options);
+// export async function replaceAuthority(
+//   connection: Connection,
+//   swigAddress: PublicKey,
+//   authority: Authority,
+//   authorityToReplace: Authority,
+//   newAuthority: Authority,
+//   actions: Actions,
+//   startSlot: bigint,
+//   endSlot: bigint,
+//   payer: Keypair,
+//   signers: Signer[] = [],
+//   options?: { commitment: Commitment },
+// ): Promise<TransactionSignature> {
+//   let swig = await fetchSwig(connection, swigAddress, options);
 
-  let role = swig.findRoleByAuthority(authority);
+//   let role = swig.findRoleByAuthority(authority);
 
-  if (!role) {
-    throw new Error("Authority doesn't have a role on the swig");
-  }
+//   if (!role) {
+//     throw new Error("Authority doesn't have a role on the swig");
+//   }
 
-  if (!role.canManageAuthority())
-    throw new Error('Role cannot manage authorities on the swig');
+//   if (!role.canManageAuthority())
+//     throw new Error('Role cannot manage authorities on the swig');
 
-  let roleToReplace = swig.findRoleByAuthority(authorityToReplace);
+//   let roleToReplace = swig.findRoleByAuthority(authorityToReplace);
 
-  if (!roleToReplace) {
-    throw new Error('Authority role to replace does not exist on the swig');
-  }
+//   if (!roleToReplace) {
+//     throw new Error('Authority role to replace does not exist on the swig');
+//   }
 
-  let replaceAuthorityIx = role.replaceAuthority({
-    payer: payer.publicKey,
-    actions,
-    endSlot,
-    startSlot,
-    roleToReplace,
-    newAuthority
-  });
+//   let replaceAuthorityIx = role.replaceAuthority({
+//     payer: payer.publicKey,
+//     actions,
+//     endSlot,
+//     startSlot,
+//     roleToReplace,
+//     newAuthority
+//   });
 
-  // todo: option for sending versioned
-  let transaction = await createLegacyTransaction(
-    connection,
-    [replaceAuthorityIx],
-    payer.publicKey,
-    options,
-  );
+//   // todo: option for sending versioned
+//   let transaction = await createLegacyTransaction(
+//     connection,
+//     [replaceAuthorityIx],
+//     payer.publicKey,
+//     options,
+//   );
 
-  transaction.sign(payer, ...signers);
+//   transaction.sign(payer, ...signers);
 
-  return sendAndConfirmTransaction(connection, transaction, [], options);
-}
+//   return sendAndConfirmTransaction(connection, transaction, [], options);
+// }
 

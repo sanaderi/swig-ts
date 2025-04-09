@@ -6,12 +6,13 @@ import {
   getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
+  getF32Decoder,
   getStructDecoder,
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
+  getU32Decoder,
   getU32Encoder,
-  getU8Decoder,
   getU8Encoder,
   transformEncoder,
   type Codec,
@@ -24,14 +25,16 @@ import {
   getCompactInstructionEncoder,
   type CompactInstruction,
 } from '../types/compactInstruction';
-import { SwigInstructionDiscriminator as Discriminator } from './SwigInstruction';
+import {
+  SwigInstructionDiscriminator as Discriminator,
+  getSwigInstructionDiscriminatorDecoder,
+  getSwigInstructionDiscriminatorEncoder,
+} from './SwigInstruction';
 
 export type SignV1InstructionData = {
   discriminator: number;
-  roleId: number;
-  authorityPayloadLen: number;
   instructionPayloadLen: number;
-  _padding: ReadonlyUint8Array;
+  roleId: number;
   authorityPayload: ReadonlyUint8Array;
   compactInstructions: CompactInstruction[];
 };
@@ -49,11 +52,9 @@ export function getSignV1InstructionCodec(payloadSize: number): {
 } {
   let encoder: Encoder<SignV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
-      ['roleId', getU32Encoder()],
-      ['authorityPayloadLen', getU16Encoder()],
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['instructionPayloadLen', getU16Encoder()],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 1)],
+      ['roleId', getU32Encoder()],
       ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
       [
         'compactInstructions',
@@ -65,20 +66,22 @@ export function getSignV1InstructionCodec(payloadSize: number): {
     (value) => ({
       ...value,
       discriminator: Discriminator.SignV1,
-      _padding: Uint8Array.from(Array(1)),
       instructionPayloadLen: value.compactInstructions.length,
       authorityPayloadLen: payloadSize,
     }),
   );
 
   let decoder = getStructDecoder([
-    ['discriminator', getU8Decoder()],
-    ['roleId', getU8Decoder()],
-    ['authorityPayloadLen', getU16Decoder()],
+    ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['instructionPayloadLen', getU16Decoder()],
-    ['_padding', fixDecoderSize(getBytesDecoder(), 2)],
+    ['roleId', getF32Decoder()],
     ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
-    ['compactInstructions', getArrayDecoder(getCompactInstructionDecoder())],
+    [
+      'compactInstructions',
+      getArrayDecoder(getCompactInstructionDecoder(), {
+        size: getU32Decoder(),
+      }),
+    ],
   ]);
 
   let codec = combineCodec(encoder, decoder);

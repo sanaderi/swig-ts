@@ -5,7 +5,7 @@ import { uint8ArraysEqual } from '../utils';
 import { getAuthorityConfig } from './config';
 import type { Actions } from '../actions';
 
-export class Authority {
+export abstract class Authority {
   constructor(
     public data: Uint8Array,
     public type: AuthorityType,
@@ -19,17 +19,17 @@ export class Authority {
     return this.config.instructions;
   }
 
-  static ed25519(address: PublicKey) {
-    return new Authority(address.toBytes(), AuthorityType.Ed25519)
-  }
+  // static ed25519(address: PublicKey) {
+  //   return new Authority(address.toBytes(), AuthorityType.Ed25519)
+  // }
   
-  static ed25519Session(address: PublicKey) {
-    return new Authority(address.toBytes(), AuthorityType.Ed25519Session)
-  }
+  // static ed25519Session(address: PublicKey) {
+  //   return new Authority(address.toBytes(), AuthorityType.Ed25519Session)
+  // }
   
-  static secp256k1(address: any) {
-    return new Authority(address.toBytes(), AuthorityType.Secp256k1)
-  }
+  // static secp256k1(address: any) {
+  //   return new Authority(address.toBytes(), AuthorityType.Secp256k1)
+  // }
   
   // static secp256k1Session(address: any) {
   //   return new Authority(address.toBytes(), AuthorityType.Secp256k1Session)

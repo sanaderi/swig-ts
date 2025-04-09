@@ -1,13 +1,12 @@
 import {
   Connection,
   PublicKey,
-  TransactionInstruction,
   type Commitment,
   type GetAccountInfoConfig,
 } from '@solana/web3.js';
-import { getSwigCodec, type Role, type SwigAccount } from '@swig/coder';
+import { getSwigCodec, type SwigAccount } from '@swig/coder';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from './accounts';
-import { SwigActions } from './actions/swig';
+import { deserializeRoles, type Actions } from './actions';
 import { Authority } from './authority';
 import { SWIG_PROGRAM_ADDRESS } from './consts';
 
@@ -29,8 +28,10 @@ export class Swig {
   }
 
   get roles() {
-    return this.account.roles.map(
-      (role, i) => new SwigRole(role, this.address, i),
+    return deserializeRoles(
+      this.address,
+      Uint8Array.from(this.account.roles_buffer),
+      this.account.roles,
     );
   }
 
@@ -76,8 +77,7 @@ export class Swig {
   static create(args: {
     payer: PublicKey;
     id: Uint8Array;
-    startSlot: bigint;
-    endSlot: bigint;
+    actions: Actions;
     authority: Authority;
   }) {
     let [address, bump] = findSwigPda(args.id);
@@ -85,9 +85,8 @@ export class Swig {
       payer: args.payer,
       swigAddress: address,
       bump,
-      endSlot: args.endSlot,
-      startSlot: args.startSlot,
       id: args.id,
+      actions: args.actions,
     });
   }
 
@@ -96,123 +95,6 @@ export class Swig {
   }
 
   findRoleById(id: number) {
-    return this.roles.find(role => role.id === id) ?? null;
+    return this.roles.find((role) => role.id === id) ?? null;
   }
 }
-
-// export class SwigRole {
-//   private readonly actions: SwigActions;
-
-//   constructor(
-//     private readonly role: Role,
-//     public readonly swigAddress: PublicKey,
-//     public readonly id: number,
-//   ) {
-//     this.actions = new SwigActions(this.role.actions);
-//   }
-
-//   get authority(): Authority {
-//     return new Authority(
-//       new Uint8Array(this.role.authorityData),
-//       this.role.authorityType,
-//     );
-//   }
-
-//   /**
-//    *
-//    * @param args
-//    * @returns
-//    */
-//   sign(args: {
-//     payer: PublicKey;
-//     innerInstructions: TransactionInstruction[];
-//   }) {
-//     return this.authority.sign({
-//       swigAddress: this.swigAddress,
-//       payer: args.payer,
-//       innerInstructions: args.innerInstructions,
-//       roleId: this.id,
-//     });
-//   }
-
-//   addAuthority(args: {
-//     payer: PublicKey;
-//     actions: SwigActions;
-//     newAuthority: Authority;
-//     startSlot: bigint;
-//     endSlot: bigint;
-//   }) {
-//     return this.authority.addAuthority({
-//       payer: args.payer,
-//       swigAddress: this.swigAddress,
-//       actingRoleId: this.id,
-//       actions: args.actions.rawActions(),
-//       newAuthority: args.newAuthority,
-//     });
-//   }
-
-//   removeAuthority(args: { payer: PublicKey; roleToRemove: SwigRole }) {
-//     return this.authority.removeAuthority({
-//       payer: args.payer,
-//       swigAddress: this.swigAddress,
-//       roleId: this.id,
-//       roleIdToRemove: args.roleToRemove.id,
-//     });
-//   }
-
-//   // replaceAuthority(args: {
-//   //   payer: PublicKey;
-//   //   actions: SwigActions;
-//   //   newAuthority: Authority;
-//   //   startSlot: bigint;
-//   //   endSlot: bigint;
-//   //   roleToReplace: SwigRole;
-//   // }) {
-//   //   return this.authority.replaceAuthority({
-//   //     payer: args.payer,
-//   //     swigAddress: this.swigAddress,
-//   //     roleId: this.id,
-//   //     actions: args.actions.rawActions(),
-//   //     roleIdToReplace: args.roleToReplace.id,
-//   //     endSlot: args.endSlot,
-//   //     startSlot: args.startSlot,
-//   //     newAuthority: args.newAuthority,
-//   //   });
-//   // }
-
-//   hasAllAction() {
-//     return this.actions.hasAllAction();
-//   }
-
-//   canManageAuthority() {
-//     return this.actions.canManageAuthority();
-//   }
-
-//   canUseProgram(programId: PublicKey) {
-//     return this.actions.canUseProgram(programId);
-//   }
-
-//   canSpendSolMax() {
-//     return this.actions.canSpendSolMax();
-//   }
-
-//   canSpendSol(amount?: bigint) {
-//     return this.actions.canSpendSol(amount);
-//   }
-
-//   canSpendAllTokensMax() {
-//     return this.actions.canSpendAllTokensMax();
-//   }
-
-//   canSpendAllTokens(amount?: bigint) {
-//     return this.actions.canSpendAllTokens(amount);
-//   }
-
-//   canSpendTokenMax(mint: PublicKey) {
-//     return this.actions.canSpendTokenMax(mint);
-//   }
-
-//   canSpendToken(mint: PublicKey, amount?: bigint) {
-//     return this.actions.canSpendToken(mint, amount);
-//   }
-// }

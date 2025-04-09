@@ -10,7 +10,7 @@ import {
 } from '@solana/kit';
 
 export enum AuthorityType {
-  // None,
+  None,
   Ed25519 = 1,
   Ed25519Session,
   Secp256k1,

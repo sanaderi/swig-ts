@@ -23,17 +23,20 @@ import {
   getAuthorityTypeDecoder,
   getAuthorityTypeEncoder,
 } from '../types';
-import { SwigInstructionDiscriminator as Discriminator } from './SwigInstruction';
+import {
+  SwigInstructionDiscriminator as Discriminator,
+  getSwigInstructionDiscriminatorDecoder,
+  getSwigInstructionDiscriminatorEncoder,
+} from './SwigInstruction';
 
 export type AddAuthorityV1InstructionData = {
   discriminator: number;
-  actingRoleId: number;
-  _padding1: ReadonlyUint8Array; // 3
   newAuthorityDataLen: number;
   actionsPayloadLen: number;
   newAuthorityType: AuthorityType;
   noOfActions: number;
-  _padding2: ReadonlyUint8Array; // 1
+  _padding: ReadonlyUint8Array; // 3
+  actingRoleId: number;
   newAuthorityData: ReadonlyUint8Array;
   actions: ReadonlyUint8Array;
   authorityPayload: ReadonlyUint8Array;
@@ -63,14 +66,13 @@ export function getAddAuthorityV1InstructionCodec(
 
   let encoder: Encoder<AddAuthorityV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
-      ['actingRoleId', getU32Encoder()],
-      ['_padding1', fixEncoderSize(getBytesEncoder(), 3)],
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['newAuthorityDataLen', getU16Encoder()],
       ['actionsPayloadLen', getU16Encoder()],
       ['newAuthorityType', getAuthorityTypeEncoder()],
       ['noOfActions', getU8Encoder()],
-      ['_padding2', fixEncoderSize(getBytesEncoder(), 1)],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 3)],
+      ['actingRoleId', getU32Encoder()],
       [
         'newAuthorityData',
         fixEncoderSize(getBytesEncoder(), newAuthorityDataSize),
@@ -83,20 +85,18 @@ export function getAddAuthorityV1InstructionCodec(
       discriminator: Discriminator.AddAuthorityV1,
       actionsPayloadLen: value.actions.length,
       newAuthorityDataLen: newAuthorityDataSize,
-      _padding1: Uint8Array.from(Array(3)),
-      _padding2: Uint8Array.from(Array(1))
+      _padding: Uint8Array.from(Array(3)),
     }),
   );
 
   let decoder: Decoder<AddAuthorityV1InstructionData> = getStructDecoder([
-    ['discriminator', getU8Decoder()],
-    ['actingRoleId', getU32Decoder()],
-    ['_padding1', fixDecoderSize(getBytesDecoder(), 3)],
+    ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['newAuthorityDataLen', getU16Decoder()],
     ['actionsPayloadLen', getU16Decoder()],
     ['newAuthorityType', getAuthorityTypeDecoder()],
     ['noOfActions', getU8Decoder()],
-    ['_padding2', fixDecoderSize(getBytesDecoder(), 1)],
+    ['_padding', fixDecoderSize(getBytesDecoder(), 3)],
+    ['actingRoleId', getU32Decoder()],
     [
       'newAuthorityData',
       fixDecoderSize(getBytesDecoder(), newAuthorityDataSize),

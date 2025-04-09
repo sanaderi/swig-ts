@@ -4,13 +4,13 @@ import {
   getEnumEncoder,
   getU16Decoder,
   getU16Encoder,
-  getUnitDecoder,
   type Codec,
   type Decoder,
   type Encoder,
 } from '@solana/kit';
 
 export enum Permission {
+  None,
   SolLimit = 1,
   SolRecurringLimit,
   Program,
@@ -32,17 +32,3 @@ export function getPermissionDecoder(): Decoder<Permission> {
 export function getPermissionCodec(): Codec<Permission, Permission> {
   return combineCodec(getPermissionEncoder(), getPermissionDecoder());
 }
-
-
-export type All = void
-
-export type ManageAuthority = void
-
-// export function getAllDecoder(): Decoder<All> {
-//   return getUnitDecoder()
-// }
-
-// export function getManageAuthorityDecoder(): Decoder<ManageAuthority> {
-//   return getUnitDecoder()
-// }
-

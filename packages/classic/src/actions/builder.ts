@@ -143,7 +143,7 @@ export class AllConfig extends ActionConfig {
   }
 
   encode(): Uint8Array {
-    return Uint8Array.from([]);
+    return new Uint8Array(0);
   }
 }
 

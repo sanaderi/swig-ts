@@ -9,7 +9,6 @@ import {
   getTokenLimitDecoder,
   getTokenRecurringLimitDecoder,
   Permission,
-  POSITION_LENGTH,
   type ActionHeader,
   type ProgramLimit,
   type SolLimit,
@@ -82,7 +81,10 @@ export class Action {
     }
 
     if (isActionPayload(Permission.Program, this.payload)) {
-      if (program.toBase58() === new PublicKey(this.payload.data.programId).toBase58())
+      if (
+        program.toBase58() ===
+        new PublicKey(this.payload.data.programId).toBase58()
+      )
         return true;
     }
 
@@ -173,11 +175,11 @@ export function deserializeActions(
   let cursor = 0;
   let actions: Action[] = [];
 
-  Array(count).forEach(function (_) {
+  for (let i = 0; i < count; i++) {
     let headerRaw = actionsBuffer.slice(cursor, cursor + ACTION_HEADER_LENGTH);
     let header = getActionHeaderDecoder().decode(headerRaw);
 
-    cursor += POSITION_LENGTH;
+    cursor += ACTION_HEADER_LENGTH;
 
     let payloadRaw = actionsBuffer.slice(cursor, header.boundary);
 
@@ -186,7 +188,7 @@ export function deserializeActions(
     cursor = header.boundary;
 
     actions.push(new Action(header, payload));
-  });
+  }
 
   return actions;
 }
