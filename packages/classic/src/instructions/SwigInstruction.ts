@@ -1,10 +1,12 @@
 import type { AccountMeta, TransactionInstruction } from '@solana/web3.js';
 import {
   getAddAuthorityV1InstructionCodec,
+  getCreateSessionV1InstructionCodec,
   getCreateV1InstructionDataCodec,
   getRemoveAuthorityV1InstructionCodec,
   getSignV1InstructionCodec,
   type AddAuthorityV1InstructionDataArgs,
+  type CreateSessionV1InstructionDataArgs,
   type CreateV1InstructionDataArgs,
   type RemoveAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
@@ -18,6 +20,7 @@ import {
 } from './createV1';
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
+import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 
 /**
  *
@@ -161,22 +164,22 @@ export class SwigInstructionV1 {
     return swigInstuction(accounts, new Uint8Array(signV1InstructionData));
   }
 
-  // static createSession<
-  //   T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
-  // >(
-  //   accounts: T,
-  //   data: CreateSessionV1InstructionDataArgs,
-  // ): TransactionInstruction {
-  //   let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
-  //     data.authorityPayload.length,
-  //   ).encoder;
+  static createSession<
+    T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: CreateSessionV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
+      data.authorityPayload.length,
+    ).encoder;
 
-  //   let createSessionV1InstructionData =
-  //     createSessionV1InstructionDataEncoder.encode(data);
+    let createSessionV1InstructionData =
+      createSessionV1InstructionDataEncoder.encode(data);
 
-  //   return swigInstuction(
-  //     accounts,
-  //     new Uint8Array(createSessionV1InstructionData),
-  //   );
-  // }
+    return swigInstuction(
+      accounts,
+      new Uint8Array(createSessionV1InstructionData),
+    );
+  }
 }

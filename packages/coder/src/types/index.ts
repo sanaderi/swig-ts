@@ -1,6 +1,7 @@
 export * from "./actionHeader"
 export * from './authorityType';
 export * from "./compactInstruction"
+export * from "./ed25519Session"
 export * from "./permissions"
 export * from "./position"
 export * from "./programLimit"

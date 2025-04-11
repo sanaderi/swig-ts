@@ -35,6 +35,14 @@ export class Swig {
     );
   }
 
+  findRolesBySessionKey(sessionKey: PublicKey) {
+    return this.roles
+      .filter((r) => r.isSessionBased())
+      .filter(
+        (r) => r.authority.sessionKey.toBase58() === sessionKey.toBase58(),
+      );
+  }
+
   static async fetchNullable(
     connection: Connection,
     swigAddress: PublicKey,

@@ -4,7 +4,12 @@ import {
   POSITION_LENGTH,
   type Position,
 } from '@swig/coder';
-import { Authority, getAuthority } from '../authority';
+import {
+  Authority,
+  getAuthority,
+  SessionBasedAuthority,
+  TokenBasedAuthority,
+} from '../authority';
 import { Actions } from './action';
 
 export class Role {
@@ -15,7 +20,11 @@ export class Role {
     private readonly actions: Actions,
   ) {}
 
-  static from(swigAddress: PublicKey, position: Position, roleData: Uint8Array) {
+  static from(
+    swigAddress: PublicKey,
+    position: Position,
+    roleData: Uint8Array,
+  ) {
     let { actions, authority } = deserializeRoleData(position, roleData);
     return new Role(swigAddress, position, authority, actions);
   }
@@ -28,9 +37,13 @@ export class Role {
     return this.position.id;
   }
 
-  // get authority() {
-  //   return getAuthority(this.authorityType, this.authorityData);
-  // }
+  isSessionBased(): this is Role & { authority: SessionBasedAuthority } {
+    return this.authority instanceof SessionBasedAuthority;
+  }
+
+  isTokenBased(): this is Role & { authority: TokenBasedAuthority } {
+    return this.authority instanceof TokenBasedAuthority;
+  }
 
   hasAllAction() {
     return this.actions.hasAllAction();
@@ -95,25 +108,20 @@ export class Role {
     });
   }
 
-  // replaceAuthority(args: {
-  //   payer: PublicKey;
-  //   actions: Actions;
-  //   newAuthority: Authority;
-  //   startSlot: bigint;
-  //   endSlot: bigint;
-  //   roleToReplace: Role;
-  // }) {
-  //   return this.authority.replaceAuthority({
-  //     payer: args.payer,
-  //     swigAddress: this.swigAddress,
-  //     roleId: this.id,
-  //     actions: args.actions,
-  //     roleIdToReplace: args.roleToReplace.id,
-  //     endSlot: args.endSlot,
-  //     startSlot: args.startSlot,
-  //     newAuthority: args.newAuthority,
-  //   });
-  // }
+  createSession(args: {
+    payer: PublicKey;
+    newSessionKey: PublicKey;
+    sessionDuration?: bigint;
+  }) {
+    if (!this.isSessionBased()) return null;
+    return this.authority.createSession({
+      roleId: this.id,
+      swigAddress: this.swigAddress,
+      payer: args.payer,
+      sessionDuration: args.sessionDuration,
+      newSessionKey: args.newSessionKey,
+    });
+  }
 }
 
 export function deserializeRoles(
@@ -135,7 +143,7 @@ export function deserializeRoles(
     roles.push(Role.from(swigAddress, position, roleData));
 
     cursor = position.boundary;
-  };
+  }
 
   return roles;
 }
@@ -148,4 +156,10 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   let actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };
+}
+
+export function isSessionBased(
+  role: Role,
+): role is Role & { authority: SessionBasedAuthority } {
+  return role.authority instanceof SessionBasedAuthority;
 }

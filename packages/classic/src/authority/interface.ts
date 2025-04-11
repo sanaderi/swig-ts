@@ -2,6 +2,7 @@ import type { ReadonlyUint8Array } from '@solana/kit';
 import type { TransactionInstruction } from '@solana/web3.js';
 import type {
   AddAuthorityV1InstructionDataArgs,
+  CreateSessionV1InstructionDataArgs,
   RemoveAuthorityV1InstructionDataArgs,
 } from '@swig/coder';
 import {
@@ -76,10 +77,10 @@ export interface AuthorityInstruction {
     },
   ): TransactionInstruction;
 
-  // createSessionV1Instruction(
-  //   accounts: SignV1InstructionAccounts,
-  //   data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
-  //     authorityData: ReadonlyUint8Array;
-  //   },
-  // ): TransactionInstruction;
+  createSessionV1Instruction(
+    accounts: SignV1InstructionAccounts,
+    data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
+      authorityData: ReadonlyUint8Array;
+    },
+  ): TransactionInstruction;
 }

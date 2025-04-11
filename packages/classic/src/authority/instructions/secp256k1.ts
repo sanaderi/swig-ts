@@ -108,9 +108,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  // createSessionV1Instruction(accounts, data) {
-  //   throw new Error('Not implemented yet');
-  // },
+  createSessionV1Instruction(accounts, data) {
+    throw new Error('Not implemented yet');
+  },
 };
 
 /**

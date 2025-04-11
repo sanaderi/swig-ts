@@ -7,6 +7,7 @@ import {
   getSignV1BaseAccountMetasWithAuthority,
 } from '../../instructions';
 import type { AuthorityInstruction } from '../interface';
+import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
 
 /**
  * Ed25519 Authority
@@ -99,15 +100,15 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  // createSessionV1Instruction(accounts, data) {
-  //   let authority = new PublicKey(data.authorityData);
+  createSessionV1Instruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
 
-  //   let [createSessionAccount, authorityPayload] =
-  //     getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
+    let [createSessionAccount, authorityPayload] =
+      getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
 
-  //   return SwigInstructionV1.createSession(createSessionAccount, {
-  //     ...data,
-  //     authorityPayload: Uint8Array.from([authorityPayload]),
-  //   });
-  // },
+    return SwigInstructionV1.createSession(createSessionAccount, {
+      ...data,
+      authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
 };
