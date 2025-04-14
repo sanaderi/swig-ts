@@ -11,9 +11,25 @@ import {
 } from '@solana/web3.js';
 import type { Actions } from '../actions';
 import type { Authority } from '../authority';
-import { Swig } from '../kit';
+import { Swig } from '../swig';
+import {
+  addAuthorityInstruction,
+  removeAuthorityInstruction,
+  signInstruction,
+} from '../role';
 import { createLegacyTransaction } from '../utils';
 
+/**
+ * Creates a `SwigAccount`
+ * @param connection `Connection`
+ * @param id id pda seed
+ * @param authority Swig `Authority`
+ * @param actions Actions the authority can perform
+ * @param payer Ed25519 payer
+ * @param signers Signers of the transaction
+ * @param options options
+ * @returns `TransactionSignature`
+ */
 export async function createSwig(
   connection: Connection,
   id: Uint8Array,
@@ -27,7 +43,7 @@ export async function createSwig(
     authority,
     payer,
     id,
-    actions
+    actions,
   });
 
   let transaction = await createLegacyTransaction(
@@ -39,6 +55,7 @@ export async function createSwig(
 
   return sendAndConfirmTransaction(connection, transaction, signers, options);
 }
+
 
 export function fetchNullableSwig(
   connection: Connection,
@@ -72,7 +89,7 @@ export async function getSignInstruction(
     throw new Error("Authority doesn't have a role on the swig");
   }
 
-  return role.sign({ payer, innerInstructions: instructons });
+  return signInstruction(role, payer, instructons);
 }
 
 export async function signAndSend(
@@ -105,7 +122,7 @@ export async function signAndSend(
 }
 
 /**
- *
+ * 
  * @param connection
  * @param swigAddress
  * @param authority
@@ -139,11 +156,12 @@ export async function addAuthority(
   if (!role.canManageAuthority())
     throw new Error('Role cannot manage authorities on the swig');
 
-  let addAuthorityIx = role.addAuthority({
-    payer: payer.publicKey,
-    actions,
+  let addAuthorityIx = addAuthorityInstruction(
+    role,
+    payer.publicKey,
     newAuthority,
-  });
+    actions,
+  );
 
   // todo: option for sending versioned
   let transaction = await createLegacyTransaction(
@@ -184,10 +202,11 @@ export async function removeAuthority(
     throw new Error('Authority role does not exist on the swig');
   }
 
-  let removeAuthorityIx = role.removeAuthority({
-    payer: payer.publicKey,
+  let removeAuthorityIx = removeAuthorityInstruction(
+    role,
+    payer.publicKey,
     roleToRemove,
-  });
+  );
 
   // todo: option for sending versioned
   let transaction = await createLegacyTransaction(
@@ -201,56 +220,3 @@ export async function removeAuthority(
 
   return sendAndConfirmTransaction(connection, transaction, [], options);
 }
-
-// export async function replaceAuthority(
-//   connection: Connection,
-//   swigAddress: PublicKey,
-//   authority: Authority,
-//   authorityToReplace: Authority,
-//   newAuthority: Authority,
-//   actions: Actions,
-//   startSlot: bigint,
-//   endSlot: bigint,
-//   payer: Keypair,
-//   signers: Signer[] = [],
-//   options?: { commitment: Commitment },
-// ): Promise<TransactionSignature> {
-//   let swig = await fetchSwig(connection, swigAddress, options);
-
-//   let role = swig.findRoleByAuthority(authority);
-
-//   if (!role) {
-//     throw new Error("Authority doesn't have a role on the swig");
-//   }
-
-//   if (!role.canManageAuthority())
-//     throw new Error('Role cannot manage authorities on the swig');
-
-//   let roleToReplace = swig.findRoleByAuthority(authorityToReplace);
-
-//   if (!roleToReplace) {
-//     throw new Error('Authority role to replace does not exist on the swig');
-//   }
-
-//   let replaceAuthorityIx = role.replaceAuthority({
-//     payer: payer.publicKey,
-//     actions,
-//     endSlot,
-//     startSlot,
-//     roleToReplace,
-//     newAuthority
-//   });
-
-//   // todo: option for sending versioned
-//   let transaction = await createLegacyTransaction(
-//     connection,
-//     [replaceAuthorityIx],
-//     payer.publicKey,
-//     options,
-//   );
-
-//   transaction.sign(payer, ...signers);
-
-//   return sendAndConfirmTransaction(connection, transaction, [], options);
-// }
-

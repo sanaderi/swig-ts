@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "tsup-node",
-    "dev": "tsup-node --watch"
+    "dev": "tsup-node --watch",
+    "start-validator": "solana-test-validator --reset --bpf-program swigNmWhy8RvUYXBKV5TSU8Hh3f4o5EczHouzBzEsLC swig.so"
   },
   "devDependencies": {
     "@swig/classic": "workspace:*",

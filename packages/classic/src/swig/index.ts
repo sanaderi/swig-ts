@@ -5,17 +5,11 @@ import {
   type GetAccountInfoConfig,
 } from '@solana/web3.js';
 import { getSwigCodec, type SwigAccount } from '@swig/coder';
-import { fetchMaybeSwigAccount, fetchSwigAccount } from './accounts';
-import { deserializeRoles, type Actions } from './actions';
-import { Authority } from './authority';
-import { SWIG_PROGRAM_ADDRESS } from './consts';
-
-export function findSwigPda(id: Uint8Array): [PublicKey, number] {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from('swig'), Buffer.from(id)],
-    SWIG_PROGRAM_ADDRESS,
-  );
-}
+import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
+import { type Actions } from '../actions';
+import { Authority } from '../authority';
+import { SWIG_PROGRAM_ADDRESS } from '../consts';
+import { deserializeRoles, type SessionBasedRole } from '../role';
 
 export class Swig {
   private constructor(
@@ -35,12 +29,14 @@ export class Swig {
     );
   }
 
-  findRolesBySessionKey(sessionKey: PublicKey) {
-    return this.roles
-      .filter((r) => r.isSessionBased())
-      .filter(
-        (r) => r.authority.sessionKey.toBase58() === sessionKey.toBase58(),
-      );
+  findRoleBySessionKey(sessionKey: PublicKey): SessionBasedRole | null {
+    let role = this.roles.find(
+      (r) =>
+        r.isSessionBased() &&
+        r.authority.sessionKey.toBase58() === sessionKey.toBase58(),
+    );
+    if (!role) return null;
+    return role as SessionBasedRole;
   }
 
   static async fetchNullable(
@@ -105,4 +101,11 @@ export class Swig {
   findRoleById(id: number) {
     return this.roles.find((role) => role.id === id) ?? null;
   }
+}
+
+export function findSwigPda(id: Uint8Array): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('swig'), Buffer.from(id)],
+    SWIG_PROGRAM_ADDRESS,
+  );
 }

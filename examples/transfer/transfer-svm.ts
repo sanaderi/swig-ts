@@ -8,12 +8,18 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  addAuthorityInstruction,
   Ed25519Authority,
   findSwigPda,
+  signInstruction,
   Swig,
   SWIG_PROGRAM_ADDRESS,
 } from '@swig/classic';
-import { FailedTransactionMetadata, LiteSVM, TransactionMetadata } from 'litesvm';
+import {
+  FailedTransactionMetadata,
+  LiteSVM,
+  TransactionMetadata,
+} from 'litesvm';
 import { readFileSync } from 'node:fs';
 
 //
@@ -143,13 +149,14 @@ let manageAuthorityActions = Actions.set()
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityInstruction = rootRole.addAuthority({
-  actions: manageAuthorityActions,
-  newAuthority: authorityManager,
-  payer: userRootKeypair.publicKey,
-});
+let addAuthorityIx = addAuthorityInstruction(
+  rootRole,
+  userRootKeypair.publicKey,
+  authorityManager,
+  manageAuthorityActions,
+);
 
-sendSVMTransaction(svm, addAuthorityInstruction, userRootKeypair);
+sendSVMTransaction(svm, addAuthorityIx, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
@@ -180,11 +187,12 @@ let dappAuthorityActions = Actions.set()
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = managerRole.addAuthority({
-  actions: dappAuthorityActions,
-  newAuthority: dappAuthority,
-  payer: userAuthorityManagerKeypair.publicKey,
-});
+let addDappAuthorityInstruction = addAuthorityInstruction(
+  managerRole,
+  userAuthorityManagerKeypair.publicKey,
+  dappAuthority,
+  dappAuthorityActions,
+);
 
 sendSVMTransaction(
   svm,
@@ -243,10 +251,11 @@ let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-let signTransfer = dappAutorityRole.sign({
-  payer: dappAuthorityKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+let signTransfer = signInstruction(
+  dappAutorityRole,
+  dappAuthorityKeypair.publicKey,
+  [transfer],
+);
 
 sendSVMTransaction(svm, signTransfer, dappAuthorityKeypair);
 
@@ -267,10 +276,11 @@ dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-signTransfer = dappAutorityRole.sign({
-  payer: dappAuthorityKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+signTransfer = signInstruction(
+  dappAutorityRole,
+  dappAuthorityKeypair.publicKey,
+  [transfer],
+);
 
 sendSVMTransaction(svm, signTransfer, dappAuthorityKeypair);
 

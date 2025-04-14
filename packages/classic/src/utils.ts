@@ -12,7 +12,7 @@ import { SWIG_PROGRAM_ADDRESS } from './consts';
 /**
  * Creates a SWIG Instruction with the swig program addresss
  */
-export function swigInstuction<T extends AccountMeta[]>(
+export function swigInstruction<T extends AccountMeta[]>(
   accounts: T,
   data: Uint8Array,
 ): TransactionInstruction {
@@ -71,3 +71,4 @@ export async function createLegacyTransaction(
 
   return transaction
 }
+

@@ -8,8 +8,10 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  createSessionInstruction,
   Ed25519SessionAuthority,
   findSwigPda,
+  signInstruction,
   Swig,
   SWIG_PROGRAM_ADDRESS,
 } from '@swig/classic';
@@ -39,11 +41,11 @@ function sendSVMTransaction(
   let tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
-    console.log('tx:', tx.meta().logs());
+    // console.log('tx:', tx.meta().logs());
   }
 
   if (tx instanceof TransactionMetadata) {
-    console.log('tx:', tx.logs());
+    // console.log('tx:', tx.logs());
   }
 }
 
@@ -110,12 +112,7 @@ let createSwigInstruction = Swig.create({
   actions: rootActions,
 });
 
-// svm.warpToSlot(3n);
-
 sendSVMTransaction(svm, createSwigInstruction, userRootKeypair);
-
-// svm.wa
-console.log('next slot:', svm.getSlotHistory().nextSlot);
 
 //
 // * fetch swig
@@ -134,29 +131,24 @@ if (!rootRole) throw new Error('Role not found for authority');
 
 svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 
-let newSessionInstruction = rootRole.createSession({
-  payer: rootAuthority.address,
-  sessionDuration: 50n,
-  newSessionKey: userAuthorityManagerKeypair.publicKey,
-});
+let newSessionInstruction = createSessionInstruction(
+  rootRole,
+  rootAuthority.address,
+  userAuthorityManagerKeypair.publicKey,
+  50n,
+);
 
 if (!newSessionInstruction) throw new Error('Session is null');
-
-console.log(
-  'session instruction:',
-  Uint8Array.from(newSessionInstruction.data),
-);
 
 sendSVMTransaction(svm, newSessionInstruction, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
-rootRole = swig.findRolesBySessionKey(userAuthorityManagerKeypair.publicKey)[0];
+rootRole = swig.findRoleBySessionKey(userAuthorityManagerKeypair.publicKey);
 
 if (!rootRole || !rootRole.isSessionBased())
   throw new Error('not session based dapp role');
 
-console.log();
 console.log('usrauth key:', userAuthorityManagerKeypair.publicKey.toBase58());
 console.log('session key:', rootRole.authority.sessionKey.toBase58());
 //
@@ -190,10 +182,11 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let signTransfer = rootRole.sign({
-  payer: userAuthorityManagerKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+let signTransfer = signInstruction(
+  rootRole,
+  userAuthorityManagerKeypair.publicKey,
+  [transfer],
+);
 
 sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
 

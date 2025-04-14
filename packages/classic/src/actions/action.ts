@@ -34,6 +34,10 @@ export class Action {
     return this.permission === Permission.All;
   }
 
+  /**
+   * Check if this action can manage authority
+   * @returns `boolean`
+   */
   canManageAuthority() {
     return (
       this.permission === Permission.All ||

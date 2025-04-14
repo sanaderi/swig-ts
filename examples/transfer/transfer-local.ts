@@ -8,10 +8,12 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  addAuthorityInstruction,
   createSwig,
   Ed25519Authority,
   fetchSwig,
   findSwigPda,
+  signInstruction,
 } from '@swig/classic';
 
 //
@@ -119,7 +121,9 @@ let rootRole = swig.findRoleByAuthority(rootAuthority);
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let authorityManager = new Ed25519Authority(userAuthorityManagerKeypair.publicKey);
+let authorityManager = new Ed25519Authority(
+  userAuthorityManagerKeypair.publicKey,
+);
 
 //
 // * helper for creating actions
@@ -142,13 +146,14 @@ let manageAuthorityActions = Actions.set()
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityInstruction = rootRole.addAuthority({
-  actions: manageAuthorityActions,
-  newAuthority: authorityManager,
-  payer: userRootKeypair.publicKey,
-});
+let addAuthorityIx = addAuthorityInstruction(
+  rootRole,
+  userRootKeypair.publicKey,
+  authorityManager,
+  manageAuthorityActions,
+);
 
-await sendTransaction(connection, addAuthorityInstruction, userRootKeypair);
+await sendTransaction(connection, addAuthorityIx, userRootKeypair);
 
 await sleep(3);
 
@@ -178,17 +183,18 @@ let dappAuthority = new Ed25519Authority(dappAuthorityKeypair.publicKey);
 // * allocate 0.1 max sol spend, for the dapp
 //
 let dappAuthorityActions = Actions.set()
-  .solLimit({amount: BigInt(0.1 * LAMPORTS_PER_SOL)})
+  .solLimit({ amount: BigInt(0.1 * LAMPORTS_PER_SOL) })
   .get();
 
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = managerRole.addAuthority({
-  actions: dappAuthorityActions,
-  newAuthority: dappAuthority,
-  payer: userAuthorityManagerKeypair.publicKey,
-});
+let addDappAuthorityInstruction = addAuthorityInstruction(
+  managerRole,
+  userAuthorityManagerKeypair.publicKey,
+  dappAuthority,
+  dappAuthorityActions,
+);
 
 await sendTransaction(
   connection,
@@ -252,10 +258,11 @@ let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-let signTransfer = dappAutorityRole.sign({
-  payer: dappAuthorityKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+let signTransfer = signInstruction(
+  dappAutorityRole,
+  dappAuthorityKeypair.publicKey,
+  [transfer],
+);
 
 tx = await sendTransaction(connection, signTransfer, dappAuthorityKeypair);
 
@@ -283,10 +290,11 @@ dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-signTransfer = dappAutorityRole.sign({
-  payer: dappAuthorityKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+signTransfer = signInstruction(
+  dappAutorityRole,
+  dappAuthorityKeypair.publicKey,
+  [transfer],
+);
 
 await sendTransaction(connection, signTransfer, dappAuthorityKeypair)
   .then(() => {

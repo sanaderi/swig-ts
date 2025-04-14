@@ -8,10 +8,12 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  createSessionInstruction,
   createSwig,
   Ed25519SessionAuthority,
   fetchSwig,
   findSwigPda,
+  signInstruction,
 } from '@swig/classic';
 
 //
@@ -128,13 +130,14 @@ if (!rootRole) throw new Error('Role not found for authority');
 // * role.replaceAuthority
 // * role.sign
 //
-let createSessionInstruction = rootRole.createSession({
-  payer: userRootKeypair.publicKey,
-  newSessionKey: userAuthorityManagerKeypair.publicKey,
-  sessionDuration: 50n,
-})!;
+let createSessionIx = createSessionInstruction(
+  rootRole,
+  userRootKeypair.publicKey,
+  userAuthorityManagerKeypair.publicKey,
+  50n,
+)!;
 
-await sendTransaction(connection, createSessionInstruction, userRootKeypair);
+await sendTransaction(connection, createSessionIx, userRootKeypair);
 
 await sleep(3);
 
@@ -174,15 +177,23 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-rootRole = swig.findRolesBySessionKey(userAuthorityManagerKeypair.publicKey)[0];
+rootRole = swig.findRoleBySessionKey(userAuthorityManagerKeypair.publicKey);
 
 if (!rootRole || !rootRole.isSessionBased())
   throw new Error('Role not found for authority');
 
-let signTransfer = rootRole.sign({
-  payer: userAuthorityManagerKeypair.publicKey,
-  innerInstructions: [transfer],
-});
+if (
+  rootRole.authority.sessionKey.toBase58() !==
+  userAuthorityManagerKeypair.publicKey.toBase58()
+) {
+  throw new Error('wrong session authority authority');
+}
+
+let signTransfer = signInstruction(
+  rootRole,
+  userAuthorityManagerKeypair.publicKey,
+  [transfer],
+);
 
 tx = await sendTransaction(
   connection,
@@ -198,4 +209,3 @@ console.log(
   'balance after first transfer:',
   await connection.getBalance(swigAddress),
 );
-

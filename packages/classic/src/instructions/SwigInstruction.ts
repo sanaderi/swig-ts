@@ -11,7 +11,7 @@ import {
   type RemoveAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
 } from '@swig/coder';
-import { swigInstuction } from '../utils';
+import { swigInstruction } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
 import {
   getCreateV1BaseAccountMetas,
@@ -57,7 +57,7 @@ export class SwigInstructionV1 {
 
     let createV1InstructionData = createV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(accounts, new Uint8Array(createV1InstructionData));
+    return swigInstruction(accounts, new Uint8Array(createV1InstructionData));
   }
 
   /**
@@ -82,7 +82,7 @@ export class SwigInstructionV1 {
     let addAuthorityV1InstructionData =
       addV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(
+    return swigInstruction(
       accounts,
       new Uint8Array(addAuthorityV1InstructionData),
     );
@@ -109,39 +109,11 @@ export class SwigInstructionV1 {
     let removeAuthorityV1InstructionData =
       removeV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(
+    return swigInstruction(
       accounts,
       new Uint8Array(removeAuthorityV1InstructionData),
     );
   }
-
-  // /**
-  //  *
-  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-  //  * @param data replaceAuthorityV1InstructionDataArgs
-  //  * @returns SwigInstruction
-  //  *
-  //  * Creates a `ReplaceAuthorityV1` instruction
-  //  */
-  // static replaceAuthority<
-  //   T extends [...ReplaceAuthorityV1BaseAccountMetas, ...AccountMeta[]],
-  // >(
-  //   accounts: T,
-  //   data: ReplaceAuthorityV1InstructionDataArgs,
-  // ): TransactionInstruction {
-  //   let replaceV1InstructionDataEncoder = getReplaceAuthorityV1InstructionCodec(
-  //     data.authorityPayload.length,
-  //     data.newAuthorityData.length,
-  //   ).encoder;
-
-  //   let replaceAuthorityV1InstructionData =
-  //     replaceV1InstructionDataEncoder.encode(data);
-
-  //   return swigInstuction(
-  //     accounts,
-  //     new Uint8Array(replaceAuthorityV1InstructionData),
-  //   );
-  // }
 
   /**
    *
@@ -161,7 +133,7 @@ export class SwigInstructionV1 {
 
     let signV1InstructionData = signV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(accounts, new Uint8Array(signV1InstructionData));
+    return swigInstruction(accounts, new Uint8Array(signV1InstructionData));
   }
 
   static createSession<
@@ -177,7 +149,7 @@ export class SwigInstructionV1 {
     let createSessionV1InstructionData =
       createSessionV1InstructionDataEncoder.encode(data);
 
-    return swigInstuction(
+    return swigInstruction(
       accounts,
       new Uint8Array(createSessionV1InstructionData),
     );
