@@ -28,7 +28,7 @@ This guide will walk you through setting up and running the Swig SDK transfer ex
    # OR
    bun install  # For Bun
    ```
-
+   
 3. Navigate to the transfer example and install its dependencies
 
    ```bash
@@ -49,4 +49,5 @@ This guide will walk you through setting up and running the Swig SDK transfer ex
    yarn dlx tsx transfer-local.ts  # For Node.js
    # OR
    bun transfer-local.ts  # For Bun
+
    ```
