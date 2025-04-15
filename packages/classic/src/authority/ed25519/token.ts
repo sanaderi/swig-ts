@@ -1,24 +1,29 @@
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig/coder';
-import { Authority, TokenBasedAuthority } from './abstract';
-import { Secp256k1Instruction } from './instructions';
-import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import type { Actions } from '../actions';
-import { createSwigInstruction } from '../instructions';
+import type { Actions } from '../../actions';
+import { createSwigInstruction } from '../../instructions';
+import { Authority, TokenBasedAuthority } from '../abstract';
+import { Ed25519Instruction } from '../instructions';
+import type { Ed25519BasedAuthority } from './based';
 
-export class Secp256k1Authority extends TokenBasedAuthority {
-  type = AuthorityType.Secp256k1;
-  instructions = Secp256k1Instruction;
+export class Ed25519Authority
+  extends TokenBasedAuthority
+  implements Ed25519BasedAuthority
+{
+  type = AuthorityType.Ed25519;
+  instructions = Ed25519Instruction;
 
-  constructor(public data: any) {
-    super(data);
+  constructor(public address: PublicKey) {
+    let bytes = address.toBytes();
+    super(bytes);
   }
 
-  static fromBytes(bytes: Uint8Array): Secp256k1Authority {
-    return new Secp256k1Authority(bytes);
+  static fromBytes(bytes: Uint8Array): Ed25519Authority {
+    return new Ed25519Authority(new PublicKey(bytes));
   }
 
-  createAuthorityData(): Uint8Array {
-    return this.data
+  createAuthorityData() {
+    return this.data;
   }
 
   create(args: {
@@ -32,7 +37,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
       { payer: args.payer, swig: args.swigAddress },
       {
         bump: args.bump,
-        authorityData: this.data,
+        authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -76,7 +81,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.data,
+        newAuthorityData: args.newAuthority.createAuthorityData(),
         newAuthorityType: args.newAuthority.type,
         noOfActions: args.actions.count,
       },
@@ -101,4 +106,10 @@ export class Secp256k1Authority extends TokenBasedAuthority {
       },
     );
   }
+}
+
+export function isEd25519Authority(
+  authority: Authority,
+): authority is Ed25519Authority {
+  return authority instanceof Ed25519Authority;
 }

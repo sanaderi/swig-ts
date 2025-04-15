@@ -13,6 +13,7 @@ import {
 } from '@swig/coder';
 import { swigInstruction } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
+import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 import {
   getCreateV1BaseAccountMetas,
   type CreateV1BaseAccountMetas,
@@ -20,7 +21,6 @@ import {
 } from './createV1';
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
-import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 
 /**
  *
@@ -142,9 +142,8 @@ export class SwigInstructionV1 {
     accounts: T,
     data: CreateSessionV1InstructionDataArgs,
   ): TransactionInstruction {
-    let createSessionV1InstructionDataEncoder = getCreateSessionV1InstructionCodec(
-      data.authorityPayload.length,
-    ).encoder;
+    let createSessionV1InstructionDataEncoder =
+      getCreateSessionV1InstructionCodec(data.authorityPayload.length).encoder;
 
     let createSessionV1InstructionData =
       createSessionV1InstructionDataEncoder.encode(data);

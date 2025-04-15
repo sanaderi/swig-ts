@@ -79,6 +79,8 @@ svm.airdrop(userAuthorityManagerKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 let dappAuthorityKeypair = Keypair.generate();
 svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
+let dappTreasury = Keypair.generate().publicKey;
+
 let id = Uint8Array.from(Array(32).fill(0));
 
 //
@@ -243,7 +245,7 @@ console.log('balance before first transfer:', svm.getBalance(swigAddress));
 //
 let transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
-  toPubkey: dappAuthorityKeypair.publicKey,
+  toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
@@ -268,7 +270,7 @@ swig = fetchSwig(svm, swigAddress);
 //
 transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
-  toPubkey: dappAuthorityKeypair.publicKey,
+  toPubkey: dappTreasury,
   lamports: 0.05 * LAMPORTS_PER_SOL,
 });
 

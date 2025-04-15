@@ -42,6 +42,8 @@ export abstract class Authority {
     roleIdToRemove: number;
   }): TransactionInstruction;
 
+  abstract createAuthorityData(): Uint8Array;
+
   isEqual(other: Authority): boolean {
     return uint8ArraysEqual(this.data, other.data) && this.type === other.type;
   }

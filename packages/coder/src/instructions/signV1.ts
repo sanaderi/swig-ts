@@ -2,18 +2,14 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getF32Decoder,
   getStructDecoder,
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
   getU32Decoder,
   getU32Encoder,
-  getU8Encoder,
   transformEncoder,
   type Codec,
   type Decoder,
@@ -21,8 +17,8 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 import {
-  getCompactInstructionDecoder,
-  getCompactInstructionEncoder,
+  getCompactInstructionsDecoder,
+  getCompactInstructionsEncoder,
   type CompactInstruction,
 } from '../types/compactInstruction';
 import {
@@ -35,8 +31,8 @@ export type SignV1InstructionData = {
   discriminator: number;
   instructionPayloadLen: number;
   roleId: number;
-  authorityPayload: ReadonlyUint8Array;
   compactInstructions: CompactInstruction[];
+  authorityPayload: ReadonlyUint8Array;
 };
 
 export type SignV1InstructionDataArgs = {
@@ -55,18 +51,15 @@ export function getSignV1InstructionCodec(payloadSize: number): {
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['instructionPayloadLen', getU16Encoder()],
       ['roleId', getU32Encoder()],
+      ['compactInstructions', getCompactInstructionsEncoder()],
       ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
-      [
-        'compactInstructions',
-        getArrayEncoder(getCompactInstructionEncoder(), {
-          size: getU8Encoder(),
-        }),
-      ],
     ]),
     (value) => ({
       ...value,
       discriminator: Discriminator.SignV1,
-      instructionPayloadLen: value.compactInstructions.length,
+      instructionPayloadLen: getCompactInstructionsEncoder().encode(
+        value.compactInstructions,
+      ).length,
       authorityPayloadLen: payloadSize,
     }),
   );
@@ -74,14 +67,9 @@ export function getSignV1InstructionCodec(payloadSize: number): {
   let decoder = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['instructionPayloadLen', getU16Decoder()],
-    ['roleId', getF32Decoder()],
+    ['roleId', getU32Decoder()],
+    ['compactInstructions', getCompactInstructionsDecoder()],
     ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
-    [
-      'compactInstructions',
-      getArrayDecoder(getCompactInstructionDecoder(), {
-        size: getU32Decoder(),
-      }),
-    ],
   ]);
 
   let codec = combineCodec(encoder, decoder);
