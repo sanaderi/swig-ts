@@ -41,7 +41,7 @@ function sendSVMTransaction(
   let tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
-    // console.log('tx:', tx.meta().logs());
+    console.log('tx logs:', tx.meta().logs());
   }
 
   if (tx instanceof TransactionMetadata) {
@@ -72,16 +72,13 @@ svm.airdrop(userRootKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // user authority manager
 //
-let userAuthorityManagerKeypair = Keypair.generate();
-svm.airdrop(userAuthorityManagerKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
+let dappSessionKeypair = Keypair.generate();
+svm.airdrop(dappSessionKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // dapp authority
 //
-let dappAuthorityKeypair = Keypair.generate();
-svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
-
-let payer = Keypair.generate();
-svm.airdrop(payer.publicKey, BigInt(LAMPORTS_PER_SOL));
+let dappTreasury = Keypair.generate().publicKey;
+// svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 let id = Uint8Array.from(Array(32).fill(0));
 
@@ -134,7 +131,7 @@ svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 let newSessionInstruction = createSessionInstruction(
   rootRole,
   rootAuthority.address,
-  userAuthorityManagerKeypair.publicKey,
+  dappSessionKeypair.publicKey,
   50n,
 );
 
@@ -144,12 +141,12 @@ sendSVMTransaction(svm, newSessionInstruction, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
-rootRole = swig.findRoleBySessionKey(userAuthorityManagerKeypair.publicKey);
+rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey);
 
 if (!rootRole || !rootRole.isSessionBased())
   throw new Error('not session based dapp role');
 
-console.log('usrauth key:', userAuthorityManagerKeypair.publicKey.toBase58());
+console.log('usrauth key:', dappSessionKeypair.publicKey.toBase58());
 console.log('session key:', rootRole.authority.sessionKey.toBase58());
 //
 // * role array methods (we check what roles can spend sol)
@@ -167,10 +164,10 @@ console.log(
   swig.roles.map((role) => role.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL))),
 );
 
-console.log('balance before first transfer:', svm.getBalance(swigAddress));
+console.log('swig balance before first transfer:', svm.getBalance(swigAddress));
 console.log(
-  'balance dapp before first transfer:',
-  svm.getBalance(dappAuthorityKeypair.publicKey),
+  'dapp treasury balance before first transfer:',
+  svm.getBalance(dappTreasury),
 );
 
 //
@@ -178,20 +175,20 @@ console.log(
 //
 let transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
-  toPubkey: dappAuthorityKeypair.publicKey,
+  toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
 let signTransfer = signInstruction(
   rootRole,
-  userAuthorityManagerKeypair.publicKey,
+  dappSessionKeypair.publicKey,
   [transfer],
 );
 
-sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
+sendSVMTransaction(svm, signTransfer, dappSessionKeypair);
 
-console.log('balance after first transfer:', svm.getBalance(swigAddress));
+console.log('swig balance after first transfer:', svm.getBalance(swigAddress));
 console.log(
-  'balance dapp after first transfer:',
-  svm.getBalance(dappAuthorityKeypair.publicKey),
+  'dapp treasury balance after first transfer:',
+  svm.getBalance(dappTreasury),
 );

@@ -62,19 +62,15 @@ let tx = await connection.requestAirdrop(
 
 // user authority manager
 //
-let userAuthorityManagerKeypair = Keypair.generate();
+let dappSessionKeypair = Keypair.generate();
 await connection.requestAirdrop(
-  userAuthorityManagerKeypair.publicKey,
+  dappSessionKeypair.publicKey,
   LAMPORTS_PER_SOL,
 );
 
 // dapp authority
 //
-let dappAuthorityKeypair = Keypair.generate();
-await connection.requestAirdrop(
-  dappAuthorityKeypair.publicKey,
-  LAMPORTS_PER_SOL,
-);
+let dappTreasury = Keypair.generate().publicKey;
 
 await sleep(3);
 
@@ -88,7 +84,7 @@ let [swigAddress] = findSwigPda(id);
 //
 // * make an Authority (in this case, out of a Ed25519 publickey)
 //
-// * e.g Authority.secp256k1
+// * e.g new Secp256k1Authority
 // * session based Authority support
 //
 let rootAuthority = Ed25519SessionAuthority.uninitialized(
@@ -133,7 +129,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 let createSessionIx = createSessionInstruction(
   rootRole,
   userRootKeypair.publicKey,
-  userAuthorityManagerKeypair.publicKey,
+  dappSessionKeypair.publicKey,
   50n,
 )!;
 
@@ -164,8 +160,12 @@ console.log(
 );
 
 console.log(
-  'balance before first transfer:',
+  'swig balance before first transfer:',
   await connection.getBalance(swigAddress),
+);
+console.log(
+  'dapp treasury balance before first transfer:',
+  await connection.getBalance(dappTreasury),
 );
 
 //
@@ -173,32 +173,32 @@ console.log(
 //
 let transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
-  toPubkey: dappAuthorityKeypair.publicKey,
+  toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-rootRole = swig.findRoleBySessionKey(userAuthorityManagerKeypair.publicKey);
+rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey);
 
 if (!rootRole || !rootRole.isSessionBased())
   throw new Error('Role not found for authority');
 
 if (
   rootRole.authority.sessionKey.toBase58() !==
-  userAuthorityManagerKeypair.publicKey.toBase58()
+  dappSessionKeypair.publicKey.toBase58()
 ) {
   throw new Error('wrong session authority authority');
 }
 
 let signTransfer = signInstruction(
   rootRole,
-  userAuthorityManagerKeypair.publicKey,
+  dappSessionKeypair.publicKey,
   [transfer],
 );
 
 tx = await sendTransaction(
   connection,
   signTransfer,
-  userAuthorityManagerKeypair,
+  dappSessionKeypair,
 );
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
@@ -206,6 +206,10 @@ console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 await sleep(3);
 
 console.log(
-  'balance after first transfer:',
+  'swig balance after first transfer:',
   await connection.getBalance(swigAddress),
+);
+console.log(
+  'dapp treasury balance after first transfer:',
+  await connection.getBalance(dappTreasury),
 );

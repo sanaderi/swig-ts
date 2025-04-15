@@ -40,7 +40,7 @@ function sendSVMTransaction(
   let tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
-    // console.log("tx:", tx.meta().logs())
+    console.log("tx:", tx.meta().logs())
   }
 
   if (tx instanceof TransactionMetadata) {
