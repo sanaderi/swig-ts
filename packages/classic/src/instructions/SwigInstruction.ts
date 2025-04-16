@@ -61,12 +61,10 @@ export class SwigInstructionV1 {
   }
 
   /**
-   *
+   * Creates a `AddAuthorityV1` instruction
    * @param accounts AddAuthorityV1InstructionAccountsWithAuthority
    * @param data AddAuthorityV1InstructionDataArgs
    * @returns SwigInstruction
-   *
-   * Creates a `AddAuthorityV1` instruction
    */
   static addAuthority<
     T extends [...AddAuthorityV1BaseAccountMetas, ...AccountMeta[]],
@@ -89,12 +87,10 @@ export class SwigInstructionV1 {
   }
 
   /**
-   *
+   * Creates a `RemoveAuthorityV1` instruction
    * @param accounts removeAuthorityV1InstructionAccountsWithAuthority
    * @param data removeAuthorityV1InstructionDataArgs
    * @returns SwigInstruction
-   *
-   * Creates a `RemoveAuthorityV1` instruction
    */
   static removeAuthority<
     T extends [...RemoveAuthorityV1BaseAccountMetas, ...AccountMeta[]],
