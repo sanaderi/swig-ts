@@ -6,6 +6,13 @@ import type {
 } from '@solana/web3.js';
 import { getSwigCodec, type SwigAccount } from '@swig/coder';
 
+/**
+ * 
+ * @param connection `Connection`
+ * @param swigAddress Public key of the Swig
+ * @param config commitment or `GetAccountInfo` config
+ * @returns `SwigAccount` | `null`
+ */
 export async function fetchMaybeSwigAccount(
   connection: Connection,
   swigAddress: PublicKey,
@@ -16,6 +23,13 @@ export async function fetchMaybeSwigAccount(
   return getSwigCodec().decode(accountInfo.data);
 }
 
+/**
+ * 
+ * @param connection Solana connection
+ * @param swigAddress Public key of the Swig
+ * @param config commitment or `GetAccountInfo` config
+ * @returns `SwigAccount`
+ */
 export async function fetchSwigAccount(
   connection: Connection,
   swigAddress: PublicKey,

@@ -4,10 +4,13 @@ import {
   fixEncoderSize,
   getBytesDecoder,
   getBytesEncoder,
+  getF32Decoder,
   getStructDecoder,
   getStructEncoder,
   getU16Decoder,
   getU16Encoder,
+  getU32Decoder,
+  getU32Encoder,
   getU8Decoder,
   getU8Encoder,
   transformEncoder,
@@ -16,15 +19,14 @@ import {
   type Encoder,
   type ReadonlyUint8Array,
 } from '@solana/kit';
-import { SwigInstructionDiscriminator as Discriminator } from './SwigInstruction';
+import { SwigInstructionDiscriminator as Discriminator, getSwigInstructionDiscriminatorDecoder, getSwigInstructionDiscriminatorEncoder } from './SwigInstruction';
 
 export type RemoveAuthorityV1InstructionData = {
   discriminator: number;
+  authorityPayloadLen: number;
+  _padding: ReadonlyUint8Array;
   actingRoleId: number;
   authorityToRemoveId: number;
-  _padding1: ReadonlyUint8Array;
-  authorityPayloadLen: number;
-  _padding2: ReadonlyUint8Array;
   authorityPayload: ReadonlyUint8Array;
 };
 
@@ -44,30 +46,27 @@ export function getRemoveAuthorityV1InstructionCodec(payloadSize: number): {
 } {
   let encoder: Encoder<RemoveAuthorityV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
-      ['actingRoleId', getU8Encoder()],
-      ['authorityToRemoveId', getU8Encoder()],
-      ['_padding1', fixEncoderSize(getBytesEncoder(), 1)],
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['authorityPayloadLen', getU16Encoder()],
-      ['_padding2', fixEncoderSize(getBytesEncoder(), 2)],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 4)],
+      ['actingRoleId', getU32Encoder()],
+      ['authorityToRemoveId', getU32Encoder()],
       ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
     ]),
     (value) => ({
       ...value,
       discriminator: Discriminator.RemoveAuthorityV1,
-      _padding1: Uint8Array.from(Array(1)),
-      _padding2: Uint8Array.from(Array(2)),
+      _padding: Uint8Array.from(Array(2)),
       authorityPayloadLen: payloadSize,
     }),
   );
 
   let decoder = getStructDecoder([
-    ['discriminator', getU8Decoder()],
-    ['actingRoleId', getU8Decoder()],
-    ['authorityToRemoveId', getU8Decoder()],
-    ['_padding1', fixDecoderSize(getBytesDecoder(), 1)],
+    ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['authorityPayloadLen', getU16Decoder()],
-    ['_padding2', fixDecoderSize(getBytesDecoder(), 2)],
+    ['_padding', fixDecoderSize(getBytesDecoder(), 4)],
+    ['actingRoleId', getU32Decoder()],
+    ['authorityToRemoveId', getF32Decoder()],
     ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
   ]);
 

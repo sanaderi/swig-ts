@@ -5,10 +5,12 @@
   "sideEffects": true,
   "type": "module",
   "scripts": {
-    "build:kit": "bun --filter '@swig/kit' build",
     "build": "bun --filter '*' build",
-    "dev": "bun --filter \"*\" dev",
-    "dev:kit": "bun --filter '@swig/kit' dev"
+    "build:classic": "bun --filter '@swig/classic' build",
+    "build:coder": "bun --filter '@swig/coder' build",
+    "dev": "bun --filter '*' dev",
+    "dev:classic": "bun --filter '@swig/classic' dev",
+    "dev:coder": "bun --filter '@swig/coder' dev"
   },
   "workspaces": [
     "packages/*",

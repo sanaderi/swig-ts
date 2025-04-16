@@ -4,24 +4,13 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 import type { TransactionInstruction } from '@solana/web3.js';
-import {
-  getActionEncoder,
-  getCompactInstructionEncoder,
-  type AddAuthorityV1InstructionDataArgs,
-  type RemoveAuthorityV1InstructionDataArgs,
-  type ReplaceAuthorityV1InstructionDataArgs,
-} from '@swig/coder';
+import { getCompactInstructionEncoder } from '@swig/coder';
 import {
   SwigInstructionV1,
   compactInstructions,
   getAddAuthorityV1BaseAccountMetas,
   getRemoveAuthorityV1BaseAccountMetas,
-  getReplaceAuthorityV1BaseAccountMetas,
   getSignV1BaseAccountMetas,
-  type AddAuthorityV1InstructionAccounts,
-  type RemoveAuthorityV1InstructionAccounts,
-  type ReplaceAuthorityV1InstructionAccounts,
-  type SignV1InstructionAccounts,
 } from '../../instructions';
 import type { AuthorityInstruction } from '../interface';
 
@@ -37,16 +26,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `AddAuthorityV1` instruction
    */
-  addAuthorityV1Instruction(
-    accounts: AddAuthorityV1InstructionAccounts,
-    data: Omit<AddAuthorityV1InstructionDataArgs, 'authorityPayload'>,
-  ): TransactionInstruction {
+  addAuthorityV1Instruction(accounts, data): TransactionInstruction {
     let addAuthorityIxAccountMetas =
       getAddAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(
-      getArrayEncoder(getActionEncoder()).encode(data.actions),
-    );
+    let authorityPayload = secp256k1Payload(data.actions);
 
     return SwigInstructionV1.addAuthority(addAuthorityIxAccountMetas, {
       ...data,
@@ -62,10 +46,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `RemoveAuthorityV1` instruction
    */
-  removeAuthorityV1Instruction(
-    accounts: RemoveAuthorityV1InstructionAccounts,
-    data: Omit<RemoveAuthorityV1InstructionDataArgs, 'authorityPayload'>,
-  ): TransactionInstruction {
+  removeAuthorityV1Instruction(accounts, data): TransactionInstruction {
     let removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
 
     let authorityPayload = secp256k1Payload(Uint8Array.from([]));
@@ -76,29 +57,26 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-   * @param data replaceAuthorityV1InstructionDataArgs
-   * @returns TransactionInstruction
-   *
-   * Creates a `ReplaceAuthorityV1` instruction
-   */
-  replaceAuthorityV1Instruction(
-    accounts: ReplaceAuthorityV1InstructionAccounts,
-    data: Omit<ReplaceAuthorityV1InstructionDataArgs, 'authorityPayload'>,
-  ): TransactionInstruction {
-    let replaceIxAccountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
+  // /**
+  //  *
+  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
+  //  * @param data replaceAuthorityV1InstructionDataArgs
+  //  * @returns TransactionInstruction
+  //  *
+  //  * Creates a `ReplaceAuthorityV1` instruction
+  //  */
+  // replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  //   let replaceIxAccountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(
-      getArrayEncoder(getActionEncoder()).encode(data.actions),
-    );
+  //   let authorityPayload = secp256k1Payload(
+  //     getArrayEncoder(getActionEncoder()).encode(data.actions),
+  //   );
 
-    return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
-      ...data,
-      authorityPayload,
-    });
-  },
+  //   return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
+  //     ...data,
+  //     authorityPayload,
+  //   });
+  // },
 
   /**
    *
@@ -108,14 +86,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `SignV1` instruction
    */
-  signV1Instruction(
-    accounts: SignV1InstructionAccounts,
-    data: {
-      authorityData: ReadonlyUint8Array;
-      roleId: number;
-      innerInstructions: TransactionInstruction[];
-    },
-  ): TransactionInstruction {
+  signV1Instruction(accounts, data): TransactionInstruction {
     let signInstructionsAccount = getSignV1BaseAccountMetas(accounts);
 
     let { accounts: metas, compactIxs } = compactInstructions(
@@ -135,6 +106,10 @@ export const Secp256k1Instruction: AuthorityInstruction = {
       authorityPayload,
       compactInstructions: compactIxs,
     });
+  },
+
+  createSessionV1Instruction(accounts, data) {
+    throw new Error('Not implemented yet');
   },
 };
 

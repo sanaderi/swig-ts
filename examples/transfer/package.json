@@ -5,8 +5,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsup-node",
-    "dev": "tsup-node --watch"
+    "start-validator": "solana-test-validator --reset --bpf-program swigNmWhy8RvUYXBKV5TSU8Hh3f4o5EczHouzBzEsLC swig.so",
+    "transfer-local": "bun transfer-local.ts",
+    "tranfer-local-session": "bun transfer-local-session.ts",
+    "transfer-svm": "bun transfer-svm.ts",
+    "transfer-svm-session": "bun transfer-svm-sessioin.ts"
   },
   "devDependencies": {
     "@swig/classic": "workspace:*",
