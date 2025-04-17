@@ -9,7 +9,7 @@ import {
   type AddAuthorityV1InstructionAccounts,
   type RemoveAuthorityV1InstructionAccounts,
   type SignV1InstructionAccounts,
-} from '../instructions';
+} from '../../instructions';
 
 /**
  * Authority Instruction Interface
@@ -28,7 +28,8 @@ export interface AuthorityInstruction {
     data: Omit<AddAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
       authorityData: ReadonlyUint8Array;
     },
-  ): TransactionInstruction;
+    options?: InstructionDataOptions,
+  ): Promise<TransactionInstruction>;
 
   /**
    *
@@ -43,22 +44,8 @@ export interface AuthorityInstruction {
     data: Omit<RemoveAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
       authorityData: ReadonlyUint8Array;
     },
-  ): TransactionInstruction;
-
-  // /**
-  //  *
-  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-  //  * @param data replaceAuthorityV1InstructionDataArgs
-  //  * @returns SwigInstruction
-  //  *
-  //  * Creates a `ReplaceAuthorityV1` instruction
-  //  */
-  // replaceAuthorityV1Instruction(
-  //   accounts: ReplaceAuthorityV1InstructionAccounts,
-  //   data: Omit<ReplaceAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
-  //     authorityData: ReadonlyUint8Array;
-  //   },
-  // ): TransactionInstruction;
+    options?: InstructionDataOptions,
+  ): Promise<TransactionInstruction>;
 
   /**
    *
@@ -75,12 +62,21 @@ export interface AuthorityInstruction {
       roleId: number;
       innerInstructions: TransactionInstruction[];
     },
-  ): TransactionInstruction;
+    options?: InstructionDataOptions,
+  ): Promise<TransactionInstruction>;
 
   createSessionV1Instruction(
     accounts: SignV1InstructionAccounts,
-    data:  Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
+    data: Omit<CreateSessionV1InstructionDataArgs, 'authorityPayload'> & {
       authorityData: ReadonlyUint8Array;
     },
-  ): TransactionInstruction;
+    options?: InstructionDataOptions,
+  ): Promise<TransactionInstruction>;
 }
+
+export type SigningFn = (message: Uint8Array) => Promise<Uint8Array>;
+
+export type InstructionDataOptions = {
+  signingFn: SigningFn;
+  currentSlot: bigint;
+};

@@ -29,7 +29,9 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@ethereumjs/wallet": "^2.0.4",
     "@solana/web3.js": "^1.98.0",
+    "ethers": "^6.13.5",
     "ws": "^8.18.1"
   }
 }

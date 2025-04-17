@@ -8,6 +8,7 @@ import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction } from '../instructions';
+import type { SigningFn } from '../instructions/interface';
 import type { Ed25519BasedAuthority } from './based';
 
 export class Ed25519SessionAuthority
@@ -77,7 +78,7 @@ export class Ed25519SessionAuthority
     bump: number;
     id: Uint8Array;
     actions: Actions;
-  }): TransactionInstruction {
+  }) {
     return createSwigInstruction(
       { payer: args.payer, swig: args.swigAddress },
       {
@@ -96,7 +97,7 @@ export class Ed25519SessionAuthority
     payer: PublicKey;
     roleId: number;
     innerInstructions: TransactionInstruction[];
-  }): TransactionInstruction {
+  }) {
     return this.instructions.signV1Instruction(
       {
         swig: args.swigAddress,
@@ -116,7 +117,7 @@ export class Ed25519SessionAuthority
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
-  }): TransactionInstruction {
+  }) {
     return this.instructions.addAuthorityV1Instruction(
       {
         payer: args.payer,
@@ -138,7 +139,7 @@ export class Ed25519SessionAuthority
     swigAddress: PublicKey;
     roleId: number;
     roleIdToRemove: number;
-  }): TransactionInstruction {
+  }) {
     return this.instructions.removeAuthorityV1Instruction(
       {
         payer: args.payer,
@@ -158,7 +159,7 @@ export class Ed25519SessionAuthority
     newSessionKey: PublicKey;
     roleId: number;
     sessionDuration?: bigint;
-  }): TransactionInstruction {
+  }) {
     return this.instructions.createSessionV1Instruction(
       {
         payer: args.payer,

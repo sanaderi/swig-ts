@@ -91,7 +91,7 @@ let [swigAddress] = findSwigPda(id);
 //
 // * make an Authority (in this case, out of a ed25519 publickey)
 //
-let rootAuthority = new Ed25519Authority(userRootKeypair.publicKey);
+let rootAuthority = Ed25519Authority.fromPublicKey(userRootKeypair.publicKey);
 
 //
 // * create swig instruction
@@ -121,12 +121,12 @@ let swig = fetchSwig(svm, swigAddress);
 // * find role by authority
 //
 let rootRole = swig.findRoleByAuthority(
-  new Ed25519Authority(userRootKeypair.publicKey),
+  Ed25519Authority.fromPublicKey(userRootKeypair.publicKey),
 );
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let authorityManager = new Ed25519Authority(
+let authorityManager = Ed25519Authority.fromPublicKey(
   userAuthorityManagerKeypair.publicKey,
 );
 
@@ -151,7 +151,7 @@ let manageAuthorityActions = Actions.set()
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityIx = addAuthorityInstruction(
+let addAuthorityIx = await addAuthorityInstruction(
   rootRole,
   userRootKeypair.publicKey,
   authorityManager,
@@ -177,7 +177,7 @@ if (!managerRole) throw new Error('Role not found for authority');
 if (!managerRole.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
 
-let dappAuthority = new Ed25519Authority(dappAuthorityKeypair.publicKey);
+let dappAuthority = Ed25519Authority.fromPublicKey(dappAuthorityKeypair.publicKey);
 
 //
 // * allocate 0.1 max sol spend, for the dapp
@@ -189,7 +189,7 @@ let dappAuthorityActions = Actions.set()
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = addAuthorityInstruction(
+let addDappAuthorityInstruction = await addAuthorityInstruction(
   managerRole,
   userAuthorityManagerKeypair.publicKey,
   dappAuthority,
@@ -253,7 +253,7 @@ let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-let signTransfer = signInstruction(
+let signTransfer = await signInstruction(
   dappAutorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],
@@ -278,7 +278,7 @@ dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
 
 if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-signTransfer = signInstruction(
+signTransfer = await signInstruction(
   dappAutorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],

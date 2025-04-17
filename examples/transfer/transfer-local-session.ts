@@ -126,7 +126,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 // * role.replaceAuthority
 // * role.sign
 //
-let createSessionIx = createSessionInstruction(
+let createSessionIx = await createSessionInstruction(
   rootRole,
   userRootKeypair.publicKey,
   dappSessionKeypair.publicKey,
@@ -189,7 +189,7 @@ if (
   throw new Error('wrong session authority authority');
 }
 
-let signTransfer = signInstruction(
+let signTransfer = await signInstruction(
   rootRole,
   dappSessionKeypair.publicKey,
   [transfer],

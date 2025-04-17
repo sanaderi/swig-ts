@@ -1,4 +1,4 @@
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -6,8 +6,8 @@ import {
   getRemoveV1BaseAccountMetasWithAuthority,
   getSignV1BaseAccountMetasWithAuthority,
 } from '../../instructions';
-import type { AuthorityInstruction } from '../interface';
 import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
+import type { AuthorityInstruction } from './interface';
 
 /**
  * Ed25519 Authority
@@ -21,7 +21,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
    *
    * Creates a `AddAuthorityV1` instruction
    */
-  addAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  async addAuthorityV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
     let [addAuthorityIxAccountMetas, authorityPayload] =
@@ -41,7 +41,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
    *
    * Creates a `RemoveAuthorityV1` instruction
    */
-  removeAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  async removeAuthorityV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
     let [removeIxAccountMetas, authorityPayload] =
@@ -53,26 +53,6 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  // /**
-  //  *
-  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-  //  * @param data replaceAuthorityV1InstructionDataArgs
-  //  * @returns SwigInstruction
-  //  *
-  //  * Creates a `ReplaceAuthorityV1` instruction
-  //  */
-  // replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
-  //   let authority = new PublicKey(data.authorityData);
-
-  //   let [replaceIxAccountMetas, authorityPayload] =
-  //     getReplaceV1BaseAccountMetasWithAuthority(accounts, authority);
-
-  //   return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
-  //     ...data,
-  //     authorityPayload: Uint8Array.from([authorityPayload]),
-  //   });
-  // },
-
   /**
    *
    * @param accounts SignAuthorityV1InstructionAccountsWithAuthority
@@ -81,7 +61,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
    *
    * Creates a `SignV1` instruction
    */
-  signV1Instruction(accounts, data): TransactionInstruction {
+  async signV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
     let [signInstructionsAccount, authorityPayload] =
@@ -100,7 +80,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  createSessionV1Instruction(accounts, data) {
+  async createSessionV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
     let [createSessionAccount, authorityPayload] =

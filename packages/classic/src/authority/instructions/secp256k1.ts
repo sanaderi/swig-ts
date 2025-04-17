@@ -1,10 +1,6 @@
-import {
-  getArrayEncoder,
-  getU8Encoder,
-  type ReadonlyUint8Array,
-} from '@solana/kit';
-import type { TransactionInstruction } from '@solana/web3.js';
+import { getArrayEncoder, getU8Encoder } from '@solana/kit';
 import { getCompactInstructionEncoder } from '@swig/coder';
+import { keccak256 } from 'ethers';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -12,7 +8,8 @@ import {
   getRemoveAuthorityV1BaseAccountMetas,
   getSignV1BaseAccountMetas,
 } from '../../instructions';
-import type { AuthorityInstruction } from '../interface';
+import { getCreateSessionV1BaseAccountMetas } from '../../instructions/createSessionV1';
+import type { AuthorityInstruction, InstructionDataOptions } from './interface';
 
 /**
  * Secp256k1 Authority
@@ -26,11 +23,19 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `AddAuthorityV1` instruction
    */
-  addAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  async addAuthorityV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
     let addAuthorityIxAccountMetas =
       getAddAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(data.actions);
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(data.actions),
+      options,
+    );
 
     return SwigInstructionV1.addAuthority(addAuthorityIxAccountMetas, {
       ...data,
@@ -46,37 +51,21 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `RemoveAuthorityV1` instruction
    */
-  removeAuthorityV1Instruction(accounts, data): TransactionInstruction {
+  async removeAuthorityV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
     let removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = secp256k1Payload(Uint8Array.from([]));
+    let authorityPayload = await prepareSecpPayload(new Uint8Array(0), options);
 
     return SwigInstructionV1.removeAuthority(removeIxAccountMetas, {
       ...data,
       authorityPayload,
     });
   },
-
-  // /**
-  //  *
-  //  * @param accounts ReplaceAuthorityV1InstructionAccountsWithAuthority
-  //  * @param data replaceAuthorityV1InstructionDataArgs
-  //  * @returns TransactionInstruction
-  //  *
-  //  * Creates a `ReplaceAuthorityV1` instruction
-  //  */
-  // replaceAuthorityV1Instruction(accounts, data): TransactionInstruction {
-  //   let replaceIxAccountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
-
-  //   let authorityPayload = secp256k1Payload(
-  //     getArrayEncoder(getActionEncoder()).encode(data.actions),
-  //   );
-
-  //   return SwigInstructionV1.replaceAuthority(replaceIxAccountMetas, {
-  //     ...data,
-  //     authorityPayload,
-  //   });
-  // },
 
   /**
    *
@@ -86,7 +75,12 @@ export const Secp256k1Instruction: AuthorityInstruction = {
    *
    * Creates a `SignV1` instruction
    */
-  signV1Instruction(accounts, data): TransactionInstruction {
+  async signV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
     let signInstructionsAccount = getSignV1BaseAccountMetas(accounts);
 
     let { accounts: metas, compactIxs } = compactInstructions(
@@ -95,10 +89,16 @@ export const Secp256k1Instruction: AuthorityInstruction = {
       data.innerInstructions,
     );
 
-    let authorityPayload = secp256k1Payload(
-      getArrayEncoder(getCompactInstructionEncoder(), {
+    let encodedCompactInstructions = getArrayEncoder(
+      getCompactInstructionEncoder(),
+      {
         size: getU8Encoder(),
-      }).encode(compactIxs),
+      },
+    ).encode(compactIxs);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(encodedCompactInstructions),
+      options,
     );
 
     return SwigInstructionV1.sign(metas, {
@@ -108,14 +108,52 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  createSessionV1Instruction(accounts, data) {
-    throw new Error('Not implemented yet');
+  async createSessionV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let createSessionIxAccountMetas =
+      getCreateSessionV1BaseAccountMetas(accounts);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from([]),
+      options,
+    );
+
+    return SwigInstructionV1.createSession(createSessionIxAccountMetas, {
+      ...data,
+      authorityPayload,
+    });
   },
 };
 
-/**
- * Derive the payload for a Secp256k1 authority
- */
-export function secp256k1Payload(data: ReadonlyUint8Array): ReadonlyUint8Array {
-  throw new Error('not implemented');
+export async function prepareSecpPayload(
+  dataPayload: Uint8Array,
+  options: InstructionDataOptions,
+): Promise<Uint8Array> {
+  let u64Len = 8;
+
+  let slot = new Uint8Array(u64Len);
+
+  let view = new DataView(slot.buffer);
+  view.setBigUint64(0, options.currentSlot, true);
+
+  const message = new Uint8Array(dataPayload.length + u64Len);
+  message.set(dataPayload);
+  message.set(slot, dataPayload.length);
+
+  const hashHex = keccak256(message);
+
+  let hash = Uint8Array.from(Buffer.from(hashHex.slice(2), 'hex'));
+
+  let sig = await options.signingFn(hash);
+
+  const authorityPayload = new Uint8Array(sig.length + u64Len);
+
+  authorityPayload.set(slot);
+  authorityPayload.set(sig, slot.length);
+
+  return authorityPayload;
 }
