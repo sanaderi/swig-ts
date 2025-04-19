@@ -1,10 +1,10 @@
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig/coder';
-import type { Actions } from '../actions';
-import { createSwigInstruction } from '../instructions';
-import { Authority, TokenBasedAuthority } from './abstract';
-import { Secp256k1Instruction } from './instructions';
-import type { InstructionDataOptions } from './instructions/interface';
+import type { Actions } from '../../actions';
+import { createSwigInstruction } from '../../instructions';
+import { Authority, TokenBasedAuthority } from '../abstract';
+import { Secp256k1Instruction } from '../instructions';
+import type { InstructionDataOptions } from '../instructions/interface';
 
 export class Secp256k1Authority extends TokenBasedAuthority {
   type = AuthorityType.Secp256k1;
@@ -15,7 +15,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
-    let data = Uint8Array.from(Buffer.from(pkString));
+    let data = Uint8Array.from(Buffer.from(pkString.slice(2), "hex"));
     return new Secp256k1Authority(data);
   }
 
@@ -117,4 +117,5 @@ export class Secp256k1Authority extends TokenBasedAuthority {
       args.options,
     );
   }
+  
 }

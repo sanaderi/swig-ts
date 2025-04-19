@@ -1,5 +1,10 @@
 import { getArrayEncoder, getU8Encoder } from '@solana/kit';
-import { getCompactInstructionEncoder } from '@swig/coder';
+import {
+  getAddAuthorityV1AuthorityPayloadEncoder,
+  getCompactInstructionEncoder,
+  getCreateSessionV1AuthorityPayloadCodec,
+  getRemoveAuthorityV1AuthorityPayloadEncoder,
+} from '@swig/coder';
 import { keccak256 } from 'ethers';
 import {
   SwigInstructionV1,
@@ -32,8 +37,12 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     let addAuthorityIxAccountMetas =
       getAddAuthorityV1BaseAccountMetas(accounts);
 
+    let authorityPayloadCodec = getAddAuthorityV1AuthorityPayloadEncoder();
+
+    let message = authorityPayloadCodec.encode(data);
+
     let authorityPayload = await prepareSecpPayload(
-      Uint8Array.from(data.actions),
+      Uint8Array.from(message),
       options,
     );
 
@@ -59,7 +68,14 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayload = await prepareSecpPayload(new Uint8Array(0), options);
+    let authorityPayloadCodec = getRemoveAuthorityV1AuthorityPayloadEncoder(SECP_AUTHORITY_PAYLOAD_SIZE);
+
+    let message = authorityPayloadCodec.encode(data);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(message),
+      options,
+    );
 
     return SwigInstructionV1.removeAuthority(removeIxAccountMetas, {
       ...data,
@@ -117,8 +133,14 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     let createSessionIxAccountMetas =
       getCreateSessionV1BaseAccountMetas(accounts);
 
+    let authorityPayloadCodec = getCreateSessionV1AuthorityPayloadCodec(
+      SECP_AUTHORITY_PAYLOAD_SIZE,
+    ).codec;
+
+    let message = authorityPayloadCodec.encode(data);
+
     let authorityPayload = await prepareSecpPayload(
-      Uint8Array.from([]),
+      Uint8Array.from(message),
       options,
     );
 
@@ -157,3 +179,5 @@ export async function prepareSecpPayload(
 
   return authorityPayload;
 }
+
+const SECP_AUTHORITY_PAYLOAD_SIZE = 65;

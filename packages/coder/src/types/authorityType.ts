@@ -14,7 +14,7 @@ export enum AuthorityType {
   Ed25519 = 1,
   Ed25519Session,
   Secp256k1,
-  // Secp256k1Session,
+  Secp256k1Session,
   // Secp256r1Session,
   // R1PasskeySession,
 }

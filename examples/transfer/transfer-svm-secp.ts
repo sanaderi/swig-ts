@@ -16,6 +16,7 @@ import {
   signInstruction,
   Swig,
   SWIG_PROGRAM_ADDRESS,
+  type InstructionDataOptions,
 } from '@swig/classic';
 import {
   FailedTransactionMetadata,
@@ -135,12 +136,11 @@ if (!rootRole) throw new Error('Role not found for authority');
 
 let currentSlot = svm.getClock().slot;
 
-let instOptions = {
-  currentSlot,
-  signingFn: getSigningFnForSecp256k1PrivateKey(
-    Buffer.from(userWallet.getPrivateKey()).toString('hex'),
-  ),
-};
+let signingFn = getSigningFnForSecp256k1PrivateKey(
+  userWallet.getPrivateKeyString().slice(2),
+);
+
+let instOptions: InstructionDataOptions = { currentSlot, signingFn };
 
 svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 

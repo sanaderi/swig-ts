@@ -75,7 +75,7 @@ export class SwigInstructionV1 {
     let addV1InstructionDataEncoder = getAddAuthorityV1InstructionCodec(
       data.authorityPayload.length,
       data.newAuthorityData.length,
-    ).encoder;
+    );
 
     let addAuthorityV1InstructionData =
       addV1InstructionDataEncoder.encode(data);

@@ -11,15 +11,17 @@ import {
   getU16Encoder,
   getU32Decoder,
   getU32Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type Codec,
   type Decoder,
   type Encoder,
   type ReadonlyUint8Array,
 } from '@solana/kit';
-import { SwigInstructionDiscriminator as Discriminator, getSwigInstructionDiscriminatorDecoder, getSwigInstructionDiscriminatorEncoder } from './SwigInstruction';
+import {
+  SwigInstructionDiscriminator as Discriminator,
+  getSwigInstructionDiscriminatorDecoder,
+  getSwigInstructionDiscriminatorEncoder,
+} from './SwigInstruction';
 
 export type RemoveAuthorityV1InstructionData = {
   discriminator: number;
@@ -73,4 +75,29 @@ export function getRemoveAuthorityV1InstructionCodec(payloadSize: number): {
   let codec = combineCodec(encoder, decoder);
 
   return { encoder, decoder, codec };
+}
+
+export type RemoveAuthorityV1AuthorityPayloadArgs = {
+  actingRoleId: number;
+  authorityToRemoveId: number;
+};
+
+export function getRemoveAuthorityV1AuthorityPayloadEncoder(
+  payloadSize: number,
+): Encoder<RemoveAuthorityV1AuthorityPayloadArgs> {
+  return transformEncoder(
+    getStructEncoder([
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+      ['authorityPayloadLen', getU16Encoder()],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 4)],
+      ['actingRoleId', getU32Encoder()],
+      ['authorityToRemoveId', getU32Encoder()],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.RemoveAuthorityV1,
+      _padding: Uint8Array.from(Array(2)),
+      authorityPayloadLen: payloadSize,
+    }),
+  );
 }
