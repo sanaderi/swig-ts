@@ -75,7 +75,7 @@ export function getCreateSessionV1AuthorityPayloadCodec(payloadSize: number): {
       (value) => ({
         ...value,
         discriminator: Discriminator.CreateSessionV1,
-        authorityPayloadLen: payloadSize
+        authorityPayloadLen: payloadSize,
       }),
     );
 
@@ -111,12 +111,12 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
       ['roleId', getU32Encoder()],
       ['sessionDuration', getU64Encoder()],
       ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
-      ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
+      ['authorityPayload', getBytesEncoder()],
     ]),
     (value) => ({
       ...value,
       discriminator: Discriminator.CreateSessionV1,
-      authorityPayloadLen: value.authorityPayload.length,
+      authorityPayloadLen: payloadSize,
     }),
   );
 
@@ -126,7 +126,7 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
     ['authorityPayloadLen', getU16Decoder()],
     ['sessionDuration', getU64Decoder()],
     ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
-    ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
+    ['authorityPayload', getBytesDecoder()],
   ]);
 
   let codec: Codec<

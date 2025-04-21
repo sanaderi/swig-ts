@@ -1,9 +1,10 @@
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType, getSecp256k1SessionDecoder } from '@swig/coder';
+import { getCreateSecp256k1SessionEncoder } from '@swig/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
-import { Secp256k1Instruction } from '../instructions';
+import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 
 export class Secp256k1SessionAuthority extends SessionBasedAuthority {
@@ -28,7 +29,7 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
   }
 
   get sessionKey(): PublicKey {
-    return new PublicKey(this.data.slice(64, 96));
+    return new PublicKey(this.data.slice(192, 224));
   }
 
   get expirySlot() {
@@ -48,6 +49,23 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     };
   }
 
+  static uninitialized(
+    publicKey: Uint8Array,
+    maxSessionDuration: bigint,
+    sessionKey?: PublicKey,
+  ): Secp256k1SessionAuthority {
+    let sessionData = getCreateSecp256k1SessionEncoder().encode({
+      publicKey: publicKey,
+      sessionKey: sessionKey
+        ? sessionKey.toBytes()
+        : Uint8Array.from(Array(32)),
+      currentSessionExpiration: 0n,
+      maxSessionLength: maxSessionDuration,
+    });
+
+    return new this(Uint8Array.from(sessionData));
+  }
+
   createAuthorityData(): Uint8Array {
     return this.data;
   }
@@ -63,7 +81,7 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
       { payer: args.payer, swig: args.swigAddress },
       {
         bump: args.bump,
-        authorityData: this.data,
+        authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -77,19 +95,19 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     payer: PublicKey;
     roleId: number;
     innerInstructions: TransactionInstruction[];
-    options: InstructionDataOptions;
+    // options: InstructionDataOptions;
   }) {
-    return this.instructions.signV1Instruction(
+    return Ed25519Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
       },
       {
-        authorityData: this.data,
+        authorityData: this.sessionKey.toBytes(),
         innerInstructions: args.innerInstructions,
         roleId: args.roleId,
       },
-      args.options,
+      // args.options,
     );
   }
 

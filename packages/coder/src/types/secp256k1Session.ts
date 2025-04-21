@@ -7,6 +7,7 @@ import {
   getStructEncoder,
   getU64Decoder,
   getU64Encoder,
+  transformEncoder,
   type Decoder,
   type Encoder,
   type ReadonlyUint8Array,
@@ -21,15 +22,42 @@ export type Secp256k1SessionAuthorityData = {
   currentSessionExpiration: bigint;
 };
 
-export function getSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityData> {
-  return getStructEncoder([
-    ['publicKey', fixEncoderSize(getBytesEncoder(), 33)],
-    ['_padding', fixEncoderSize(getBytesEncoder(), 7)],
-    ['sigFilter', fixEncoderSize(getBytesEncoder(), 32)],
-    ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
-    ['maxSessionLength', getU64Encoder()],
-    ['currentSessionExpiration', getU64Encoder()],
-  ]);
+export type Secp256k1SessionAuthorityDataArgs = {
+  publicKey: ReadonlyUint8Array;
+  sessionKey: ReadonlyUint8Array;
+  maxSessionLength: bigint;
+  currentSessionExpiration: bigint;
+};
+
+export function getCreateSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityDataArgs> {
+  return transformEncoder(
+    getStructEncoder([
+      ['publicKey', fixEncoderSize(getBytesEncoder(), 64)],
+      ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
+      ['maxSessionLength', getU64Encoder()],
+    ]),
+    (value) => ({
+      ...value,
+    }),
+  );
+}
+
+export function getSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityDataArgs> {
+  return transformEncoder(
+    getStructEncoder([
+      ['publicKey', fixEncoderSize(getBytesEncoder(), 33)],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 7)],
+      ['sigFilter', fixEncoderSize(getBytesEncoder(), 152)],
+      ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
+      ['maxSessionLength', getU64Encoder()],
+      ['currentSessionExpiration', getU64Encoder()],
+    ]),
+    (value) => ({
+      ...value,
+      sigFilter: Uint8Array.from(Array(152)),
+      _padding: Uint8Array.from(Array(7)),
+    }),
+  );
 }
 
 export function getSecp256k1SessionDecoder(): Decoder<Secp256k1SessionAuthorityData> {

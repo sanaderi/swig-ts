@@ -13,7 +13,7 @@ import {
   getRemoveAuthorityV1BaseAccountMetas,
   getSignV1BaseAccountMetas,
 } from '../../instructions';
-import { getCreateSessionV1BaseAccountMetas } from '../../instructions/createSessionV1';
+import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
 import type { AuthorityInstruction, InstructionDataOptions } from './interface';
 
 /**
@@ -68,7 +68,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayloadCodec = getRemoveAuthorityV1AuthorityPayloadEncoder(SECP_AUTHORITY_PAYLOAD_SIZE);
+    let authorityPayloadCodec = getRemoveAuthorityV1AuthorityPayloadEncoder(
+      SECP_AUTHORITY_PAYLOAD_SIZE,
+    );
 
     let message = authorityPayloadCodec.encode(data);
 
@@ -131,11 +133,10 @@ export const Secp256k1Instruction: AuthorityInstruction = {
       );
 
     let createSessionIxAccountMetas =
-      getCreateSessionV1BaseAccountMetas(accounts);
+      getCreateSessionV1BaseAccountMetasWithSystemProgram(accounts);
 
-    let authorityPayloadCodec = getCreateSessionV1AuthorityPayloadCodec(
-      SECP_AUTHORITY_PAYLOAD_SIZE,
-    ).codec;
+    let authorityPayloadCodec =
+      getCreateSessionV1AuthorityPayloadCodec(1).codec;
 
     let message = authorityPayloadCodec.encode(data);
 
@@ -146,6 +147,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     return SwigInstructionV1.createSession(createSessionIxAccountMetas, {
       ...data,
+      payloadSize: 1,
       authorityPayload,
     });
   },
