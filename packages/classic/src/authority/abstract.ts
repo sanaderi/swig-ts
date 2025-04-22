@@ -1,16 +1,25 @@
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import { type AuthorityType } from '@swig/coder';
 import { uint8ArraysEqual } from '../utils';
-// import { getAuthorityConfig } from './config';
 import type { Actions } from '../actions';
-import type { AuthorityInstruction, InstructionDataOptions, SigningFn } from './instructions/interface';
+import type {
+  AuthorityInstruction,
+  InstructionDataOptions,
+} from './instructions/interface';
 
 export abstract class Authority {
   abstract instructions: AuthorityInstruction;
   abstract session: boolean;
   abstract type: AuthorityType;
 
-  constructor(public data: Uint8Array) {}
+  constructor(
+    public data: Uint8Array,
+    public roleId: number | null,
+  ) {}
+
+  isInitialized() {
+    return this.roleId !== null;
+  }
 
   abstract create(args: {
     payer: PublicKey;

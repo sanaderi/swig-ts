@@ -48,7 +48,7 @@ function sendSVMTransaction(
   }
 
   if (tx instanceof TransactionMetadata) {
-    console.log('tx:', tx.logs());
+    // console.log('tx:', tx.logs());
   }
 }
 
@@ -101,7 +101,7 @@ let [swigAddress] = findSwigPda(id);
 //
 let pk = secp.getPublicKey(userWallet.getPrivateKey(), false);
 
-let rootAuthority = Secp256k1SessionAuthority.uninitialized(pk.slice(1), 100n);
+let rootAuthority = Secp256k1SessionAuthority.uninitialized(pk, 100n);
 
 //
 // * create swig instruction

@@ -18,8 +18,8 @@ export class Ed25519SessionAuthority
   type = AuthorityType.Ed25519Session;
   instructions = Ed25519Instruction;
 
-  constructor(public data: Uint8Array) {
-    super(data);
+  constructor(public data: Uint8Array, roleId?: number) {
+    super(data, roleId ?? null);
   }
 
   static fromBytes(bytes: Uint8Array): Ed25519SessionAuthority {

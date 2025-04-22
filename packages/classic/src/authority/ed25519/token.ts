@@ -13,8 +13,8 @@ export class Ed25519Authority
   type = AuthorityType.Ed25519;
   instructions = Ed25519Instruction;
 
-  constructor(data: Uint8Array) {
-    super(data);
+  constructor(data: Uint8Array, roleId?: number) {
+    super(data, roleId ?? null);
   }
 
   static fromPublicKey(publicKey: PublicKey): Ed25519Authority {

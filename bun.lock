@@ -53,6 +53,7 @@
       "name": "@swig/classic",
       "version": "0.1.0",
       "dependencies": {
+        "@noble/secp256k1": "^2.2.3",
         "@solana/kit": "^2.1.0",
       },
       "devDependencies": {

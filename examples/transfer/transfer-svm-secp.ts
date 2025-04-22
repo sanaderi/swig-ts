@@ -97,8 +97,10 @@ let [swigAddress] = findSwigPda(id);
 // * make an Authority (in this case, out of a ed25519 publickey)
 //
 let pk = secp.getPublicKey(userWallet.getPrivateKey(), false);
+let str = secp.etc.bytesToHex(pk)
 
-let rootAuthority = Secp256k1Authority.fromPublicKeyBytes(pk.slice(1));
+// let rootAuthority = Secp256k1Authority.fromPublicKeyBytes(pk);
+let rootAuthority = Secp256k1Authority.fromPublicKeyString(str);
 
 //
 // * create swig instruction

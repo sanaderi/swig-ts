@@ -1,6 +1,12 @@
+import * as secp from '@noble/secp256k1';
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
-import { AuthorityType, getSecp256k1SessionDecoder } from '@swig/coder';
-import { getCreateSecp256k1SessionEncoder } from '@swig/coder';
+import {
+  AuthorityType,
+  getCreateSecp256k1SessionDecoder,
+  getCreateSecp256k1SessionEncoder,
+  getSecp256k1SessionDecoder,
+  type Secp256k1SessionAuthorityDataArgs,
+} from '@swig/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
@@ -11,25 +17,24 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
   type = AuthorityType.Secp256k1Session;
   instructions = Secp256k1Instruction;
 
-  constructor(data: Uint8Array) {
-    super(data);
+  constructor(data: Uint8Array, roleId?: number) {
+    super(data, roleId ?? null);
   }
 
-  static fromPublicKeyString(pkString: string): Secp256k1SessionAuthority {
-    let data = Uint8Array.from(Buffer.from(pkString.slice(2), 'hex'));
-    return new Secp256k1SessionAuthority(data);
-  }
-
-  static fromPublicKeyBytes(pkBytes: Uint8Array): Secp256k1SessionAuthority {
-    return new Secp256k1SessionAuthority(pkBytes);
+  get publicKeyBytes(): Uint8Array {
+    return this.isInitialized()
+      ? this.info.publicKey
+      : secp.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
+          true,
+        );
   }
 
   get publicKeyString(): string {
-    return Buffer.from(this.data).toString('hex');
+    return secp.etc.bytesToHex(this.publicKeyBytes);
   }
 
   get sessionKey(): PublicKey {
-    return new PublicKey(this.data.slice(192, 224));
+    return this.info.sessionKey;
   }
 
   get expirySlot() {
@@ -40,13 +45,38 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     return this.info.maxSessionLength;
   }
 
+  private get _uninitPublicKeyBytes() {
+    let bytes = new Uint8Array(65);
+    bytes.set([4]);
+    bytes.set(this.info.publicKey, 1);
+    return bytes;
+  }
+
   private get info(): SessionData {
-    let data = getSecp256k1SessionDecoder().decode(this.data);
+    let data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
+      ? getSecp256k1SessionDecoder().decode(this.data)
+      : {
+          ...getCreateSecp256k1SessionDecoder().decode(this.data),
+          currentSessionExpiration: 0n,
+        };
     return {
       ...data,
       publicKey: Uint8Array.from(data.publicKey),
-      sessionKey: new PublicKey(data.publicKey),
+      sessionKey: new PublicKey(data.sessionKey),
     };
+  }
+
+  static uninitializedString(
+    publicKey: string,
+    maxSessionDuration: bigint,
+    sessionKey?: PublicKey,
+  ): Secp256k1SessionAuthority {
+    let bytes = secp.etc.hexToBytes(publicKey);
+    return Secp256k1SessionAuthority.uninitialized(
+      bytes,
+      maxSessionDuration,
+      sessionKey,
+    );
   }
 
   static uninitialized(
@@ -55,11 +85,10 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
     let sessionData = getCreateSecp256k1SessionEncoder().encode({
-      publicKey: publicKey,
+      publicKey: publicKey.slice(1),
       sessionKey: sessionKey
         ? sessionKey.toBytes()
         : Uint8Array.from(Array(32)),
-      currentSessionExpiration: 0n,
       maxSessionLength: maxSessionDuration,
     });
 
@@ -95,7 +124,6 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     payer: PublicKey;
     roleId: number;
     innerInstructions: TransactionInstruction[];
-    // options: InstructionDataOptions;
   }) {
     return Ed25519Instruction.signV1Instruction(
       {
@@ -107,7 +135,6 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
         innerInstructions: args.innerInstructions,
         roleId: args.roleId,
       },
-      // args.options,
     );
   }
 

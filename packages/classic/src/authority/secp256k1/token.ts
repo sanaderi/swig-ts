@@ -1,3 +1,4 @@
+import * as secp from '@noble/secp256k1';
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig/coder';
 import type { Actions } from '../../actions';
@@ -10,21 +11,36 @@ export class Secp256k1Authority extends TokenBasedAuthority {
   type = AuthorityType.Secp256k1;
   instructions = Secp256k1Instruction;
 
-  constructor(data: Uint8Array) {
-    super(data);
+  constructor(data: Uint8Array, roleId?: number) {
+    super(data, roleId ?? null);
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
-    let data = Uint8Array.from(Buffer.from(pkString.slice(2), "hex"));
-    return new Secp256k1Authority(data);
+    let data = secp.etc.hexToBytes(pkString);
+    return Secp256k1Authority.fromPublicKeyBytes(data);
   }
 
   static fromPublicKeyBytes(pkBytes: Uint8Array): Secp256k1Authority {
-    return new Secp256k1Authority(pkBytes);
+    return new Secp256k1Authority(pkBytes.slice(1));
+  }
+
+  get publicKeyBytes(): Uint8Array {
+    return this.isInitialized()
+      ? this.data
+      : secp.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
+          true,
+        );
+  }
+
+  private get _uninitPublicKeyBytes() {
+    let bytes = new Uint8Array(65);
+    bytes.set([4]);
+    bytes.set(this.data, 1);
+    return bytes;
   }
 
   get publicKeyString(): string {
-    return Buffer.from(this.data).toString('hex');
+    return secp.etc.bytesToHex(this.publicKeyBytes);
   }
 
   createAuthorityData(): Uint8Array {
@@ -117,5 +133,4 @@ export class Secp256k1Authority extends TokenBasedAuthority {
       args.options,
     );
   }
-  
 }

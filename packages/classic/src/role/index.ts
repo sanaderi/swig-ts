@@ -6,7 +6,7 @@ import {
 } from '@swig/coder';
 import { Actions } from '../actions';
 import {
-  getAuthority,
+  getRoleAuthority,
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
@@ -242,7 +242,11 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   let authorityData = roleData.slice(0, position.authorityLen);
   let rawActions = roleData.slice(position.authorityLen);
 
-  let authority = getAuthority(position.authorityType, authorityData);
+  let authority = getRoleAuthority(
+    position.authorityType,
+    authorityData,
+    position.id,
+  );
   let actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };

@@ -29,17 +29,26 @@ export type Secp256k1SessionAuthorityDataArgs = {
   currentSessionExpiration: bigint;
 };
 
-export function getCreateSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityDataArgs> {
-  return transformEncoder(
-    getStructEncoder([
-      ['publicKey', fixEncoderSize(getBytesEncoder(), 64)],
-      ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
-      ['maxSessionLength', getU64Encoder()],
-    ]),
-    (value) => ({
-      ...value,
-    }),
-  );
+export type Secp256k1CreateSessionAuthorityData = {
+  publicKey: ReadonlyUint8Array;
+  sessionKey: ReadonlyUint8Array;
+  maxSessionLength: bigint;
+};
+
+export function getCreateSecp256k1SessionEncoder(): Encoder<Secp256k1CreateSessionAuthorityData> {
+  return getStructEncoder([
+    ['publicKey', fixEncoderSize(getBytesEncoder(), 64)],
+    ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
+    ['maxSessionLength', getU64Encoder()],
+  ]);
+}
+
+export function getCreateSecp256k1SessionDecoder(): Decoder<Secp256k1CreateSessionAuthorityData> {
+  return getStructDecoder([
+    ['publicKey', fixDecoderSize(getBytesDecoder(), 64)],
+    ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
+    ['maxSessionLength', getU64Decoder()],
+  ]);
 }
 
 export function getSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityDataArgs> {
