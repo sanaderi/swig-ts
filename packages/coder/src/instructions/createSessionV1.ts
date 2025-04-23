@@ -41,6 +41,61 @@ export type CreateSessionV1InstructionDataArgs = {
   sessionKey: ReadonlyUint8Array;
 };
 
+export type CreateSessionV1InstructionAuthorityPayload = {
+  discriminator: number;
+  roleId: number;
+  sessionDuration: bigint;
+  authorityPayloadLen: number;
+  sessionKey: ReadonlyUint8Array;
+};
+
+export type CreateSessionV1InstructionAuthorityPayloadArgs = {
+  roleId: number;
+  sessionDuration: bigint;
+  sessionKey: ReadonlyUint8Array;
+};
+
+export function getCreateSessionV1AuthorityPayloadCodec(payloadSize: number): {
+  encoder: Encoder<CreateSessionV1InstructionAuthorityPayloadArgs>;
+  decoder: Decoder<CreateSessionV1InstructionAuthorityPayload>;
+  codec: Codec<
+    CreateSessionV1InstructionAuthorityPayloadArgs,
+    CreateSessionV1InstructionAuthorityPayload
+  >;
+} {
+  let encoder: Encoder<CreateSessionV1InstructionAuthorityPayloadArgs> =
+    transformEncoder(
+      getStructEncoder([
+        ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+        ['authorityPayloadLen', getU16Encoder()],
+        ['roleId', getU32Encoder()],
+        ['sessionDuration', getU64Encoder()],
+        ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
+      ]),
+      (value) => ({
+        ...value,
+        discriminator: Discriminator.CreateSessionV1,
+        authorityPayloadLen: payloadSize,
+      }),
+    );
+
+  let decoder: Decoder<CreateSessionV1InstructionAuthorityPayload> =
+    getStructDecoder([
+      ['discriminator', getSwigInstructionDiscriminatorDecoder()],
+      ['roleId', getU32Decoder()],
+      ['authorityPayloadLen', getU16Decoder()],
+      ['sessionDuration', getU64Decoder()],
+      ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
+    ]);
+
+  let codec: Codec<
+    CreateSessionV1InstructionAuthorityPayloadArgs,
+    CreateSessionV1InstructionAuthorityPayload
+  > = combineCodec(encoder, decoder);
+
+  return { encoder, decoder, codec };
+}
+
 export function getCreateSessionV1InstructionCodec(payloadSize: number): {
   encoder: Encoder<CreateSessionV1InstructionDataArgs>;
   decoder: Decoder<CreateSessionV1InstructionData>;
@@ -56,12 +111,12 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
       ['roleId', getU32Encoder()],
       ['sessionDuration', getU64Encoder()],
       ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
-      ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
+      ['authorityPayload', getBytesEncoder()],
     ]),
     (value) => ({
       ...value,
       discriminator: Discriminator.CreateSessionV1,
-      authorityPayloadLen: value.authorityPayload.length,
+      authorityPayloadLen: payloadSize,
     }),
   );
 
@@ -71,7 +126,7 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
     ['authorityPayloadLen', getU16Decoder()],
     ['sessionDuration', getU64Decoder()],
     ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
-    ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
+    ['authorityPayload', getBytesDecoder()],
   ]);
 
   let codec: Codec<

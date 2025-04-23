@@ -1,16 +1,26 @@
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import { type AuthorityType } from '@swig/coder';
 import { uint8ArraysEqual } from '../utils';
-// import { getAuthorityConfig } from './config';
 import type { Actions } from '../actions';
-import type { AuthorityInstruction } from './interface';
+import type {
+  AuthorityInstruction,
+  InstructionDataOptions,
+} from './instructions/interface';
 
 export abstract class Authority {
   abstract instructions: AuthorityInstruction;
   abstract session: boolean;
   abstract type: AuthorityType;
+  abstract id: Uint8Array
 
-  constructor(public data: Uint8Array) {}
+  constructor(
+    public data: Uint8Array,
+    public roleId: number | null,
+  ) {}
+
+  isInitialized() {
+    return this.roleId !== null;
+  }
 
   abstract create(args: {
     payer: PublicKey;
@@ -25,7 +35,8 @@ export abstract class Authority {
     payer: PublicKey;
     roleId: number;
     innerInstructions: TransactionInstruction[];
-  }): TransactionInstruction;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
 
   abstract addAuthority(args: {
     swigAddress: PublicKey;
@@ -33,19 +44,21 @@ export abstract class Authority {
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
-  }): TransactionInstruction;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
 
   abstract removeAuthority(args: {
     payer: PublicKey;
     swigAddress: PublicKey;
     roleId: number;
     roleIdToRemove: number;
-  }): TransactionInstruction;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
 
   abstract createAuthorityData(): Uint8Array;
 
   isEqual(other: Authority): boolean {
-    return uint8ArraysEqual(this.data, other.data) && this.type === other.type;
+    return uint8ArraysEqual(this.id, other.id) && this.type === other.type;
   }
 }
 
@@ -66,7 +79,8 @@ export abstract class SessionBasedAuthority extends Authority {
     roleId: number;
     sessionDuration?: bigint;
     newSessionKey: PublicKey;
-  }): TransactionInstruction;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
 }
 
 export function isTokenBasedAuthority(

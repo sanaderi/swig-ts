@@ -1,60 +1,44 @@
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import {
   AuthorityType,
-  getEd25519SessionDecoder,
-  getEd25519SessionEncoder,
+  getCreateSecp256k1SessionDecoder,
+  getCreateSecp256k1SessionEncoder,
+  getSecp256k1SessionDecoder,
+  type Secp256k1SessionAuthorityDataArgs,
 } from '@swig/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
-import { Ed25519Instruction } from '../instructions';
-import type { SigningFn } from '../instructions/interface';
-import type { Ed25519BasedAuthority } from './based';
+import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
+import type { InstructionDataOptions } from '../instructions/interface';
 
-export class Ed25519SessionAuthority
-  extends SessionBasedAuthority
-  implements Ed25519BasedAuthority
-{
-  type = AuthorityType.Ed25519Session;
-  instructions = Ed25519Instruction;
+export class Secp256k1SessionAuthority extends SessionBasedAuthority {
+  type = AuthorityType.Secp256k1Session;
+  instructions = Secp256k1Instruction;
 
-  constructor(
-    public data: Uint8Array,
-    roleId?: number,
-  ) {
+  constructor(data: Uint8Array, roleId?: number) {
     super(data, roleId ?? null);
   }
 
-  static fromBytes(bytes: Uint8Array): Ed25519SessionAuthority {
-    return new Ed25519SessionAuthority(bytes);
-  }
-
-  static uninitialized(
-    publicKey: PublicKey,
-    maxSessionDuration: bigint,
-    sessionKey?: PublicKey,
-  ): Ed25519SessionAuthority {
-    let sessionData = getEd25519SessionEncoder().encode({
-      publicKey: publicKey.toBytes(),
-      sessionKey: sessionKey
-        ? sessionKey.toBytes()
-        : Uint8Array.from(Array(32)),
-      currentSessionExpiration: 0n,
-      maxSessionLength: maxSessionDuration,
-    });
-
-    return new Ed25519SessionAuthority(Uint8Array.from(sessionData));
-  }
-
   get id() {
-    return this.info.publicKey.toBytes();
+    return this.publicKeyBytes;
   }
 
-  get address() {
-    return this.info.publicKey;
+  get publicKeyBytes(): Uint8Array {
+    return this.isInitialized()
+      ? this.info.publicKey
+      : secp256k1.ProjectivePoint.fromHex(
+          this._uninitPublicKeyBytes,
+        ).toRawBytes(true);
   }
 
-  get sessionKey() {
+  get publicKeyString(): string {
+    return bytesToHex(this.publicKeyBytes);
+  }
+
+  get sessionKey(): PublicKey {
     return this.info.sessionKey;
   }
 
@@ -66,17 +50,58 @@ export class Ed25519SessionAuthority
     return this.info.maxSessionLength;
   }
 
-  createAuthorityData(): Uint8Array {
-    return this.data.slice(0, 32 + 32 + 8);
+  private get _uninitPublicKeyBytes() {
+    let bytes = new Uint8Array(65);
+    bytes.set([4]);
+    bytes.set(this.info.publicKey, 1);
+    return bytes;
   }
 
-  private get info(): Ed25519SessionData {
-    let data = getEd25519SessionDecoder().decode(this.data);
+  private get info(): SessionData {
+    let data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
+      ? getSecp256k1SessionDecoder().decode(this.data)
+      : {
+          ...getCreateSecp256k1SessionDecoder().decode(this.data),
+          currentSessionExpiration: 0n,
+        };
     return {
       ...data,
-      publicKey: new PublicKey(data.publicKey),
+      publicKey: Uint8Array.from(data.publicKey),
       sessionKey: new PublicKey(data.sessionKey),
     };
+  }
+
+  static uninitializedString(
+    publicKey: string,
+    maxSessionDuration: bigint,
+    sessionKey?: PublicKey,
+  ): Secp256k1SessionAuthority {
+    let bytes = hexToBytes(publicKey);
+    return Secp256k1SessionAuthority.uninitialized(
+      bytes,
+      maxSessionDuration,
+      sessionKey,
+    );
+  }
+
+  static uninitialized(
+    publicKey: Uint8Array,
+    maxSessionDuration: bigint,
+    sessionKey?: PublicKey,
+  ): Secp256k1SessionAuthority {
+    let sessionData = getCreateSecp256k1SessionEncoder().encode({
+      publicKey: publicKey.slice(1),
+      sessionKey: sessionKey
+        ? sessionKey.toBytes()
+        : Uint8Array.from(Array(32)),
+      maxSessionLength: maxSessionDuration,
+    });
+
+    return new this(Uint8Array.from(sessionData));
+  }
+
+  createAuthorityData(): Uint8Array {
+    return this.data;
   }
 
   create(args: {
@@ -105,7 +130,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     innerInstructions: TransactionInstruction[];
   }) {
-    return this.instructions.signV1Instruction(
+    return Ed25519Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
@@ -124,6 +149,7 @@ export class Ed25519SessionAuthority
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
+    options: InstructionDataOptions;
   }) {
     return this.instructions.addAuthorityV1Instruction(
       {
@@ -134,10 +160,11 @@ export class Ed25519SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.createAuthorityData(),
+        newAuthorityData: args.newAuthority.data,
         newAuthorityType: args.newAuthority.type,
         noOfActions: args.actions.count,
       },
+      args.options,
     );
   }
 
@@ -146,6 +173,7 @@ export class Ed25519SessionAuthority
     swigAddress: PublicKey;
     roleId: number;
     roleIdToRemove: number;
+    options: InstructionDataOptions;
   }) {
     return this.instructions.removeAuthorityV1Instruction(
       {
@@ -157,6 +185,7 @@ export class Ed25519SessionAuthority
         authorityData: this.data,
         authorityToRemoveId: args.roleIdToRemove,
       },
+      args.options,
     );
   }
 
@@ -166,6 +195,7 @@ export class Ed25519SessionAuthority
     newSessionKey: PublicKey;
     roleId: number;
     sessionDuration?: bigint;
+    options: InstructionDataOptions;
   }) {
     return this.instructions.createSessionV1Instruction(
       {
@@ -173,23 +203,18 @@ export class Ed25519SessionAuthority
         swig: args.swigAddress,
       },
       {
-        authorityData: this.address.toBytes(),
+        authorityData: this.data,
         roleId: args.roleId,
         sessionDuration: args.sessionDuration ?? this.maxDuration,
         sessionKey: args.newSessionKey.toBytes(),
       },
+      args.options,
     );
   }
 }
 
-export function isEd25519SessionAuthority(
-  authority: Authority,
-): authority is Ed25519SessionAuthority {
-  return authority instanceof Ed25519SessionAuthority;
-}
-
-export type Ed25519SessionData = {
-  publicKey: PublicKey;
+export type SessionData = {
+  publicKey: Uint8Array;
   sessionKey: PublicKey;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;

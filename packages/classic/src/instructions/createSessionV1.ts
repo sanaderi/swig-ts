@@ -1,4 +1,4 @@
-import { type AccountMeta, type PublicKey } from '@solana/web3.js';
+import { SystemProgram, type AccountMeta, type PublicKey } from '@solana/web3.js';
 
 export type CreateSessionV1InstructionAccounts = {
   swig: PublicKey;
@@ -45,4 +45,24 @@ export function getCreateSessionV1BaseAccountMetasWithAuthority(
     },
   ];
   return [metas, authorityIndex];
+}
+
+export type CreateSessionV1BaseAccountMetasWithSystemProgram = [
+  ...CreateSessionV1BaseAccountMetas,
+  AccountMeta,
+];
+
+export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
+  accounts: CreateSessionV1InstructionAccounts,
+): CreateSessionV1BaseAccountMetasWithSystemProgram {
+  let accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
+
+  return [
+    ...accountMetas,
+    {
+      pubkey: SystemProgram.programId,
+      isSigner: false,
+      isWritable: false,
+    },
+  ];
 }

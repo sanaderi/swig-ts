@@ -13,13 +13,20 @@ export class Ed25519Authority
   type = AuthorityType.Ed25519;
   instructions = Ed25519Instruction;
 
-  constructor(public address: PublicKey) {
-    let bytes = address.toBytes();
-    super(bytes);
+  constructor(data: Uint8Array, roleId?: number) {
+    super(data, roleId ?? null);
   }
 
-  static fromBytes(bytes: Uint8Array): Ed25519Authority {
-    return new Ed25519Authority(new PublicKey(bytes));
+  static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
+    return new Ed25519Authority(publicKey.toBytes());
+  }
+
+  get id() {
+    return this.data;
+  }
+
+  get address() {
+    return new PublicKey(this.data);
   }
 
   createAuthorityData() {
@@ -51,7 +58,7 @@ export class Ed25519Authority
     payer: PublicKey;
     roleId: number;
     innerInstructions: TransactionInstruction[];
-  }): TransactionInstruction {
+  }) {
     return this.instructions.signV1Instruction(
       {
         swig: args.swigAddress,
@@ -71,7 +78,7 @@ export class Ed25519Authority
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
-  }): TransactionInstruction {
+  }) {
     return this.instructions.addAuthorityV1Instruction(
       {
         payer: args.payer,
@@ -93,7 +100,7 @@ export class Ed25519Authority
     swigAddress: PublicKey;
     roleId: number;
     roleIdToRemove: number;
-  }): TransactionInstruction {
+  }) {
     return this.instructions.removeAuthorityV1Instruction(
       {
         payer: args.payer,
@@ -106,6 +113,10 @@ export class Ed25519Authority
       },
     );
   }
+}
+
+export function getEd25519AuthorityFromPublicKey(publicKey: PublicKey) {
+  return Ed25519Authority.fromPublicKey(publicKey);
 }
 
 export function isEd25519Authority(

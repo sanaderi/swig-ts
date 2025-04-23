@@ -6,10 +6,11 @@ import {
 } from '@swig/coder';
 import { Actions } from '../actions';
 import {
-  getAuthority,
+  getRoleAuthority,
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
+  type InstructionDataOptions,
 } from '../authority';
 
 export class Role {
@@ -129,12 +130,14 @@ export function signInstruction(
   role: Role,
   payer: PublicKey,
   innerInstructions: TransactionInstruction[],
+  options?: InstructionDataOptions,
 ) {
   return role.authority.sign({
     swigAddress: role.swigAddress,
     payer,
     innerInstructions,
     roleId: role.id,
+    options,
   });
 }
 
@@ -151,6 +154,7 @@ export function addAuthorityInstruction(
   payer: PublicKey,
   newAuthority: Authority,
   actions: Actions,
+  options?: InstructionDataOptions,
 ) {
   return role.authority.addAuthority({
     payer,
@@ -158,6 +162,7 @@ export function addAuthorityInstruction(
     actingRoleId: role.id,
     actions,
     newAuthority,
+    options,
   });
 }
 
@@ -172,12 +177,14 @@ export function removeAuthorityInstruction(
   role: Role,
   payer: PublicKey,
   roleToRemove: Role,
+  options?: InstructionDataOptions,
 ) {
   return role.authority.removeAuthority({
     payer,
     swigAddress: role.swigAddress,
     roleId: role.id,
     roleIdToRemove: roleToRemove.id,
+    options,
   });
 }
 
@@ -194,6 +201,7 @@ export function createSessionInstruction(
   payer: PublicKey,
   newSessionKey: PublicKey,
   sessionDuration?: bigint,
+  options?: InstructionDataOptions,
 ) {
   if (!role.isSessionBased()) return null;
   return role.authority.createSession({
@@ -202,6 +210,7 @@ export function createSessionInstruction(
     payer,
     sessionDuration,
     newSessionKey,
+    options,
   });
 }
 
@@ -233,7 +242,11 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   let authorityData = roleData.slice(0, position.authorityLen);
   let rawActions = roleData.slice(position.authorityLen);
 
-  let authority = getAuthority(position.authorityType, authorityData);
+  let authority = getRoleAuthority(
+    position.authorityType,
+    authorityData,
+    position.id,
+  );
   let actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };

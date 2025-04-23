@@ -10,13 +10,13 @@ import {
   type TransactionSignature,
 } from '@solana/web3.js';
 import type { Actions } from '../actions';
-import type { Authority } from '../authority';
-import { Swig } from '../swig';
+import type { Authority, SigningFn } from '../authority';
 import {
   addAuthorityInstruction,
   removeAuthorityInstruction,
   signInstruction,
 } from '../role';
+import { Swig } from '../swig';
 import { createLegacyTransaction } from '../utils';
 
 /**
@@ -56,7 +56,6 @@ export async function createSwig(
   return sendAndConfirmTransaction(connection, transaction, signers, options);
 }
 
-
 export function fetchNullableSwig(
   connection: Connection,
   swigAddress: PublicKey,
@@ -79,6 +78,7 @@ export async function getSignInstruction(
   swigAddress: PublicKey,
   authority: Authority,
   payer: PublicKey,
+  signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionInstruction> {
   let swig = await fetchSwig(connection, swigAddress, options);
@@ -89,7 +89,12 @@ export async function getSignInstruction(
     throw new Error("Authority doesn't have a role on the swig");
   }
 
-  return signInstruction(role, payer, instructons);
+  let instOptions = signingFn && {
+    signingFn,
+    currentSlot: BigInt(await connection.getSlot(options)),
+  };
+
+  return signInstruction(role, payer, instructons, instOptions);
 }
 
 export async function signAndSend(
@@ -98,7 +103,8 @@ export async function signAndSend(
   swigAddress: PublicKey,
   authority: Authority,
   payer: PublicKey,
-  signers: Signer[],
+  signers: Signer[] = [],
+  signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
   let signInstruction = await getSignInstruction(
@@ -107,6 +113,7 @@ export async function signAndSend(
     swigAddress,
     authority,
     payer,
+    signingFn,
     options,
   );
 
@@ -122,7 +129,7 @@ export async function signAndSend(
 }
 
 /**
- * 
+ *
  * @param connection
  * @param swigAddress
  * @param authority
@@ -143,6 +150,7 @@ export async function addAuthority(
   actions: Actions,
   payer: Keypair,
   signers: Signer[] = [],
+  signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
   let swig = await fetchSwig(connection, swigAddress, options);
@@ -156,11 +164,17 @@ export async function addAuthority(
   if (!role.canManageAuthority())
     throw new Error('Role cannot manage authorities on the swig');
 
-  let addAuthorityIx = addAuthorityInstruction(
+  let instOptions = signingFn && {
+    signingFn,
+    currentSlot: BigInt(await connection.getSlot(options)),
+  };
+
+  let addAuthorityIx = await addAuthorityInstruction(
     role,
     payer.publicKey,
     newAuthority,
     actions,
+    instOptions,
   );
 
   // todo: option for sending versioned
@@ -183,6 +197,7 @@ export async function removeAuthority(
   authorityToRemove: Authority,
   payer: Keypair,
   signers: Signer[] = [],
+  signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
   let swig = await fetchSwig(connection, swigAddress, options);
@@ -202,10 +217,16 @@ export async function removeAuthority(
     throw new Error('Authority role does not exist on the swig');
   }
 
-  let removeAuthorityIx = removeAuthorityInstruction(
+  let instOptions = signingFn && {
+    signingFn,
+    currentSlot: BigInt(await connection.getSlot(options)),
+  };
+
+  let removeAuthorityIx = await removeAuthorityInstruction(
     role,
     payer.publicKey,
     roleToRemove,
+    instOptions,
   );
 
   // todo: option for sending versioned
