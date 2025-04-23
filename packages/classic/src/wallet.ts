@@ -2,7 +2,7 @@ import { secp256k1 } from '@noble/curves/secp256k1';
 import type { SigningFn } from './authority';
 
 export function getSigningFnForSecp256k1PrivateKey(
-  privateKey: string,
+  privateKey: Uint8Array | string,
 ): SigningFn {
   return async (message: Uint8Array) => {
     let sig = new Uint8Array(65);

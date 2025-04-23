@@ -135,10 +135,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 
 let currentSlot = svm.getClock().slot;
 
-let signingFn = getSigningFnForSecp256k1PrivateKey(
-  // userWallet.getPrivateKeyString().slice(2),
-  userWallet.getPrivateKeyString().slice(2),
-);
+let signingFn = getSigningFnForSecp256k1PrivateKey(userWallet.getPrivateKey());
 
 let instOptions: InstructionDataOptions = { currentSlot, signingFn };
 
