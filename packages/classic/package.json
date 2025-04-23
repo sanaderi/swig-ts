@@ -17,7 +17,6 @@
     "dist"
   ],
   "devDependencies": {
-    "@swig/coder": "workspace:*",
     "@types/bun": "^1.2.5",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
@@ -29,7 +28,8 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
-    "@noble/secp256k1": "^2.2.3",
+    "@swig/coder": "workspace:*",
+    "@noble/curves": "^1.8.2",
     "@solana/kit": "^2.1.0"
   },
   "peerDependencies": {

@@ -129,16 +129,14 @@ let swig = fetchSwig(svm, swigAddress);
 //
 // * find role by authority
 //
-// let rootRole = swig.findRoleByAuthority(
-//   Secp256k1Authority.fromPublicKeyBytes(userWallet.getPublicKey()),
-// );
-let rootRole = swig.roles[0];
+let rootRole = swig.findRoleByAuthority(rootAuthority);
 
 if (!rootRole) throw new Error('Role not found for authority');
 
 let currentSlot = svm.getClock().slot;
 
 let signingFn = getSigningFnForSecp256k1PrivateKey(
+  // userWallet.getPrivateKeyString().slice(2),
   userWallet.getPrivateKeyString().slice(2),
 );
 

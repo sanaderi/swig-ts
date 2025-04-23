@@ -18,7 +18,10 @@ export class Ed25519SessionAuthority
   type = AuthorityType.Ed25519Session;
   instructions = Ed25519Instruction;
 
-  constructor(public data: Uint8Array, roleId?: number) {
+  constructor(
+    public data: Uint8Array,
+    roleId?: number,
+  ) {
     super(data, roleId ?? null);
   }
 
@@ -41,6 +44,10 @@ export class Ed25519SessionAuthority
     });
 
     return new Ed25519SessionAuthority(Uint8Array.from(sessionData));
+  }
+
+  get id() {
+    return this.info.publicKey.toBytes();
   }
 
   get address() {

@@ -21,6 +21,10 @@ export class Ed25519Authority
     return new Ed25519Authority(publicKey.toBytes());
   }
 
+  get id() {
+    return this.data;
+  }
+
   get address() {
     return new PublicKey(this.data);
   }

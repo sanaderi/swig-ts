@@ -1,4 +1,5 @@
-import * as secp from '@noble/secp256k1';
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import {
   AuthorityType,
@@ -21,16 +22,20 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     super(data, roleId ?? null);
   }
 
+  get id() {
+    return this.publicKeyBytes;
+  }
+
   get publicKeyBytes(): Uint8Array {
     return this.isInitialized()
       ? this.info.publicKey
-      : secp.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
-          true,
-        );
+      : secp256k1.ProjectivePoint.fromHex(
+          this._uninitPublicKeyBytes,
+        ).toRawBytes(true);
   }
 
   get publicKeyString(): string {
-    return secp.etc.bytesToHex(this.publicKeyBytes);
+    return bytesToHex(this.publicKeyBytes);
   }
 
   get sessionKey(): PublicKey {
@@ -71,7 +76,7 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
-    let bytes = secp.etc.hexToBytes(publicKey);
+    let bytes = hexToBytes(publicKey);
     return Secp256k1SessionAuthority.uninitialized(
       bytes,
       maxSessionDuration,

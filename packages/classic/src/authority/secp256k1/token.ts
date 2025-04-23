@@ -1,4 +1,3 @@
-import * as secp from '@noble/secp256k1';
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig/coder';
 import type { Actions } from '../../actions';
@@ -6,6 +5,8 @@ import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';
 import { Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
+import {secp256k1} from "@noble/curves/secp256k1"
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 
 export class Secp256k1Authority extends TokenBasedAuthority {
   type = AuthorityType.Secp256k1;
@@ -16,7 +17,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
-    let data = secp.etc.hexToBytes(pkString);
+    let data = hexToBytes(pkString);
     return Secp256k1Authority.fromPublicKeyBytes(data);
   }
 
@@ -24,12 +25,20 @@ export class Secp256k1Authority extends TokenBasedAuthority {
     return new Secp256k1Authority(pkBytes.slice(1));
   }
 
+  get id() {
+    return this.publicKeyBytes;
+  }
+
   get publicKeyBytes(): Uint8Array {
     return this.isInitialized()
-      ? this.data
-      : secp.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
+      ? this._initPublicKeyBytes
+      : secp256k1.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
           true,
         );
+  }
+
+  private get _initPublicKeyBytes() {
+    return this.data.slice(0, 33);
   }
 
   private get _uninitPublicKeyBytes() {
@@ -40,7 +49,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
   }
 
   get publicKeyString(): string {
-    return secp.etc.bytesToHex(this.publicKeyBytes);
+    return bytesToHex(this.publicKeyBytes);
   }
 
   createAuthorityData(): Uint8Array {

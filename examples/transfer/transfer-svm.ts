@@ -286,4 +286,4 @@ signTransfer = await signInstruction(
 
 sendSVMTransaction(svm, signTransfer, dappAuthorityKeypair);
 
-console.log('balance after second transfer:', svm.getBalance(swigAddress));
+console.log('balance after try second transfer:', svm.getBalance(swigAddress));

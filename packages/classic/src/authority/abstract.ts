@@ -11,6 +11,7 @@ export abstract class Authority {
   abstract instructions: AuthorityInstruction;
   abstract session: boolean;
   abstract type: AuthorityType;
+  abstract id: Uint8Array
 
   constructor(
     public data: Uint8Array,
@@ -57,7 +58,7 @@ export abstract class Authority {
   abstract createAuthorityData(): Uint8Array;
 
   isEqual(other: Authority): boolean {
-    return uint8ArraysEqual(this.data, other.data) && this.type === other.type;
+    return uint8ArraysEqual(this.id, other.id) && this.type === other.type;
   }
 }
 

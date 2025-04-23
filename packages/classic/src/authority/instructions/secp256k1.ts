@@ -1,3 +1,4 @@
+import { keccak_256 } from '@noble/hashes/sha3';
 import { getArrayEncoder, getU8Encoder } from '@solana/kit';
 import {
   getAddAuthorityV1AuthorityPayloadEncoder,
@@ -5,7 +6,6 @@ import {
   getCreateSessionV1AuthorityPayloadCodec,
   getRemoveAuthorityV1AuthorityPayloadEncoder,
 } from '@swig/coder';
-import { keccak256 } from 'ethers';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -168,9 +168,7 @@ export async function prepareSecpPayload(
   message.set(dataPayload);
   message.set(slot, dataPayload.length);
 
-  const hashHex = keccak256(message);
-
-  let hash = Uint8Array.from(Buffer.from(hashHex.slice(2), 'hex'));
+  const hash = keccak_256(message);
 
   let sig = await options.signingFn(hash);
 

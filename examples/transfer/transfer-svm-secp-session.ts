@@ -156,7 +156,8 @@ swig = fetchSwig(svm, swigAddress);
 //
 // * find role by authority
 //
-rootRole = swig.roles[0];
+// rootRole = swig.roles[0];
+rootRole = swig.findRoleByAuthority(rootAuthority);
 
 if (!rootRole) throw new Error('Role not found for authority');
 
