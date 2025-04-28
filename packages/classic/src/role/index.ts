@@ -252,6 +252,9 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   return { position, authority, actions };
 }
 
+// todo: delete roles recursively!
+
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 
 export type TokenBasedRole = Role & { authority: TokenBasedAuthority };
+

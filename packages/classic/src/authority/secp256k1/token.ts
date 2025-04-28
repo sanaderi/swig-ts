@@ -1,3 +1,5 @@
+import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig/coder';
 import type { Actions } from '../../actions';
@@ -5,12 +7,9 @@ import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';
 import { Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
-import {secp256k1} from "@noble/curves/secp256k1"
-import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 
 export class Secp256k1Authority extends TokenBasedAuthority {
   type = AuthorityType.Secp256k1;
-  instructions = Secp256k1Instruction;
 
   constructor(data: Uint8Array, roleId?: number) {
     super(data, roleId ?? null);
@@ -29,12 +28,16 @@ export class Secp256k1Authority extends TokenBasedAuthority {
     return this.publicKeyBytes;
   }
 
+  get signer() {
+    return this.publicKeyBytes
+  }
+
   get publicKeyBytes(): Uint8Array {
     return this.isInitialized()
       ? this._initPublicKeyBytes
-      : secp256k1.ProjectivePoint.fromHex(this._uninitPublicKeyBytes).toRawBytes(
-          true,
-        );
+      : secp256k1.ProjectivePoint.fromHex(
+          this._uninitPublicKeyBytes,
+        ).toRawBytes(true);
   }
 
   private get _initPublicKeyBytes() {
@@ -83,7 +86,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
     innerInstructions: TransactionInstruction[];
     options: InstructionDataOptions;
   }) {
-    return this.instructions.signV1Instruction(
+    return Secp256k1Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
@@ -105,7 +108,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
     newAuthority: Authority;
     options: InstructionDataOptions;
   }) {
-    return this.instructions.addAuthorityV1Instruction(
+    return Secp256k1Instruction.addAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -129,7 +132,7 @@ export class Secp256k1Authority extends TokenBasedAuthority {
     roleIdToRemove: number;
     options: InstructionDataOptions;
   }) {
-    return this.instructions.removeAuthorityV1Instruction(
+    return Secp256k1Instruction.removeAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,

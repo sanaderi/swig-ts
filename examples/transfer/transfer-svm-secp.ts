@@ -1,5 +1,5 @@
 import { Wallet } from '@ethereumjs/wallet';
-import * as secp from '@noble/secp256k1';
+import { secp256k1 } from "@noble/curves/secp256k1"
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -24,6 +24,7 @@ import {
   TransactionMetadata,
 } from 'litesvm';
 import { readFileSync } from 'node:fs';
+import { bytesToHex } from '@noble/curves/abstract/utils';
 
 //
 // Helpers
@@ -96,8 +97,8 @@ let [swigAddress] = findSwigPda(id);
 //
 // * make an Authority (in this case, out of a ed25519 publickey)
 //
-let pk = secp.getPublicKey(userWallet.getPrivateKey(), false);
-let str = secp.etc.bytesToHex(pk)
+let pk = secp256k1.getPublicKey(userWallet.getPrivateKey(), false);
+let str = bytesToHex(pk)
 
 // let rootAuthority = Secp256k1Authority.fromPublicKeyBytes(pk);
 let rootAuthority = Secp256k1Authority.fromPublicKeyString(str);

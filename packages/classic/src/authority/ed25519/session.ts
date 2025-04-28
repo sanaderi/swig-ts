@@ -8,7 +8,6 @@ import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction } from '../instructions';
-import type { SigningFn } from '../instructions/interface';
 import type { Ed25519BasedAuthority } from './based';
 
 export class Ed25519SessionAuthority
@@ -16,7 +15,7 @@ export class Ed25519SessionAuthority
   implements Ed25519BasedAuthority
 {
   type = AuthorityType.Ed25519Session;
-  instructions = Ed25519Instruction;
+  // instructions = Ed25519Instruction;
 
   constructor(
     public data: Uint8Array,
@@ -48,6 +47,10 @@ export class Ed25519SessionAuthority
 
   get id() {
     return this.info.publicKey.toBytes();
+  }
+
+  get signer() {
+    return this.sessionKey.toBytes();
   }
 
   get address() {
@@ -105,7 +108,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     innerInstructions: TransactionInstruction[];
   }) {
-    return this.instructions.signV1Instruction(
+    return Ed25519Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
@@ -125,7 +128,7 @@ export class Ed25519SessionAuthority
     actions: Actions;
     newAuthority: Authority;
   }) {
-    return this.instructions.addAuthorityV1Instruction(
+    return Ed25519Instruction.addAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -147,7 +150,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     roleIdToRemove: number;
   }) {
-    return this.instructions.removeAuthorityV1Instruction(
+    return Ed25519Instruction.removeAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -167,7 +170,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     sessionDuration?: bigint;
   }) {
-    return this.instructions.createSessionV1Instruction(
+    return Ed25519Instruction.createSessionV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,

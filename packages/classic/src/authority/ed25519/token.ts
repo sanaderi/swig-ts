@@ -11,7 +11,7 @@ export class Ed25519Authority
   implements Ed25519BasedAuthority
 {
   type = AuthorityType.Ed25519;
-  instructions = Ed25519Instruction;
+  // instructions = Ed25519Instruction;
 
   constructor(data: Uint8Array, roleId?: number) {
     super(data, roleId ?? null);
@@ -23,6 +23,10 @@ export class Ed25519Authority
 
   get id() {
     return this.data;
+  }
+
+  get signer() {
+    return this.data
   }
 
   get address() {
@@ -59,7 +63,7 @@ export class Ed25519Authority
     roleId: number;
     innerInstructions: TransactionInstruction[];
   }) {
-    return this.instructions.signV1Instruction(
+    return Ed25519Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
@@ -79,7 +83,7 @@ export class Ed25519Authority
     actions: Actions;
     newAuthority: Authority;
   }) {
-    return this.instructions.addAuthorityV1Instruction(
+    return Ed25519Instruction.addAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -101,7 +105,7 @@ export class Ed25519Authority
     roleId: number;
     roleIdToRemove: number;
   }) {
-    return this.instructions.removeAuthorityV1Instruction(
+    return Ed25519Instruction.removeAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
