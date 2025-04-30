@@ -1,3 +1,4 @@
+import type { PublicKey } from '@solana/web3.js';
 import {
   ACTION_HEADER_LENGTH,
   getActionHeaderEncoder,
@@ -18,7 +19,7 @@ import {
 } from '@swig/coder';
 import { Actions } from './action';
 
-export type ActionsData = { bytes: Uint8Array; noOfActions: number };
+type ActionsData = { bytes: Uint8Array; noOfActions: number };
 
 export class ActionsBuilder {
   private _actionConfigs: ActionConfig[] = [];
@@ -29,11 +30,11 @@ export class ActionsBuilder {
     return new ActionsBuilder();
   }
 
-  get count() {
+  private get count() {
     return this._actionConfigs.length;
   }
 
-  data(): ActionsData {
+  private data(): ActionsData {
     let cursor = 0;
     let bytes = new Uint8Array(this.bufferLength());
 
@@ -46,60 +47,127 @@ export class ActionsBuilder {
     return { bytes, noOfActions: this.count };
   }
 
+  /**
+   * Gets the composed actions
+   * @returns Actions
+   */
   get() {
     let { bytes, noOfActions } = this.data();
     return Actions.from(bytes, noOfActions);
   }
 
-  bufferLength() {
+  private bufferLength() {
     return this._actionConfigs.reduce(
       (sum, curr) => sum + curr.lengthWithHeader,
       0,
     );
   }
 
+  /**
+   * Enable root action
+   */
   all(): this {
     this._actionConfigs.push(new AllConfig());
     return this;
   }
 
+  /**
+   * Enable Manager action
+   */
   manageAuthority(): this {
     this._actionConfigs.push(new ManageAuthorityConfig());
     return this;
   }
 
-  programLimit(payload: ProgramLimit): this {
-    this._actionConfigs.push(new ProgramLimitConfig(payload));
+  /**
+   * Enable a program scope
+   * @arg programId: ID of the program to enable
+   */
+  programLimit(payload: { programId: PublicKey }): this {
+    this._actionConfigs.push(
+      new ProgramLimitConfig({ programId: payload.programId.toBytes() }),
+    );
     return this;
   }
 
-  subAccount(payload: SubAccount): this {
-    this._actionConfigs.push(new SubAccountConfig(payload));
+  /**
+   * controls a subaccount
+   * @arg subaccount: Sub-account publickey
+   */
+  subAccount(payload: { subAccount: PublicKey }): this {
+    this._actionConfigs.push(
+      new SubAccountConfig({ subAccount: payload.subAccount.toBytes() }),
+    );
     return this;
   }
 
-  solLimit(payload: SolLimit): this {
+  /**
+   * Enables a Spend-once SOL Spend
+   * @arg amount: ID of the program to enable
+   */
+  solLimit(payload: { amount: bigint }): this {
     this._actionConfigs.push(new SolLimitConfig(payload));
     return this;
   }
 
-  solRecurringLimit(payload: SolRecurringLimit): this {
-    this._actionConfigs.push(new SolReccuringLimitConfig(payload));
+  /**
+   * Enables a Spend-recurring SOL Spend
+   * @param recurringAcount recurring amount per window
+   * @param window period in slots until amount reset.
+   */
+  solRecurringLimit(payload: {
+    recurringAmount: bigint;
+    window: bigint;
+  }): this {
+    this._actionConfigs.push(
+      new SolReccuringLimitConfig({
+        ...payload,
+        currentAmount: 0n,
+        lastReset: 0n,
+      }),
+    );
     return this;
   }
 
-  tokenLimit(payload: TokenLimit): this {
-    this._actionConfigs.push(new TokenLimitConfig(payload));
+  /**
+   * Enables a Spend-once Token Spend
+   * @param mint token mint public key
+   * @param amount amount allowed to spend
+   */
+  tokenLimit(payload: { mint: PublicKey; amount: bigint }): this {
+    this._actionConfigs.push(
+      new TokenLimitConfig({ ...payload, mint: payload.mint.toBytes() }),
+    );
     return this;
   }
 
-  tokenReccuringLimit(payload: TokenRecurringLimit): this {
-    this._actionConfigs.push(new TokenReccuringLimitConfig(payload));
+  /**
+   * Enables a Spend-recurring Token Spend
+   * @param mint token mint public key
+   * @param recurringAmount recurring amount per window
+   * @param window period in slots until amount reset
+   */
+  tokenReccuringLimit(payload: {
+    mint: PublicKey;
+    recurringAmount: bigint;
+    window: bigint;
+  }): this {
+    this._actionConfigs.push(
+      new TokenReccuringLimitConfig({
+        ...payload,
+        mint: payload.mint.toBytes(),
+        currentAmount: 0n,
+        lastReset: 0n,
+      }),
+    );
     return this;
   }
 }
 
-export abstract class ActionConfig {
+/**
+ * Abstract utility for composing an action
+ */
+abstract class ActionConfig {
   abstract length: number;
   abstract permission: Permission;
 
@@ -129,7 +197,7 @@ export abstract class ActionConfig {
   }
 }
 
-export class AllConfig extends ActionConfig {
+class AllConfig extends ActionConfig {
   constructor() {
     super();
   }
@@ -147,7 +215,7 @@ export class AllConfig extends ActionConfig {
   }
 }
 
-export class ManageAuthorityConfig extends ActionConfig {
+class ManageAuthorityConfig extends ActionConfig {
   constructor() {
     super();
   }
@@ -165,7 +233,7 @@ export class ManageAuthorityConfig extends ActionConfig {
   }
 }
 
-export class ProgramLimitConfig extends ActionConfig {
+class ProgramLimitConfig extends ActionConfig {
   constructor(private payload: ProgramLimit) {
     super();
   }
@@ -183,7 +251,7 @@ export class ProgramLimitConfig extends ActionConfig {
   }
 }
 
-export class SubAccountConfig extends ActionConfig {
+class SubAccountConfig extends ActionConfig {
   constructor(private payload: SubAccount) {
     super();
   }
@@ -201,7 +269,7 @@ export class SubAccountConfig extends ActionConfig {
   }
 }
 
-export class SolLimitConfig extends ActionConfig {
+class SolLimitConfig extends ActionConfig {
   constructor(private payload: SolLimit) {
     super();
   }
@@ -219,7 +287,7 @@ export class SolLimitConfig extends ActionConfig {
   }
 }
 
-export class SolReccuringLimitConfig extends ActionConfig {
+class SolReccuringLimitConfig extends ActionConfig {
   constructor(private payload: SolRecurringLimit) {
     super();
   }
@@ -237,7 +305,7 @@ export class SolReccuringLimitConfig extends ActionConfig {
   }
 }
 
-export class TokenLimitConfig extends ActionConfig {
+class TokenLimitConfig extends ActionConfig {
   constructor(private payload: TokenLimit) {
     super();
   }
@@ -255,7 +323,7 @@ export class TokenLimitConfig extends ActionConfig {
   }
 }
 
-export class TokenReccuringLimitConfig extends ActionConfig {
+class TokenReccuringLimitConfig extends ActionConfig {
   constructor(private payload: TokenRecurringLimit) {
     super();
   }

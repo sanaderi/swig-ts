@@ -1,5 +1,5 @@
 import { Permission } from '@swig/coder';
-import { isActionPayload, type ActionPayload } from './action';
+import { isActionPayload, type ActionPayload } from './payload';
 
 export class SpendController {
   private constructor(private readonly spendControl: SpendControl) {}
@@ -29,10 +29,19 @@ export class SpendController {
     return this.spendControl.recurringAmount;
   }
 
+  /**
+   * Check if a spend in uncapped
+   * @returns boolean
+   */
   canSpendMax(): boolean {
     return this.spendLimit === null;
   }
 
+  /**
+   * Check if allowed to spend a given amount, or spend at all if no amount is provided
+   * @param amount Token amount
+   * @returns boolean
+   */
   canSpend(amount?: bigint): boolean {
     return amount ? this.withinLimits(amount) : this.isAllowed;
   }
@@ -62,27 +71,32 @@ export class SpendController {
     }
 
     if (isActionPayload(Permission.All, action)) {
-      return SpendController.all();
+      return SpendController.max();
     }
 
-    return SpendController.noControl();
+    return SpendController.none();
   }
 
-  static noControl(): SpendController {
+  static none(): SpendController {
     return new SpendController({
       hasControl: false,
       amount: null,
     });
   }
 
-  static all(): SpendController {
+  /**
+   *  Spend Max controller
+   */
+  static max(): SpendController {
     return new SpendController({
       hasControl: true,
       amount: null,
     });
   }
 
-  // once
+  /**
+   * Spend Once controller
+   */
   static once(amount: bigint): SpendController {
     return new this({
       hasControl: true,
@@ -90,7 +104,9 @@ export class SpendController {
     });
   }
 
-  // recurring
+  /**
+   * Spend Recurring controller
+   */
   static recurring(args: {
     amount: bigint;
     window: bigint;
@@ -105,9 +121,24 @@ export class SpendController {
 }
 
 export type SpendControl = {
+  /**
+   * `true` if the action is allowed to spend at all
+   */
   hasControl: boolean;
+  /**
+   * amount the action is permitted to spend at the given moment, `null` if spend is uncapped
+   */
   amount: bigint | null;
+  /**
+   * time in slots between between spend topups. This is only available for Recurring Spends
+   */
   window?: bigint;
+  /**
+   * The time in slot where the last topup happened. Only valid for recurring spends
+   */
   lastReset?: bigint;
+  /**
+   * The max spend after a topup
+   */
   recurringAmount?: bigint;
 };

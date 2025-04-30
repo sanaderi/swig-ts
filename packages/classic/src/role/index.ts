@@ -58,11 +58,11 @@ export class Role {
   }
 
   /**
-   * Check if the role has all permissions enabled
+   * Check if the role has root permission
    * @returns `boolean`
    */
-  hasAllAction() {
-    return this.actions.hasAllAction();
+  isRoot() {
+    return this.actions.isRoot();
   }
 
   /**
