@@ -5,7 +5,6 @@ import { uint8ArraysEqual } from '../utils';
 import type { InstructionDataOptions } from './instructions/interface';
 
 export abstract class Authority {
-  // abstract instructions: AuthorityInstruction;
   abstract session: boolean;
   abstract type: AuthorityType;
   abstract id: Uint8Array;
@@ -57,6 +56,10 @@ export abstract class Authority {
 
   isEqual(other: Authority): boolean {
     return uint8ArraysEqual(this.id, other.id) && this.type === other.type;
+  }
+
+  matchesSigner(signer: Uint8Array): boolean {
+    return uint8ArraysEqual(this.signer, signer);
   }
 }
 

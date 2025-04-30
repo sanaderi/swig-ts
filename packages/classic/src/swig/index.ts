@@ -101,6 +101,10 @@ export class Swig {
   findRoleById(id: number) {
     return this.roles.find((role) => role.id === id) ?? null;
   }
+
+  findRolesByAuthoritySigner(signer: Uint8Array) {
+    return this.roles.filter(role => (role.authority.matchesSigner(signer)))
+  }
 }
 
 export function findSwigPda(id: Uint8Array): [PublicKey, number] {

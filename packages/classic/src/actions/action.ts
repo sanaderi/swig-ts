@@ -18,7 +18,7 @@ import {
   type TokenRecurringLimit,
 } from '@swig/coder';
 import { ActionsBuilder } from './builder';
-import { BalanceController } from './control';
+import { SpendController } from './control';
 
 export class Action {
   constructor(
@@ -45,24 +45,28 @@ export class Action {
     );
   }
 
-  solControl(): BalanceController {
+  solControl(): SpendController {
     if (isActionPayload(Permission.All, this.payload)) {
-      return BalanceController.all();
+      return SpendController.all();
     }
 
     if (
       isActionPayload(Permission.SolLimit, this.payload) ||
       isActionPayload(Permission.SolRecurringLimit, this.payload)
     ) {
-      return BalanceController.get(this.payload);
+      return SpendController.get(this.payload);
     }
 
-    return BalanceController.noControl();
+    return SpendController.noControl();
   }
 
-  tokenControl(mint: PublicKey): BalanceController {
+  solSpendLimit(): bigint | null {
+    return this.solControl().spendLimit;
+  }
+
+  tokenControl(mint: PublicKey): SpendController {
     if (isActionPayload(Permission.All, this.payload)) {
-      return BalanceController.all();
+      return SpendController.all();
     }
 
     if (
@@ -72,11 +76,11 @@ export class Action {
       if (
         mint.toBase58() === new PublicKey(this.payload.data.mint).toBase58()
       ) {
-        return BalanceController.get(this.payload);
+        return SpendController.get(this.payload);
       }
     }
 
-    return BalanceController.noControl();
+    return SpendController.noControl();
   }
 
   canUseProgram(program: PublicKey): boolean {
@@ -288,4 +292,48 @@ export class Actions {
       action.tokenControl(mint).canSpend(amount),
     );
   }
+
+  /**
+   * Gets the spend limit for a SOL. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  solSpendLimit(): bigint | null {
+    // check for unlimited spend action
+    for (const action of this.actions) {
+      const limit = action.solControl().spendLimit;
+      if (limit === null) {
+        return null;
+      }
+    }
+    // get max spend limit, becasue no unlimited action
+    return this.actions.reduce(
+      (max, val) =>
+        val.solControl().spendLimit! > max ? val.solControl().spendLimit! : max,
+      0n,
+    );
+  }
+
+  /**
+   * Gets the spend limit for a given token mint. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  tokenSpendLimit(mint: PublicKey): bigint | null {
+    // check for unlimited spend action
+    for (const action of this.actions) {
+      const limit = action.tokenControl(mint).spendLimit;
+      if (limit === null) {
+        return null;
+      }
+    }
+    // get max spend limit, becasue no unlimited action
+    return this.actions.reduce(
+      (max, val) =>
+        val.solControl().spendLimit! > max ? val.solControl().spendLimit! : max,
+      0n,
+    );
+  }
+
+
 }

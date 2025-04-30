@@ -242,7 +242,7 @@ export async function removeAuthority(
   return sendAndConfirmTransaction(connection, transaction, [], options);
 }
 
-export async function removeAllRolesOwnedByAuthority(
+export async function removeAllAuthorityRoles(
   connection: Connection,
   swigAddress: PublicKey,
   authority: Authority,

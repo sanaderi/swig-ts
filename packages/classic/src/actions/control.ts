@@ -1,44 +1,54 @@
 import { Permission } from '@swig/coder';
 import { isActionPayload, type ActionPayload } from './action';
 
-export class BalanceController {
-  private constructor(private readonly balanceControl: BalanceControl) {}
+export class SpendController {
+  private constructor(private readonly spendControl: SpendControl) {}
 
-  get amount(): bigint | null {
-    return this.balanceControl.amount;
+  get isAllowed(): boolean {
+    return this.spendControl.hasControl;
+  }
+  /**
+   * max spendable amount.
+   *
+   * returns `null` if there is no limit
+   */
+  get spendLimit(): bigint | null {
+    if (!this.isAllowed) return 0n;
+    return this.spendControl.amount;
   }
 
   get window(): bigint | null {
-    return this.balanceControl.window || null;
+    return this.spendControl.window ?? null;
   }
 
-  get lastReset(): bigint | null {
-    return this.balanceControl.lastReset || null;
+  get lastReset(): bigint | undefined {
+    return this.spendControl.lastReset;
   }
 
-  get isAllowed(): boolean {
-    return this.balanceControl.hasControl;
+  get recurringLimit(): bigint | undefined {
+    return this.spendControl.recurringAmount;
   }
 
   canSpendMax(): boolean {
-    return this.isAllowed && this.amount === null;
+    return this.spendLimit === null;
   }
 
   canSpend(amount?: bigint): boolean {
-    if (!amount) return this.isAllowed;
-    return this.isAllowed && this.withinLimits(amount);
+    return amount ? this.withinLimits(amount) : this.isAllowed;
   }
 
   private withinLimits(amount: bigint): boolean {
-    return this.amount === null || this.amount >= amount;
+    return (
+      this.isAllowed && (this.spendLimit === null || this.spendLimit >= amount)
+    );
   }
 
-  static get(action: ActionPayload): BalanceController {
+  static get(action: ActionPayload): SpendController {
     if (
       isActionPayload(Permission.SolRecurringLimit, action) ||
       isActionPayload(Permission.TokenRecurringLimit, action)
     ) {
-      return BalanceController.recurring({
+      return SpendController.recurring({
         amount: action.data.currentAmount,
         ...action.data,
       });
@@ -48,32 +58,32 @@ export class BalanceController {
       isActionPayload(Permission.SolLimit, action) ||
       isActionPayload(Permission.TokenLimit, action)
     ) {
-      return BalanceController.once(action.data.amount);
+      return SpendController.once(action.data.amount);
     }
 
     if (isActionPayload(Permission.All, action)) {
-      return BalanceController.all();
+      return SpendController.all();
     }
 
-    return BalanceController.noControl();
+    return SpendController.noControl();
   }
 
-  static noControl(): BalanceController {
-    return new BalanceController({
+  static noControl(): SpendController {
+    return new SpendController({
       hasControl: false,
       amount: null,
     });
   }
 
-  static all(): BalanceController {
-    return new BalanceController({
+  static all(): SpendController {
+    return new SpendController({
       hasControl: true,
       amount: null,
     });
   }
 
   // once
-  static once(amount: bigint): BalanceController {
+  static once(amount: bigint): SpendController {
     return new this({
       hasControl: true,
       amount,
@@ -86,7 +96,7 @@ export class BalanceController {
     window: bigint;
     lastReset: bigint;
     recurringAmount: bigint;
-  }): BalanceController {
+  }): SpendController {
     return new this({
       ...args,
       hasControl: true,
@@ -94,7 +104,7 @@ export class BalanceController {
   }
 }
 
-export type BalanceControl = {
+export type SpendControl = {
   hasControl: boolean;
   amount: bigint | null;
   window?: bigint;

@@ -117,6 +117,24 @@ export class Role {
   canSpendToken(mint: PublicKey, amount?: bigint) {
     return this.actions.canSpendToken(mint, amount);
   }
+
+  /**
+   * Gets the spend limit for a SOL. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  solSpendLimit(): bigint | null {
+    return this.actions.solSpendLimit();
+  }
+
+  /**
+   * Gets the spend limit for a given token mint. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  tokenSpendLimit(mint: PublicKey): bigint | null {
+    return this.actions.tokenSpendLimit(mint);
+  }
 }
 
 /**
@@ -257,4 +275,3 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 
 export type TokenBasedRole = Role & { authority: TokenBasedAuthority };
-
