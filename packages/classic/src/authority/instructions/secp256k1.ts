@@ -1,6 +1,8 @@
 import { keccak_256 } from '@noble/hashes/sha3';
 import { getArrayEncoder, getU8Encoder } from '@solana/kit';
+import type { AccountMeta } from '@solana/web3.js';
 import {
+  getAccountsPayloadEncoder,
   getAddAuthorityV1AuthorityPayloadEncoder,
   getCompactInstructionEncoder,
   getCreateSessionV1AuthorityPayloadCodec,
@@ -43,6 +45,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
+      addAuthorityIxAccountMetas,
       options,
     );
 
@@ -76,6 +79,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
+      removeIxAccountMetas,
       options,
     );
 
@@ -116,6 +120,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let authorityPayload = await prepareSecpPayload(
       Uint8Array.from(encodedCompactInstructions),
+      metas,
       options,
     );
 
@@ -142,6 +147,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
     let authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
+      createSessionIxAccountMetas,
       options,
     );
 
@@ -155,6 +161,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 
 export async function prepareSecpPayload(
   dataPayload: Uint8Array,
+  accountMetas: AccountMeta[],
   options: InstructionDataOptions,
 ): Promise<Uint8Array> {
   let u64Len = 8;
@@ -164,9 +171,18 @@ export async function prepareSecpPayload(
   let view = new DataView(slot.buffer);
   view.setBigUint64(0, options.currentSlot, true);
 
-  const message = new Uint8Array(dataPayload.length + u64Len);
+  let accountsPayloadBytes = getAccountsPayloadEncoder(
+    accountMetas.length,
+  ).encode(
+    accountMetas.map((metas) => ({ ...metas, pubkey: metas.pubkey.toBytes() })),
+  );
+
+  const message = new Uint8Array(
+    dataPayload.length + accountsPayloadBytes.length + u64Len,
+  );
   message.set(dataPayload);
-  message.set(slot, dataPayload.length);
+  message.set(accountsPayloadBytes, dataPayload.length);
+  message.set(slot, dataPayload.length + accountsPayloadBytes.length);
 
   const hash = keccak_256(message);
 

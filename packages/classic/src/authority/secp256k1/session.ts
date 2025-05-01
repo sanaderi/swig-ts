@@ -16,7 +16,6 @@ import type { InstructionDataOptions } from '../instructions/interface';
 
 export class Secp256k1SessionAuthority extends SessionBasedAuthority {
   type = AuthorityType.Secp256k1Session;
-  // instructions = Secp256k1Instruction;
 
   constructor(data: Uint8Array, roleId?: number) {
     super(data, roleId ?? null);
