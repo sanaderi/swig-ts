@@ -1,5 +1,6 @@
 import type {
   ProgramLimit,
+  ProgramScope,
   SolLimit,
   SolRecurringLimit,
   SubAccount,
@@ -8,6 +9,7 @@ import type {
 } from '@swig/coder';
 import {
   getProgramLimitDecoder,
+  getProgramScopeDecoder,
   getSolLimitDecoder,
   getSolRecurringLimitDecoder,
   getSubAccountDecoder,
@@ -24,6 +26,10 @@ export type ActionPayload =
   | {
       permission: Permission.Program;
       data: ProgramLimit;
+    }
+  | {
+      permission: Permission.ProgramScope;
+      data: ProgramScope;
     }
   | {
       permission: Permission.SolLimit;
@@ -67,6 +73,10 @@ export function decodeActionPayload(
 
   if (permission === Permission.Program) {
     return { permission, data: getProgramLimitDecoder().decode(data) };
+  }
+  
+  if (permission === Permission.ProgramScope) {
+    return { permission, data: getProgramScopeDecoder().decode(data) };
   }
 
   if (permission === Permission.SolLimit) {

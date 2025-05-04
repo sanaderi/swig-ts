@@ -3,14 +3,18 @@ import {
   ACTION_HEADER_LENGTH,
   getActionHeaderEncoder,
   getProgramLimitEncoder,
+  getProgramScopeEncoder,
   getSolLimitEncoder,
   getSolRecurringLimitEncoder,
   getSubAccountEncoder,
   getTokenLimitEncoder,
   getTokenRecurringLimitEncoder,
+  NumericType,
   Permission,
+  ProgramScopeType,
   type ActionHeader,
   type ProgramLimit,
+  type ProgramScope,
   type SolLimit,
   type SolRecurringLimit,
   type SubAccount,
@@ -90,6 +94,68 @@ export class ActionsBuilder {
     return this;
   }
 
+  programScopeBasic(payload: {
+    programId: PublicKey;
+    targetAccount: PublicKey;
+  }) {
+    this._actionConfigs.push(
+      new ProgramScopeConfig({
+        currentAmount: 0n,
+        lastReset: 0n,
+        window: 0n,
+        numericType: NumericType.U8,
+        limit: 0n,
+        programId: payload.programId.toBytes(),
+        scopeType: ProgramScopeType.Basic,
+        targetAccount: payload.targetAccount.toBytes(),
+      }),
+    );
+    return this;
+  }
+
+  programScopeLimit(payload: {
+    amount: bigint;
+    numericType: NumericType;
+    programId: PublicKey;
+    targetAccount: PublicKey;
+  }) {
+    this._actionConfigs.push(
+      new ProgramScopeConfig({
+        currentAmount: payload.amount,
+        lastReset: 0n,
+        window: 0n,
+        numericType: payload.numericType,
+        limit: payload.amount,
+        programId: payload.programId.toBytes(),
+        scopeType: ProgramScopeType.Basic,
+        targetAccount: payload.targetAccount.toBytes(),
+      }),
+    );
+    return this;
+  }
+
+  programScopeRecurringLimit(payload: {
+    amount: bigint;
+    window: bigint;
+    numericType: NumericType;
+    programId: PublicKey;
+    targetAccount: PublicKey;
+  }) {
+    this._actionConfigs.push(
+      new ProgramScopeConfig({
+        currentAmount: payload.amount,
+        lastReset: 0n,
+        window: payload.window,
+        numericType: payload.numericType,
+        limit: payload.amount,
+        programId: payload.programId.toBytes(),
+        scopeType: ProgramScopeType.Basic,
+        targetAccount: payload.targetAccount.toBytes(),
+      }),
+    );
+    return this;
+  }
+
   /**
    * controls a subaccount
    * @arg subaccount: Sub-account publickey
@@ -122,7 +188,7 @@ export class ActionsBuilder {
     this._actionConfigs.push(
       new SolReccuringLimitConfig({
         ...payload,
-        currentAmount: 0n,
+        currentAmount: payload.recurringAmount,
         lastReset: 0n,
       }),
     );
@@ -156,7 +222,7 @@ export class ActionsBuilder {
       new TokenReccuringLimitConfig({
         ...payload,
         mint: payload.mint.toBytes(),
-        currentAmount: 0n,
+        currentAmount: payload.recurringAmount,
         lastReset: 0n,
       }),
     );
@@ -340,5 +406,23 @@ class TokenReccuringLimitConfig extends ActionConfig {
     return Uint8Array.from(
       getTokenRecurringLimitEncoder().encode(this.payload),
     );
+  }
+}
+
+class ProgramScopeConfig extends ActionConfig {
+  constructor(private payload: ProgramScope) {
+    super();
+  }
+
+  get length() {
+    return 128;
+  }
+
+  get permission() {
+    return Permission.ProgramScope;
+  }
+
+  encode(): Uint8Array {
+    return Uint8Array.from(getProgramScopeEncoder().encode(this.payload));
   }
 }

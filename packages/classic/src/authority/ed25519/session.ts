@@ -15,7 +15,6 @@ export class Ed25519SessionAuthority
   implements Ed25519BasedAuthority
 {
   type = AuthorityType.Ed25519Session;
-  // instructions = Ed25519Instruction;
 
   constructor(
     public data: Uint8Array,
