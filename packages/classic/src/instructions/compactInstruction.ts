@@ -6,6 +6,13 @@ import type {
 import { type CompactInstruction } from '@swig/coder';
 import type { SignV1BaseAccountMetas } from './signV1';
 
+/**
+ * Convert TransactionInstructions to CompactInstructions
+ * @param swigAccount Swig account
+ * @param accounts SignInstruction AccountMetas
+ * @param innerInstructions Transaction instructions to convert
+ * @returns Object with Combined AccountMetas (accounts) & CompactInstructions (compactIxs)
+ */
 export function compactInstructions<
   T extends [...SignV1BaseAccountMetas, ...AccountMeta[]],
 >(

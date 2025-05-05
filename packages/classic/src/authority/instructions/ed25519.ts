@@ -10,17 +10,9 @@ import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructi
 import type { AuthorityInstruction } from './interface';
 
 /**
- * Ed25519 Authority
+ * Ed25519 Authority Instructions
  */
 export const Ed25519Instruction: AuthorityInstruction = {
-  /**
-   *
-   * @param accounts AddAuthorityV1InstructionAccountsWithAuthority
-   * @param data AddAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `AddAuthorityV1` instruction
-   */
   async addAuthorityV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
@@ -33,14 +25,6 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts removeAuthorityV1InstructionAccountsWithAuthority
-   * @param data removeAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `RemoveAuthorityV1` instruction
-   */
   async removeAuthorityV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
@@ -53,14 +37,6 @@ export const Ed25519Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts SignAuthorityV1InstructionAccountsWithAuthority
-   * @param data SignAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `SignV1` instruction
-   */
   async signV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 

@@ -19,17 +19,9 @@ import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instr
 import type { AuthorityInstruction, InstructionDataOptions } from './interface';
 
 /**
- * Secp256k1 Authority
+ * Secp256k1 Authority Instructions
  */
 export const Secp256k1Instruction: AuthorityInstruction = {
-  /**
-   *
-   * @param accounts AddAuthorityV1InstructionAccountsWithAuthority
-   * @param data AddAuthorityV1InstructionDataArgs
-   * @returns TransactionInstruction
-   *
-   * Creates a `AddAuthorityV1` instruction
-   */
   async addAuthorityV1Instruction(accounts, data, options) {
     if (!options)
       throw new Error(
@@ -55,14 +47,6 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts removeAuthorityV1InstructionAccountsWithAuthority
-   * @param data removeAuthorityV1InstructionDataArgs
-   * @returns TransactionInstruction
-   *
-   * Creates a `RemoveAuthorityV1` instruction
-   */
   async removeAuthorityV1Instruction(accounts, data, options) {
     if (!options)
       throw new Error(
@@ -89,14 +73,6 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     });
   },
 
-  /**
-   *
-   * @param accounts SignAuthorityV1InstructionAccountsWithAuthority
-   * @param data SignAuthorityV1InstructionDataArgs
-   * @returns TransactionInstruction
-   *
-   * Creates a `SignV1` instruction
-   */
   async signV1Instruction(accounts, data, options) {
     if (!options)
       throw new Error(
@@ -159,6 +135,13 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 };
 
+/**
+ * Prepare Secp authority payload for instruction
+ * @param dataPayload message bytes
+ * @param accountMetas Instruction {@link AccountMeta}s
+ * @param options {@link InstructionDataOptions}
+ * @returns Authority Payload bytes 
+ */
 export async function prepareSecpPayload(
   dataPayload: Uint8Array,
   accountMetas: AccountMeta[],

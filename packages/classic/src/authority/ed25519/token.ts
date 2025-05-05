@@ -11,7 +11,6 @@ export class Ed25519Authority
   implements Ed25519BasedAuthority
 {
   type = AuthorityType.Ed25519;
-  // instructions = Ed25519Instruction;
 
   constructor(data: Uint8Array, roleId?: number) {
     super(data, roleId ?? null);
@@ -26,10 +25,18 @@ export class Ed25519Authority
   }
 
   get signer() {
-    return this.data
+    return this.data;
+  }
+
+  get publicKey() {
+    return this.ed25519PublicKey;
   }
 
   get address() {
+    return this.ed25519PublicKey;
+  }
+
+  get ed25519PublicKey() {
     return new PublicKey(this.data);
   }
 
@@ -39,15 +46,12 @@ export class Ed25519Authority
 
   create(args: {
     payer: PublicKey;
-    swigAddress: PublicKey;
-    bump: number;
     id: Uint8Array;
     actions: Actions;
   }): TransactionInstruction {
     return createSwigInstruction(
-      { payer: args.payer, swig: args.swigAddress },
+      { payer: args.payer },
       {
-        bump: args.bump,
         authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),

@@ -72,3 +72,9 @@ export async function createLegacyTransaction(
   return transaction
 }
 
+export function findSwigPda(id: Uint8Array): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('swig'), Buffer.from(id)],
+    SWIG_PROGRAM_ADDRESS,
+  );
+}

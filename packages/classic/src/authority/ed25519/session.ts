@@ -52,7 +52,15 @@ export class Ed25519SessionAuthority
     return this.sessionKey.toBytes();
   }
 
+  get publicKey() {
+    return this.ed25519PublicKey
+  }
+
   get address() {
+    return this.ed25519PublicKey;
+  }
+
+  get ed25519PublicKey() {
     return this.info.publicKey;
   }
 
@@ -81,17 +89,22 @@ export class Ed25519SessionAuthority
     };
   }
 
-  create(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    bump: number;
-    id: Uint8Array;
-    actions: Actions;
-  }) {
+  /**
+   * Creates a `Swig` instruction for initializing a new entity on-chain.
+   *
+   * @param args - The parameters required to create the Swig instruction.
+   * @param args.payer - The public key of the account paying for the transaction.
+   * @param args.swigAddress - The public key where the Swig account will be created.
+   * @param args.bump - The bump seed used in PDA derivation.
+   * @param args.id - 32-bytes Uint8Array.
+   * @param args.actions - A container holding the set of actions to include.
+   *
+   * @returns The serialized instruction for creating the Swig.
+   */
+  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
-      { payer: args.payer, swig: args.swigAddress },
+      { payer: args.payer },
       {
-        bump: args.bump,
         authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),

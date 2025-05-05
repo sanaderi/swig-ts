@@ -5,14 +5,17 @@ import {
   SystemProgram,
   Transaction,
   TransactionInstruction,
+  type Signer,
 } from '@solana/web3.js';
 import {
   Actions,
+  Authority,
   createSessionInstruction,
   createSwig,
   Ed25519SessionAuthority,
   fetchSwig,
   findSwigPda,
+  isEd25519Authority,
   signInstruction,
 } from '@swig/classic';
 
@@ -23,6 +26,7 @@ async function sendTransaction(
   connection: Connection,
   instruction: TransactionInstruction,
   payer: Keypair,
+  signers: Signer[] = []
 ) {
   let transaction = new Transaction();
   transaction.instructions = [instruction];
@@ -31,7 +35,7 @@ async function sendTransaction(
     await connection.getLatestBlockhash()
   ).blockhash;
 
-  transaction.sign(payer);
+  transaction.sign(payer, ...signers);
 
   return connection.sendRawTransaction(transaction.serialize(), {
     skipPreflight: false,

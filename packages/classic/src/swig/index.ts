@@ -8,7 +8,6 @@ import { getSwigCodec, type SwigAccount } from '@swig/coder';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
 import { Authority } from '../authority';
-import { SWIG_PROGRAM_ADDRESS } from '../consts';
 import { deserializeRoles, type SessionBasedRole } from '../role';
 
 export class Swig {
@@ -84,11 +83,8 @@ export class Swig {
     actions: Actions;
     authority: Authority;
   }) {
-    let [address, bump] = findSwigPda(args.id);
     return args.authority.create({
       payer: args.payer,
-      swigAddress: address,
-      bump,
       id: args.id,
       actions: args.actions,
     });
@@ -103,13 +99,6 @@ export class Swig {
   }
 
   findRolesByAuthoritySigner(signer: Uint8Array) {
-    return this.roles.filter(role => (role.authority.matchesSigner(signer)))
+    return this.roles.filter((role) => role.authority.matchesSigner(signer));
   }
-}
-
-export function findSwigPda(id: Uint8Array): [PublicKey, number] {
-  return PublicKey.findProgramAddressSync(
-    [Buffer.from('swig'), Buffer.from(id)],
-    SWIG_PROGRAM_ADDRESS,
-  );
 }

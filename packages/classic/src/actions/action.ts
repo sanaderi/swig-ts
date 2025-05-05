@@ -137,7 +137,7 @@ export class Actions {
    * Check if Token Spend is allowed. If `amount` is provided,
    * it will return `true` if the action can spend the given amoount of Sol
    * @param mint Token mint
-   * @param amount Minimum spendaable amount
+   * @param [amount] Minimum spendaable amount
    * @returns boolean
    */
   canSpendToken(mint: PublicKey, amount?: bigint): boolean {
@@ -166,6 +166,13 @@ export class Actions {
       0n,
     );
   }
+
+  // todo: TokenControl
+  // tokenControl(mint: PublicKey): SpendController {
+    
+  // }
+
+  // todo: SolControl
 }
 
 function deserializeActions(

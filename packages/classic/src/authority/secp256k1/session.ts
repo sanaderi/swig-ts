@@ -13,8 +13,12 @@ import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
+import type { Secp256k1BasedAuthority } from './based';
 
-export class Secp256k1SessionAuthority extends SessionBasedAuthority {
+export class Secp256k1SessionAuthority
+  extends SessionBasedAuthority
+  implements Secp256k1BasedAuthority
+{
   type = AuthorityType.Secp256k1Session;
 
   constructor(data: Uint8Array, roleId?: number) {
@@ -26,7 +30,7 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
   }
 
   get signer() {
-    return this.sessionKey.toBytes()
+    return this.sessionKey.toBytes();
   }
 
   get publicKeyBytes(): Uint8Array {
@@ -39,6 +43,14 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
 
   get publicKeyString(): string {
     return bytesToHex(this.publicKeyBytes);
+  }
+
+  get secp256k1PublicKey() {
+    return this.publicKeyBytes
+  }
+
+  get secp256k1PublicKeyString() {
+    return this.publicKeyString
   }
 
   get sessionKey(): PublicKey {
@@ -107,17 +119,10 @@ export class Secp256k1SessionAuthority extends SessionBasedAuthority {
     return this.data;
   }
 
-  create(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    bump: number;
-    id: Uint8Array;
-    actions: Actions;
-  }) {
+  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
-      { payer: args.payer, swig: args.swigAddress },
+      { payer: args.payer },
       {
-        bump: args.bump,
         authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
