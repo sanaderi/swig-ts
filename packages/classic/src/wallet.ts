@@ -1,8 +1,12 @@
 import { secp256k1 } from '@noble/curves/secp256k1';
 import type { Connection, PublicKey } from '@solana/web3.js';
 import type { Authority, SigningFn } from './authority';
-import { fetchSwig } from './rpc';
 
+/**
+ * Get {@link SigningFn} for Secp268k1-based Private key
+ * @param privateKey Secp256k1 Private key
+ * @returns SigningFn
+ */
 export function getSigningFnForSecp256k1PrivateKey(
   privateKey: Uint8Array | string,
 ): SigningFn {
@@ -25,18 +29,14 @@ export async function dummySigningFn(_: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(0);
 }
 
-
-export class SwigSigner {
+class SwigSigner {
   constructor(
     public signerBytes: Uint8Array,
     public swigAddress: PublicKey,
     public connection: Connection,
     public payer?: PublicKey,
-    public signingFn?: (message: Uint8Array) => Promise<Uint8Array> 
+    public signingFn?: (message: Uint8Array) => Promise<Uint8Array>,
   ) {}
 
-  async addAuthority(newAuthority: Authority) {
-    let swig = await fetchSwig(this.connection, this.swigAddress)
-    // let role = swig.findA
-  }
+  async addAuthority(_newAuthority: Authority) {}
 }

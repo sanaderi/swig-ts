@@ -123,6 +123,26 @@ export class Actions {
   }
 
   /**
+   * Get Sol {@link SpendController} for the actions
+   * @returns SpendController
+   */
+  solSpend(): SpendController {
+    // check for unlimited spend action
+    for (const action of this.actions) {
+      const limit = action.solControl().spendLimit;
+      if (limit === null) {
+        return action.solControl();
+      }
+    }
+    // get max spend limit, becasue no unlimited action
+    let action = this.actions.find(
+      (action) => action.solControl().spendLimit != null,
+    );
+
+    return action ? action.solControl() : SpendController.none();
+  }
+
+  /**
    * Check if Token Spend is uncapped
    * @param mint Token mint
    * @returns boolean
@@ -167,12 +187,26 @@ export class Actions {
     );
   }
 
-  // todo: TokenControl
-  // tokenControl(mint: PublicKey): SpendController {
-    
-  // }
+  /**
+   * Get token {@link SpendController} for the actions
+   * @param mint Token mint
+   * @returns SpendController
+   */
+  tokenSpend(mint: PublicKey): SpendController {
+    // check for unlimited spend action
+    for (const action of this.actions) {
+      const limit = action.tokenControl(mint).spendLimit;
+      if (limit === null) {
+        return action.tokenControl(mint);
+      }
+    }
+    // get max spend limit, becasue no unlimited action
+    let action = this.actions.find(
+      (action) => action.tokenControl(mint).spendLimit != null,
+    );
 
-  // todo: SolControl
+    return action ? action.tokenControl(mint) : SpendController.none();
+  }
 }
 
 function deserializeActions(

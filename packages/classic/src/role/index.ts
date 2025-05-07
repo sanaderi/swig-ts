@@ -4,7 +4,7 @@ import {
   POSITION_LENGTH,
   type Position,
 } from '@swig/coder';
-import { Actions } from '../actions';
+import { Actions, SpendController } from '../actions';
 import {
   getRoleAuthority,
   SessionBasedAuthority,
@@ -128,12 +128,29 @@ export class Role {
   }
 
   /**
+   * Get Sol {@link SpendController} for the actions
+   * @returns SpendController
+   */
+  solSpend(): SpendController {
+    return this.actions.solSpend();
+  }
+
+  /**
    * Gets the spend limit for a given token mint. Return null if the spend is uncapped.
    * @param mint Token mint
    * @returns `bigint` | `null`
    */
   tokenSpendLimit(mint: PublicKey): bigint | null {
     return this.actions.tokenSpendLimit(mint);
+  }
+
+  /**
+   * Get Token {@link SpendController} for the actions
+   * @param mint Token mint
+   * @returns SpendController
+   */
+  tokenSpend(mint: PublicKey): SpendController {
+    return this.actions.tokenSpend(mint);
   }
 }
 
