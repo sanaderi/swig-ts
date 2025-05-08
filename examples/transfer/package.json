@@ -9,7 +9,8 @@
     "transfer-local": "bun transfer-local.ts",
     "tranfer-local-session": "bun transfer-local-session.ts",
     "transfer-svm": "bun transfer-svm.ts",
-    "transfer-svm-session": "bun transfer-svm-sessioin.ts"
+    "transfer-svm-session": "bun transfer-svm-sessioin.ts",
+    "transfer-sponsor": "bun transfer-sponsor.ts"
   },
   "devDependencies": {
     "@swig/classic": "workspace:*",
