@@ -8,7 +8,6 @@ import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction } from '../instructions';
-import type { SigningFn } from '../instructions/interface';
 import type { Ed25519BasedAuthority } from './based';
 
 export class Ed25519SessionAuthority
@@ -16,7 +15,6 @@ export class Ed25519SessionAuthority
   implements Ed25519BasedAuthority
 {
   type = AuthorityType.Ed25519Session;
-  instructions = Ed25519Instruction;
 
   constructor(
     public data: Uint8Array,
@@ -50,7 +48,19 @@ export class Ed25519SessionAuthority
     return this.info.publicKey.toBytes();
   }
 
+  get signer() {
+    return this.sessionKey.toBytes();
+  }
+
+  get publicKey() {
+    return this.ed25519PublicKey
+  }
+
   get address() {
+    return this.ed25519PublicKey;
+  }
+
+  get ed25519PublicKey() {
     return this.info.publicKey;
   }
 
@@ -79,17 +89,22 @@ export class Ed25519SessionAuthority
     };
   }
 
-  create(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    bump: number;
-    id: Uint8Array;
-    actions: Actions;
-  }) {
+  /**
+   * Creates a `Swig` instruction for initializing a new entity on-chain.
+   *
+   * @param args - The parameters required to create the Swig instruction.
+   * @param args.payer - The public key of the account paying for the transaction.
+   * @param args.swigAddress - The public key where the Swig account will be created.
+   * @param args.bump - The bump seed used in PDA derivation.
+   * @param args.id - 32-bytes Uint8Array.
+   * @param args.actions - A container holding the set of actions to include.
+   *
+   * @returns The serialized instruction for creating the Swig.
+   */
+  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
-      { payer: args.payer, swig: args.swigAddress },
+      { payer: args.payer },
       {
-        bump: args.bump,
         authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
@@ -105,7 +120,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     innerInstructions: TransactionInstruction[];
   }) {
-    return this.instructions.signV1Instruction(
+    return Ed25519Instruction.signV1Instruction(
       {
         swig: args.swigAddress,
         payer: args.payer,
@@ -125,7 +140,7 @@ export class Ed25519SessionAuthority
     actions: Actions;
     newAuthority: Authority;
   }) {
-    return this.instructions.addAuthorityV1Instruction(
+    return Ed25519Instruction.addAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -147,7 +162,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     roleIdToRemove: number;
   }) {
-    return this.instructions.removeAuthorityV1Instruction(
+    return Ed25519Instruction.removeAuthorityV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
@@ -167,7 +182,7 @@ export class Ed25519SessionAuthority
     roleId: number;
     sessionDuration?: bigint;
   }) {
-    return this.instructions.createSessionV1Instruction(
+    return Ed25519Instruction.createSessionV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,

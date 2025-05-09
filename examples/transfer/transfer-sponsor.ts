@@ -91,7 +91,7 @@ const devRoleIx = await addAuthorityInstruction(
   devAuth,
   Actions.set()
     .tokenLimit({
-      mint: usdcMint.toBuffer(),
+      mint: usdcMint,
       amount: BigInt(1_000 * 10 ** DECIMALS),
     })
     .get(),

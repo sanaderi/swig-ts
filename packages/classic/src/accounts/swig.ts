@@ -7,7 +7,7 @@ import type {
 import { getSwigCodec, type SwigAccount } from '@swig/coder';
 
 /**
- * 
+ * Fetches a swig account. Will return `null` if the account is not found
  * @param connection `Connection`
  * @param swigAddress Public key of the Swig
  * @param config commitment or `GetAccountInfo` config
@@ -24,7 +24,7 @@ export async function fetchMaybeSwigAccount(
 }
 
 /**
- * 
+ * Fetches a swig raw account. Will throw error if account not found
  * @param connection Solana connection
  * @param swigAddress Public key of the Swig
  * @param config commitment or `GetAccountInfo` config

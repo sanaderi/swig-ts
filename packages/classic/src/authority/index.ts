@@ -1,5 +1,4 @@
 export * from './abstract';
-export * from './config';
 export * from './ed25519';
 export * from './getAuthority';
 export * from './instructions';

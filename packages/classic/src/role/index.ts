@@ -4,7 +4,7 @@ import {
   POSITION_LENGTH,
   type Position,
 } from '@swig/coder';
-import { Actions } from '../actions';
+import { Actions, SpendController } from '../actions';
 import {
   getRoleAuthority,
   SessionBasedAuthority,
@@ -58,11 +58,11 @@ export class Role {
   }
 
   /**
-   * Check if the role has all permissions enabled
+   * Check if the role has root permission
    * @returns `boolean`
    */
-  hasAllAction() {
-    return this.actions.hasAllAction();
+  isRoot() {
+    return this.actions.isRoot();
   }
 
   /**
@@ -116,6 +116,41 @@ export class Role {
    */
   canSpendToken(mint: PublicKey, amount?: bigint) {
     return this.actions.canSpendToken(mint, amount);
+  }
+
+  /**
+   * Gets the spend limit for a SOL. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  solSpendLimit(): bigint | null {
+    return this.actions.solSpendLimit();
+  }
+
+  /**
+   * Get Sol {@link SpendController} for the actions
+   * @returns SpendController
+   */
+  solSpend(): SpendController {
+    return this.actions.solSpend();
+  }
+
+  /**
+   * Gets the spend limit for a given token mint. Return null if the spend is uncapped.
+   * @param mint Token mint
+   * @returns `bigint` | `null`
+   */
+  tokenSpendLimit(mint: PublicKey): bigint | null {
+    return this.actions.tokenSpendLimit(mint);
+  }
+
+  /**
+   * Get Token {@link SpendController} for the actions
+   * @param mint Token mint
+   * @returns SpendController
+   */
+  tokenSpend(mint: PublicKey): SpendController {
+    return this.actions.tokenSpend(mint);
   }
 }
 
@@ -251,6 +286,8 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
 
   return { position, authority, actions };
 }
+
+// todo: delete roles recursively!
 
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 

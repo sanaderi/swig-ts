@@ -69,6 +69,17 @@ export async function createLegacyTransaction(
     await connection.getLatestBlockhash(options)
   ).blockhash;
 
-  return transaction
+  return transaction;
 }
 
+/**
+ * Utility for deriving a Swig PDA
+ * @param id Swig ID
+ * @returns [PublicKey, number]
+ */
+export function findSwigPda(id: Uint8Array): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('swig'), Buffer.from(id)],
+    SWIG_PROGRAM_ADDRESS,
+  );
+}

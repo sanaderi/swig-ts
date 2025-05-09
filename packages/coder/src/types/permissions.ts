@@ -14,6 +14,7 @@ export enum Permission {
   SolLimit = 1,
   SolRecurringLimit,
   Program,
+  ProgramScope,
   TokenLimit,
   TokenRecurringLimit,
   All,
