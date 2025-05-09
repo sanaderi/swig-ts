@@ -108,6 +108,8 @@ export class ActionsBuilder {
         programId: payload.programId.toBytes(),
         scopeType: ProgramScopeType.Basic,
         targetAccount: payload.targetAccount.toBytes(),
+        balance_field_end: 0n,
+        balance_field_start: 0n,
       }),
     );
     return this;
@@ -129,6 +131,8 @@ export class ActionsBuilder {
         programId: payload.programId.toBytes(),
         scopeType: ProgramScopeType.Basic,
         targetAccount: payload.targetAccount.toBytes(),
+        balance_field_end: 0n,
+        balance_field_start:0n
       }),
     );
     return this;
@@ -151,6 +155,8 @@ export class ActionsBuilder {
         programId: payload.programId.toBytes(),
         scopeType: ProgramScopeType.Basic,
         targetAccount: payload.targetAccount.toBytes(),
+        balance_field_end: 0n,
+        balance_field_start: 0n,
       }),
     );
     return this;
@@ -415,7 +421,7 @@ class ProgramScopeConfig extends ActionConfig {
   }
 
   get length() {
-    return 128;
+    return 144;
   }
 
   get permission() {
