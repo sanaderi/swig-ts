@@ -13,13 +13,11 @@ export function getSignV1BaseAccountMetas(
   return [
     {
       pubkey: accounts.swig,
-      // role: AccountRole.WRITABLE,
       isSigner: false,
       isWritable: true,
     },
     {
       pubkey: accounts.payer,
-      // role: AccountRole.WRITABLE_SIGNER,
       isSigner: true,
       isWritable: true,
     },
@@ -42,7 +40,6 @@ export function getSignV1BaseAccountMetasWithAuthority(
     ...accountMetas,
     {
       pubkey: authority,
-      // role: AccountRole.READONLY_SIGNER,
       isSigner: true,
       isWritable: false,
     },

@@ -1,4 +1,8 @@
-import type { AccountMeta, TransactionInstruction } from '@solana/web3.js';
+import type {
+  AccountMeta,
+  PublicKey,
+  TransactionInstruction,
+} from '@solana/web3.js';
 import {
   getAddAuthorityV1InstructionCodec,
   getCreateSessionV1InstructionCodec,
@@ -11,13 +15,12 @@ import {
   type RemoveAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
 } from '@swig/coder';
-import { swigInstruction } from '../utils';
+import { findSwigPda, swigInstruction } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
 import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 import {
   getCreateV1BaseAccountMetas,
   type CreateV1BaseAccountMetas,
-  type CreateV1InstructionAccounts,
 } from './createV1';
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
@@ -29,11 +32,15 @@ import { type SignV1BaseAccountMetas } from './signV1';
  * @returns `SwigInstruction`
  */
 export function createSwigInstruction(
-  accounts: CreateV1InstructionAccounts,
-  data: CreateV1InstructionDataArgs,
+  accounts: { payer: PublicKey },
+  data: Omit<CreateV1InstructionDataArgs, 'bump'>,
 ): TransactionInstruction {
-  let createIxAccountMetas = getCreateV1BaseAccountMetas(accounts);
-  return SwigInstructionV1.create(createIxAccountMetas, data);
+  let [swigAddress, bump] = findSwigPda(Uint8Array.from(data.id));
+  let createIxAccountMetas = getCreateV1BaseAccountMetas({
+    ...accounts,
+    swig: swigAddress,
+  });
+  return SwigInstructionV1.create(createIxAccountMetas, { ...data, bump });
 }
 
 /**
@@ -136,10 +143,12 @@ export class SwigInstructionV1 {
     T extends [...CreateSessionV1BaseAccountMetas, ...AccountMeta[]],
   >(
     accounts: T,
-    data: CreateSessionV1InstructionDataArgs & {payloadSize?: number},
+    data: CreateSessionV1InstructionDataArgs & { payloadSize?: number },
   ): TransactionInstruction {
     let createSessionV1InstructionDataEncoder =
-      getCreateSessionV1InstructionCodec(data.payloadSize ?? data.authorityPayload.length).encoder;
+      getCreateSessionV1InstructionCodec(
+        data.payloadSize ?? data.authorityPayload.length,
+      ).encoder;
 
     let createSessionV1InstructionData =
       createSessionV1InstructionDataEncoder.encode(data);

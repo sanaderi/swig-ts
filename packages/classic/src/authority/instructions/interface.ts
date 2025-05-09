@@ -15,14 +15,6 @@ import {
  * Authority Instruction Interface
  */
 export interface AuthorityInstruction {
-  /**
-   *
-   * @param accounts AddAuthorityV1InstructionAccountsWithAuthority
-   * @param data AddAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `AddAuthorityV1` instruction
-   */
   addAuthorityV1Instruction(
     accounts: AddAuthorityV1InstructionAccounts,
     data: Omit<AddAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
@@ -31,14 +23,6 @@ export interface AuthorityInstruction {
     options?: InstructionDataOptions,
   ): Promise<TransactionInstruction>;
 
-  /**
-   *
-   * @param accounts removeAuthorityV1InstructionAccountsWithAuthority
-   * @param data removeAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `RemoveAuthorityV1` instruction
-   */
   removeAuthorityV1Instruction(
     accounts: RemoveAuthorityV1InstructionAccounts,
     data: Omit<RemoveAuthorityV1InstructionDataArgs, 'authorityPayload'> & {
@@ -47,14 +31,6 @@ export interface AuthorityInstruction {
     options?: InstructionDataOptions,
   ): Promise<TransactionInstruction>;
 
-  /**
-   *
-   * @param accounts SignAuthorityV1InstructionAccountsWithAuthority
-   * @param data SignAuthorityV1InstructionDataArgs
-   * @returns SwigInstruction
-   *
-   * Creates a `SignV1` instruction
-   */
   signV1Instruction(
     accounts: SignV1InstructionAccounts,
     data: {
@@ -74,8 +50,17 @@ export interface AuthorityInstruction {
   ): Promise<TransactionInstruction>;
 }
 
+/**
+ * Signing interface that takes a message and returns a signature of the signed message
+ */
 export type SigningFn = (message: Uint8Array) => Promise<Uint8Array>;
 
+/**
+ * Options used for constructing or signing instruction data.
+ *
+ * @property signingFn - {@link SigningFn}.
+ * @property currentSlot - current slot.
+ */
 export type InstructionDataOptions = {
   signingFn: SigningFn;
   currentSlot: bigint;

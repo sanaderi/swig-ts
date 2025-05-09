@@ -1,6 +1,5 @@
 export * from "@swig/coder"
 export * from "./actions"
-export * from "./accounts"
 export * from "./authority"
 export * from "./consts"
 export * from "./instructions"

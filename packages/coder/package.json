@@ -1,7 +1,7 @@
 {
-  "name": "@swig/coder",
-  "version": "0.1.0",
-  "license": "Apache-2.0",
+  "name": "@swig-wallet/coder",
+  "version": "0.2.0-beta.1",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "build": "tsup-node",

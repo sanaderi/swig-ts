@@ -1,3 +1,4 @@
+export * from "./accountsPayload"
 export * from "./actionHeader"
 export * from './authorityType';
 export * from "./compactInstruction"
@@ -5,6 +6,7 @@ export * from "./ed25519Session"
 export * from "./permissions"
 export * from "./position"
 export * from "./programLimit"
+export * from "./programScope"
 export * from "./role"
 export * from "./secp256k1Session"
 export * from "./solLimit"

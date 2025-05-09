@@ -241,3 +241,37 @@ export async function removeAuthority(
 
   return sendAndConfirmTransaction(connection, transaction, [], options);
 }
+
+export async function removeAllAuthorityRoles(
+  connection: Connection,
+  swigAddress: PublicKey,
+  authority: Authority,
+  authorityToRemove: Authority,
+  payer: Keypair,
+  signers: Signer[] = [],
+  signingFn?: SigningFn,
+  options?: { commitment: Commitment },
+): Promise<TransactionSignature[]> {
+  let sigs: TransactionSignature[] = [];
+  
+  let swig = await fetchSwig(connection, swigAddress, options);
+
+  while (swig.findRoleByAuthority(authorityToRemove)) {
+    let sig = await removeAuthority(
+      connection,
+      swigAddress,
+      authority,
+      authorityToRemove,
+      payer,
+      signers,
+      signingFn,
+      options,
+    );
+
+    sigs.push(sig);
+
+    await swig.refetch(connection, options);
+  }
+
+  return sigs
+}
