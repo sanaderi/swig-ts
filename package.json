@@ -9,8 +9,8 @@
     "build": "bun --filter '*' build",
     "build:classic": "bun --filter '@swig/classic' build",
     "build:coder": "bun --filter '@swig/coder' build",
-    "build:doc": "typedoc",
-    "changesets": "changeset",
+    "build:docs": "typedoc",
+    "changeset": "changeset",
     "dev": "bun --filter '*' dev",
     "dev:classic": "bun --filter '@swig/classic' dev",
     "dev:coder": "bun --filter '@swig/coder' dev",
@@ -33,6 +33,7 @@
     "prettier-plugin-organize-imports": "^4.0.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.4.0",
+    "typedoc": "^0.28.4",
     "typescript": "^5.8.2"
   },
   "dependencies": {
