@@ -3,7 +3,7 @@ import type {
   PublicKey,
   TransactionInstruction,
 } from '@solana/web3.js';
-import { type CompactInstruction } from '@swig/coder';
+import { type CompactInstruction } from '@swig-wallet/coder';
 import type { SignV1BaseAccountMetas } from './signV1';
 
 /**

@@ -20,7 +20,7 @@ import {
   type SubAccount,
   type TokenLimit,
   type TokenRecurringLimit,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import { Actions } from './action';
 
 type ActionsData = { bytes: Uint8Array; noOfActions: number };

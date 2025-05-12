@@ -7,7 +7,7 @@ import {
   getCreateSecp256k1SessionEncoder,
   getSecp256k1SessionDecoder,
   type Secp256k1SessionAuthorityDataArgs,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
@@ -46,11 +46,11 @@ export class Secp256k1SessionAuthority
   }
 
   get secp256k1PublicKey() {
-    return this.publicKeyBytes
+    return this.publicKeyBytes;
   }
 
   get secp256k1PublicKeyString() {
-    return this.publicKeyString
+    return this.publicKeyString;
   }
 
   get sessionKey(): PublicKey {

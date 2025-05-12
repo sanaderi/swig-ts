@@ -3,7 +3,7 @@ import {
   getPositionDecoder,
   POSITION_LENGTH,
   type Position,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import { Actions, SpendController } from '../actions';
 import {
   getRoleAuthority,

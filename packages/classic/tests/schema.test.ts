@@ -6,7 +6,7 @@
 //   tokenAction,
 //   type Role,
 //   type SwigAccount,
-// } from '@swig/coder';
+// } from '@swig-wallet/coder';
 // import { describe, test } from 'bun:test';
 // import assert from 'node:assert';
 // import { readFileSync } from 'node:fs';

@@ -3,7 +3,7 @@ import {
   AuthorityType,
   getEd25519SessionDecoder,
   getEd25519SessionEncoder,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';

@@ -6,7 +6,7 @@ import type {
   SubAccount,
   TokenLimit,
   TokenRecurringLimit,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import {
   getProgramLimitDecoder,
   getProgramScopeDecoder,
@@ -16,7 +16,7 @@ import {
   getTokenLimitDecoder,
   getTokenRecurringLimitDecoder,
   Permission,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 
 export type ActionPayload =
   | { permission: Permission.All }
@@ -74,7 +74,7 @@ export function decodeActionPayload(
   if (permission === Permission.Program) {
     return { permission, data: getProgramLimitDecoder().decode(data) };
   }
-  
+
   if (permission === Permission.ProgramScope) {
     return { permission, data: getProgramScopeDecoder().decode(data) };
   }

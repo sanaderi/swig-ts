@@ -1,7 +1,7 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { AuthorityType } from '@swig/coder';
+import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';

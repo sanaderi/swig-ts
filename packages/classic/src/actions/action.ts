@@ -4,7 +4,7 @@ import {
   getActionHeaderDecoder,
   Permission,
   type ActionHeader,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import { ActionsBuilder } from './builder';
 import { SpendController } from './control';
 import {
