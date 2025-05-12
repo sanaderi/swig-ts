@@ -4,11 +4,11 @@ import {
   type Commitment,
   type GetAccountInfoConfig,
 } from '@solana/web3.js';
-import { getSwigCodec, type SwigAccount } from '@swig/coder';
+import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
 import { Authority } from '../authority';
-import { deserializeRoles, type SessionBasedRole, type Role } from '../role';
+import { deserializeRoles, type Role, type SessionBasedRole } from '../role';
 
 export class Swig {
   private constructor(

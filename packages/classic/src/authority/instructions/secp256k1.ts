@@ -7,7 +7,7 @@ import {
   getCompactInstructionEncoder,
   getCreateSessionV1AuthorityPayloadCodec,
   getRemoveAuthorityV1AuthorityPayloadEncoder,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -140,7 +140,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
  * @param dataPayload message bytes
  * @param accountMetas Instruction AccountMetas
  * @param options {@link InstructionDataOptions}
- * @returns Authority Payload bytes 
+ * @returns Authority Payload bytes
  */
 export async function prepareSecpPayload(
   dataPayload: Uint8Array,

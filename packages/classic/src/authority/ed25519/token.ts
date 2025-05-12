@@ -1,5 +1,5 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { AuthorityType } from '@swig/coder';
+import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';

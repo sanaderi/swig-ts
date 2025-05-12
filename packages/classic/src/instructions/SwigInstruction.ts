@@ -14,7 +14,7 @@ import {
   type CreateV1InstructionDataArgs,
   type RemoveAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import { findSwigPda, swigInstruction } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
 import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';

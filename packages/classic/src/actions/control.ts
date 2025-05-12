@@ -1,4 +1,4 @@
-import { Permission } from '@swig/coder';
+import { Permission } from '@swig-wallet/coder';
 import { isActionPayload, type ActionPayload } from './payload';
 
 export class SpendController {

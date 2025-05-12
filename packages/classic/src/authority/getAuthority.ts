@@ -1,4 +1,4 @@
-import { AuthorityType } from '@swig/coder';
+import { AuthorityType } from '@swig-wallet/coder';
 import type { Authority } from './abstract';
 import { Ed25519Authority, Ed25519SessionAuthority } from './ed25519';
 import { Secp256k1Authority, Secp256k1SessionAuthority } from './secp256k1';
@@ -38,7 +38,7 @@ export function getAuthority(
  * `getAuthority` with enforced Role ID.
  * @param type AuthorityType
  * @param data Authority raw bytes
- * @param roleId Role ID 
+ * @param roleId Role ID
  * @returns Parsed authority
  */
 export function getRoleAuthority(

@@ -8,12 +8,12 @@
   "scripts": {
     "build": "bun --filter '*' build",
     "build:classic": "bun --filter '@swig/classic' build",
-    "build:coder": "bun --filter '@swig/coder' build",
+    "build:coder": "bun --filter '@swig-wallet/coder' build",
     "build:docs": "typedoc",
     "changeset": "changeset",
     "dev": "bun --filter '*' dev",
     "dev:classic": "bun --filter '@swig/classic' dev",
-    "dev:coder": "bun --filter '@swig/coder' dev",
+    "dev:coder": "bun --filter '@swig-wallet/coder' dev",
     "format": "prettier --check packages/",
     "format:fix": "prettier --write packages/",
     "release": "bun run build && changeset publish"

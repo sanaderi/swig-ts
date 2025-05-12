@@ -4,7 +4,7 @@ import type {
   GetAccountInfoConfig,
   PublicKey,
 } from '@solana/web3.js';
-import { getSwigCodec, type SwigAccount } from '@swig/coder';
+import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 
 /**
  * Fetches a swig account. Will return `null` if the account is not found
@@ -35,7 +35,11 @@ export async function fetchSwigAccount(
   swigAddress: PublicKey,
   config?: Commitment | GetAccountInfoConfig,
 ): Promise<SwigAccount> {
-  const maybeSwig = await fetchMaybeSwigAccount(connection, swigAddress, config);
+  const maybeSwig = await fetchMaybeSwigAccount(
+    connection,
+    swigAddress,
+    config,
+  );
   if (!maybeSwig) throw new Error('Unable to fetch Swig account');
   return maybeSwig;
 }

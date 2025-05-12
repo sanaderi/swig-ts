@@ -4,7 +4,7 @@ import type {
   AddAuthorityV1InstructionDataArgs,
   CreateSessionV1InstructionDataArgs,
   RemoveAuthorityV1InstructionDataArgs,
-} from '@swig/coder';
+} from '@swig-wallet/coder';
 import {
   type AddAuthorityV1InstructionAccounts,
   type RemoveAuthorityV1InstructionAccounts,
