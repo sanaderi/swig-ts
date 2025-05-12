@@ -1,5 +1,6 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { secp256k1 } from "@noble/curves/secp256k1"
+import { bytesToHex } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -17,14 +18,13 @@ import {
   Swig,
   SWIG_PROGRAM_ADDRESS,
   type InstructionDataOptions,
-} from '@swig/classic';
+} from '@swig-wallet/classic';
 import {
   FailedTransactionMetadata,
   LiteSVM,
   TransactionMetadata,
 } from 'litesvm';
 import { readFileSync } from 'node:fs';
-import { bytesToHex } from '@noble/curves/abstract/utils';
 
 //
 // Helpers
@@ -98,7 +98,7 @@ let [swigAddress] = findSwigPda(id);
 // * make an Authority (in this case, out of a ed25519 publickey)
 //
 let pk = secp256k1.getPublicKey(userWallet.getPrivateKey(), false);
-let str = bytesToHex(pk)
+let str = bytesToHex(pk);
 
 // let rootAuthority = Secp256k1Authority.fromPublicKeyBytes(pk);
 let rootAuthority = Secp256k1Authority.fromPublicKeyString(str);

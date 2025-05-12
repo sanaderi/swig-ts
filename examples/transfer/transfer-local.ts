@@ -14,7 +14,7 @@ import {
   fetchSwig,
   findSwigPda,
   signInstruction,
-} from '@swig/classic';
+} from '@swig-wallet/classic';
 
 //
 // Helpers
@@ -177,7 +177,9 @@ if (!managerRole) throw new Error('Role not found for authority');
 if (!managerRole.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
 
-let dappAuthority = Ed25519Authority.fromPublicKey(dappAuthorityKeypair.publicKey);
+let dappAuthority = Ed25519Authority.fromPublicKey(
+  dappAuthorityKeypair.publicKey,
+);
 
 //
 // * allocate 0.1 max sol spend, for the dapp

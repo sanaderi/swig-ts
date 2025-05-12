@@ -18,7 +18,7 @@ import {
   Swig,
   SWIG_PROGRAM_ADDRESS,
   type InstructionDataOptions,
-} from '@swig/classic';
+} from '@swig-wallet/classic';
 import {
   FailedTransactionMetadata,
   LiteSVM,

@@ -9,15 +9,13 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  Authority,
   createSessionInstruction,
   createSwig,
   Ed25519SessionAuthority,
   fetchSwig,
   findSwigPda,
-  isEd25519Authority,
   signInstruction,
-} from '@swig/classic';
+} from '@swig-wallet/classic';
 
 //
 // Helpers
@@ -26,7 +24,7 @@ async function sendTransaction(
   connection: Connection,
   instruction: TransactionInstruction,
   payer: Keypair,
-  signers: Signer[] = []
+  signers: Signer[] = [],
 ) {
   let transaction = new Transaction();
   transaction.instructions = [instruction];
@@ -67,10 +65,7 @@ let tx = await connection.requestAirdrop(
 // user authority manager
 //
 let dappSessionKeypair = Keypair.generate();
-await connection.requestAirdrop(
-  dappSessionKeypair.publicKey,
-  LAMPORTS_PER_SOL,
-);
+await connection.requestAirdrop(dappSessionKeypair.publicKey, LAMPORTS_PER_SOL);
 
 // dapp authority
 //
@@ -199,11 +194,7 @@ let signTransfer = await signInstruction(
   [transfer],
 );
 
-tx = await sendTransaction(
-  connection,
-  signTransfer,
-  dappSessionKeypair,
-);
+tx = await sendTransaction(connection, signTransfer, dappSessionKeypair);
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 
