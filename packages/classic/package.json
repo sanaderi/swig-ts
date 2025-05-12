@@ -4,7 +4,8 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "build": "tsup-node",
+    "build-pkg": "tsup-node",
+    "build": "./build.sh",
     "dev": "tsup-node --watch",
     "gen-sanity": "cd tests/sanity && cargo run"
   },
