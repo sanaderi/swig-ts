@@ -1,17 +1,17 @@
 import {
+  createMint,
+  createTransferInstruction,
+  getOrCreateAssociatedTokenAccount,
+  mintTo,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
+import {
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
   Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
-import {
-  createMint,
-  getOrCreateAssociatedTokenAccount,
-  mintTo,
-  createTransferInstruction,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
 import {
   Actions,
   addAuthorityInstruction,
@@ -20,7 +20,7 @@ import {
   fetchSwig,
   findSwigPda,
   signInstruction,
-} from '@swig/classic';
+} from '@swig-wallet/classic';
 
 //helpers
 async function sendAndConfirm(
@@ -38,33 +38,43 @@ async function sendAndConfirm(
   const sig = await conn.sendRawTransaction(tx.serialize(), {
     skipPreflight: true,
   });
-  await conn.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
+  await conn.confirmTransaction(
+    { signature: sig, blockhash, lastValidBlockHeight },
+    'confirmed',
+  );
   return sig;
 }
 
 //config
-const conn       = new Connection('http://localhost:8899', 'confirmed');
-const userRoot   = Keypair.generate();
-const userMgr    = Keypair.generate();
-const devWallet  = Keypair.generate();
-const recipient  = Keypair.generate();
+const conn = new Connection('http://localhost:8899', 'confirmed');
+const userRoot = Keypair.generate();
+const userMgr = Keypair.generate();
+const devWallet = Keypair.generate();
+const recipient = Keypair.generate();
 
 for (const kp of [userRoot, userMgr, devWallet, recipient])
   await conn.requestAirdrop(kp.publicKey, LAMPORTS_PER_SOL);
-await new Promise(r => setTimeout(r, 3_000));
+await new Promise((r) => setTimeout(r, 3_000));
 
 //swig setup
-const id          = crypto.getRandomValues(new Uint8Array(32));
-const [swigAddr]  = findSwigPda(id);
-const rootAuth    = Ed25519Authority.fromPublicKey(userRoot.publicKey);
+const id = crypto.getRandomValues(new Uint8Array(32));
+const [swigAddr] = findSwigPda(id);
+const rootAuth = Ed25519Authority.fromPublicKey(userRoot.publicKey);
 
-await createSwig(conn, id, rootAuth, Actions.set().all().get(), userRoot.publicKey, [userRoot]);
-await new Promise(r => setTimeout(r, 3_000));
+await createSwig(
+  conn,
+  id,
+  rootAuth,
+  Actions.set().all().get(),
+  userRoot.publicKey,
+  [userRoot],
+);
+await new Promise((r) => setTimeout(r, 3_000));
 let swig = await fetchSwig(conn, swigAddr);
 
 //manage role
 const mgrAuth = Ed25519Authority.fromPublicKey(userMgr.publicKey);
-const mgrIx   = await addAuthorityInstruction(
+const mgrIx = await addAuthorityInstruction(
   swig.findRoleByAuthority(rootAuth)!,
   userRoot.publicKey,
   mgrAuth,
@@ -74,17 +84,40 @@ await sendAndConfirm(conn, mgrIx, userRoot);
 
 //create a test-USDC mint
 const DECIMALS = 6;
-const usdcMint = await createMint(conn, devWallet, devWallet.publicKey, null, DECIMALS);
+const usdcMint = await createMint(
+  conn,
+  devWallet,
+  devWallet.publicKey,
+  null,
+  DECIMALS,
+);
 
-const swigUsdcAta = await getOrCreateAssociatedTokenAccount(conn, devWallet, usdcMint, swigAddr, true);
-const recipUsdcAta = await getOrCreateAssociatedTokenAccount(conn, devWallet, usdcMint, recipient.publicKey);
+const swigUsdcAta = await getOrCreateAssociatedTokenAccount(
+  conn,
+  devWallet,
+  usdcMint,
+  swigAddr,
+  true,
+);
+const recipUsdcAta = await getOrCreateAssociatedTokenAccount(
+  conn,
+  devWallet,
+  usdcMint,
+  recipient.publicKey,
+);
 
-await mintTo(conn, devWallet, usdcMint, swigUsdcAta.address, devWallet.publicKey, 1_000 * 10 ** DECIMALS);
-
+await mintTo(
+  conn,
+  devWallet,
+  usdcMint,
+  swigUsdcAta.address,
+  devWallet.publicKey,
+  1_000 * 10 ** DECIMALS,
+);
 
 await swig.refetch(conn);
 
-const devAuth   = Ed25519Authority.fromPublicKey(devWallet.publicKey);
+const devAuth = Ed25519Authority.fromPublicKey(devWallet.publicKey);
 const devRoleIx = await addAuthorityInstruction(
   swig.findRoleByAuthority(mgrAuth)!,
   userMgr.publicKey,
@@ -102,7 +135,7 @@ await sendAndConfirm(conn, devRoleIx, userMgr);
 await swig.refetch(conn);
 
 const devRole = swig.findRoleByAuthority(devAuth)!;
-const xferIx  = createTransferInstruction(
+const xferIx = createTransferInstruction(
   swigUsdcAta.address,
   recipUsdcAta.address,
   swigAddr,
@@ -110,7 +143,7 @@ const xferIx  = createTransferInstruction(
   [],
   TOKEN_PROGRAM_ID,
 );
-const signed  = await signInstruction(devRole, devWallet.publicKey, [xferIx]);
+const signed = await signInstruction(devRole, devWallet.publicKey, [xferIx]);
 
 const sig = await sendAndConfirm(conn, signed, devWallet);
 console.log(`https://explorer.solana.com/tx/${sig}?cluster=custom`);
