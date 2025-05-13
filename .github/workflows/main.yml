@@ -47,6 +47,9 @@ jobs:
       - name: Install Dependencies
         run: bun install
       
+      - name: "Build repo"
+        run: bun run build
+
       - name: "Build documentation"
         run: bun build:docs
 
