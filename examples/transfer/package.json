@@ -11,7 +11,8 @@
     "transfer-svm": "bun transfer-svm.ts",
     "transfer-svm-session": "bun transfer-svm-sessioin.ts",
     "transfer-sponsor": "bun transfer-sponsor.ts",
-    "transfer-local-secp": "bun transfer-local-secp.ts"
+    "transfer-local-secp": "bun transfer-local-secp.ts",
+    "multi-role": "bun multi-role.ts"
   },
   "devDependencies": {
     "@swig-wallet/classic": "workspace:*",
