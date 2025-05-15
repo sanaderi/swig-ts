@@ -33,9 +33,7 @@ async function sendTransaction(
 
   transaction.sign(payer);
 
-  return connection.sendRawTransaction(transaction.serialize(), {
-    skipPreflight: true,
-  });
+  return connection.sendRawTransaction(transaction.serialize());
 }
 
 function randomBytes(length: number): Uint8Array {
