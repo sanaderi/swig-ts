@@ -35,9 +35,7 @@ async function sendAndConfirm(
   tx.recentBlockhash = blockhash;
   tx.sign(feePayer, ...extra);
 
-  const sig = await conn.sendRawTransaction(tx.serialize(), {
-    skipPreflight: true,
-  });
+  const sig = await conn.sendRawTransaction(tx.serialize());
   await conn.confirmTransaction(
     { signature: sig, blockhash, lastValidBlockHeight },
     'confirmed',
