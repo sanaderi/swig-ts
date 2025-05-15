@@ -29,12 +29,21 @@ import {
     instruction: TransactionInstruction,
     payer: Keypair,
   ) {
-    const tx = await connection.sendTransaction(
-      new Transaction().add(instruction),
-      [payer],
-      { skipPreflight: true }
-    );
-    return tx;
+    const transaction = new Transaction().add(instruction);
+    const signature = await connection.sendTransaction(transaction, [payer], {
+      skipPreflight: false,
+    });
+  
+    // Wait for confirmation
+    const confirmation = await connection.confirmTransaction(signature, "confirmed");
+  
+    if (confirmation.value.err) {
+      console.error("Transaction failed:", confirmation.value.err);
+      throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
+    } else {
+      console.log("Transaction confirmed:", signature);
+      return signature;
+    }
   }
   
   (async () => {
