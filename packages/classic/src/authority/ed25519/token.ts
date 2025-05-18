@@ -1,8 +1,8 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
-import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';
+import type { AuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
 
@@ -12,17 +12,8 @@ export class Ed25519Authority
 {
   type = AuthorityType.Ed25519;
 
-  constructor(
-    data: Uint8Array,
-    options?:
-      | { roleId: number; createData?: undefined }
-      | { roleId?: undefined; createData?: Uint8Array },
-  ) {
-    super(data, options ? (options.roleId ?? null) : null);
-  }
-
-  static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
-    return new Ed25519Authority(publicKey.toBytes());
+  constructor(data: Uint8Array) {
+    super(data);
   }
 
   get id() {
@@ -49,19 +40,6 @@ export class Ed25519Authority
     return this.data;
   }
 
-  async create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
-      { payer: args.payer },
-      {
-        authorityData: await this.createAuthorityData(),
-        id: args.id,
-        actions: args.actions.bytes(),
-        authorityType: this.type,
-        noOfActions: args.actions.count,
-      },
-    );
-  }
-
   sign(args: {
     swigAddress: PublicKey;
     payer: PublicKey;
@@ -86,8 +64,7 @@ export class Ed25519Authority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthority: Authority;
-    newAuthorityRaw?: Uint8Array;
+    newAuthorityInfo: AuthorityInfo;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -98,10 +75,8 @@ export class Ed25519Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: await args.newAuthority.createAuthorityData(
-          args.newAuthorityRaw,
-        ),
-        newAuthorityType: args.newAuthority.type,
+        newAuthorityData: args.newAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );
@@ -125,10 +100,6 @@ export class Ed25519Authority
       },
     );
   }
-}
-
-export function getEd25519AuthorityFromPublicKey(publicKey: PublicKey) {
-  return Ed25519Authority.fromPublicKey(publicKey);
 }
 
 export function isEd25519Authority(

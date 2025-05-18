@@ -10,6 +10,7 @@ import {
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
+  type AuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
 
@@ -186,19 +187,17 @@ export function signInstruction(
 export function addAuthorityInstruction(
   role: Role,
   payer: PublicKey,
-  newAuthority: Authority,
+  newAuthorityInfo: AuthorityInfo,
   actions: Actions,
   options?: InstructionDataOptions,
-  newAuthorityRaw?: Uint8Array
 ) {
   return role.authority.addAuthority({
     payer,
     swigAddress: role.swigAddress,
     actingRoleId: role.id,
     actions,
-    newAuthority,
+    newAuthorityInfo,
     options,
-    newAuthorityRaw
   });
 }
 
@@ -278,11 +277,7 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   let authorityData = roleData.slice(0, position.authorityLen);
   let rawActions = roleData.slice(position.authorityLen);
 
-  let authority = getRoleAuthority(
-    position.authorityType,
-    authorityData,
-    position.id,
-  );
+  let authority = getRoleAuthority(position.authorityType, authorityData);
   let actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };

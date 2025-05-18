@@ -10,7 +10,7 @@ import {
   type TransactionSignature,
 } from '@solana/web3.js';
 import type { Actions } from '../actions';
-import type { Authority, SigningFn } from '../authority';
+import type { Authority, AuthorityInfo, SigningFn } from '../authority';
 import {
   addAuthorityInstruction,
   removeAuthorityInstruction,
@@ -33,18 +33,17 @@ import { createLegacyTransaction } from '../utils';
 export async function createSwig(
   connection: Connection,
   id: Uint8Array,
-  authority: Authority,
+  authorityInfo: AuthorityInfo,
   actions: Actions,
   payer: PublicKey,
   signers: Array<Signer>,
-  options?: { commitment?: Commitment, authorityRaw?: Uint8Array },
+  options?: { commitment?: Commitment },
 ): Promise<TransactionSignature> {
-  let createInstruction = await Swig.create({
-    authority,
+  let createInstruction = Swig.create({
+    authorityInfo,
     payer,
     id,
     actions,
-    authorityRaw: options?.authorityRaw,
   });
 
   let transaction = await createLegacyTransaction(
@@ -150,7 +149,7 @@ export async function addAuthority(
   payer: Keypair,
   signers: Signer[] = [],
   signingFn?: SigningFn,
-  options?: { commitment: Commitment, newAuthorityRaw?: Uint8Array },
+  options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
   let swig = await fetchSwig(connection, swigAddress, options);
 
@@ -174,7 +173,6 @@ export async function addAuthority(
     newAuthority,
     actions,
     instOptions,
-    options?.newAuthorityRaw
   );
 
   // todo: option for sending versioned
@@ -253,7 +251,7 @@ export async function removeAllAuthorityRoles(
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature[]> {
   let sigs: TransactionSignature[] = [];
-  
+
   let swig = await fetchSwig(connection, swigAddress, options);
 
   while (swig.findRoleByAuthority(authorityToRemove)) {
@@ -273,5 +271,5 @@ export async function removeAllAuthorityRoles(
     await swig.refetch(connection, options);
   }
 
-  return sigs
+  return sigs;
 }
