@@ -1,5 +1,4 @@
 import { Wallet } from '@ethereumjs/wallet';
-import * as secp from '@noble/secp256k1';
 import {
   Keypair,
   LAMPORTS_PER_SOL,
@@ -10,10 +9,10 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  createSecp256k1SessionAuthorityInfo,
   createSessionInstruction,
   findSwigPda,
   getSigningFnForSecp256k1PrivateKey,
-  Secp256k1SessionAuthority,
   signInstruction,
   Swig,
   SWIG_PROGRAM_ADDRESS,
@@ -97,13 +96,6 @@ let id = Uint8Array.from(Array(32).fill(0));
 let [swigAddress] = findSwigPda(id);
 
 //
-// * make an Authority (in this case, out of a ed25519 publickey)
-//
-let pk = secp.getPublicKey(userWallet.getPrivateKey(), false);
-
-let rootAuthority = Secp256k1SessionAuthority.uninitialized(pk, 100n);
-
-//
 // * create swig instruction
 //
 // * createSwig(connection, ...args) imperative method available
@@ -111,7 +103,10 @@ let rootAuthority = Secp256k1SessionAuthority.uninitialized(pk, 100n);
 let rootActions = Actions.set().all().get();
 
 let createSwigInstruction = Swig.create({
-  authority: rootAuthority,
+  authorityInfo: createSecp256k1SessionAuthorityInfo(
+    userWallet.getPublicKey(),
+    100n,
+  ),
   id,
   payer: userRootKeypair.publicKey,
   actions: rootActions,
@@ -153,11 +148,7 @@ sendSVMTransaction(svm, newSessionInstruction, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
-//
-// * find role by authority
-//
-// rootRole = swig.roles[0];
-rootRole = swig.findRoleByAuthority(rootAuthority);
+rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey);
 
 if (!rootRole) throw new Error('Role not found for authority');
 

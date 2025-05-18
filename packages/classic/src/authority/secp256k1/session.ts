@@ -1,18 +1,13 @@
-import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { bytesToHex } from '@noble/curves/abstract/utils';
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
-import {
-  AuthorityType,
-  getCreateSecp256k1SessionEncoder,
-  getSecp256k1SessionDecoder,
-} from '@swig-wallet/coder';
+import { AuthorityType, getSecp256k1SessionDecoder } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
-import { createSwigInstruction } from '../../instructions';
-import { Authority, SessionBasedAuthority } from '../abstract';
+import { compressedPubkeyToAddress } from '../../utils';
+import { SessionBasedAuthority } from '../abstract';
+import type { AuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 import type { Secp256k1BasedAuthority } from './based';
-import type { AuthorityInfo } from '../createAuthority';
-import { compressedPubkeyToAddress } from '../../utils';
 
 export class Secp256k1SessionAuthority
   extends SessionBasedAuthority
@@ -25,7 +20,7 @@ export class Secp256k1SessionAuthority
   }
 
   get id() {
-    return hexToBytes(this.secp256k1Address);
+    return this.secp256k1Address;
   }
 
   get signer() {
@@ -42,6 +37,10 @@ export class Secp256k1SessionAuthority
 
   get secp256k1Address() {
     return compressedPubkeyToAddress(this.publicKeyBytes);
+  }
+
+  get secp256k1AddressString(): string {
+    return `Ox${bytesToHex(this.secp256k1Address)}`;
   }
 
   get secp256k1PublicKey() {

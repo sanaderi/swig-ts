@@ -8,8 +8,8 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  createEd25519SessionAuthorityInfo,
   createSessionInstruction,
-  Ed25519SessionAuthority,
   findSwigPda,
   signInstruction,
   Swig,
@@ -78,7 +78,6 @@ svm.airdrop(dappSessionKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 // dapp authority
 //
 let dappTreasury = Keypair.generate().publicKey;
-// svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 let id = Uint8Array.from(Array(32).fill(0));
 
@@ -88,14 +87,6 @@ let id = Uint8Array.from(Array(32).fill(0));
 let [swigAddress] = findSwigPda(id);
 
 //
-// * make an Authority (in this case, out of a ed25519 publickey)
-//
-let rootAuthority = Ed25519SessionAuthority.uninitialized(
-  userRootKeypair.publicKey,
-  100n,
-);
-
-//
 // * create swig instruction
 //
 // * createSwig(connection, ...args) imperative method available
@@ -103,7 +94,10 @@ let rootAuthority = Ed25519SessionAuthority.uninitialized(
 let rootActions = Actions.set().all().get();
 
 let createSwigInstruction = Swig.create({
-  authority: rootAuthority,
+  authorityInfo: createEd25519SessionAuthorityInfo(
+    userRootKeypair.publicKey,
+    100n,
+  ),
   id,
   payer: userRootKeypair.publicKey,
   actions: rootActions,
@@ -130,7 +124,7 @@ svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 
 let newSessionInstruction = await createSessionInstruction(
   rootRole,
-  rootAuthority.address,
+  userRootKeypair.publicKey,
   dappSessionKeypair.publicKey,
   50n,
 );

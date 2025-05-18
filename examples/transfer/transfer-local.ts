@@ -9,6 +9,7 @@ import {
 import {
   Actions,
   addAuthorityInstruction,
+  createEd25519AuthorityInfo,
   createSwig,
   Ed25519Authority,
   fetchSwig,
@@ -83,14 +84,6 @@ let id = randomBytes(32);
 //
 let [swigAddress] = findSwigPda(id);
 
-//
-// * make an Authority (in this case, out of a Ed25519 publickey)
-//
-// * e.g Authority.secp256k1
-// * session based Authority support
-//
-let rootAuthority = Ed25519Authority.fromPublicKey(userRootKeypair.publicKey);
-
 let rootActions = Actions.set().all().get();
 
 //
@@ -99,7 +92,7 @@ let rootActions = Actions.set().all().get();
 await createSwig(
   connection,
   id,
-  rootAuthority,
+  createEd25519AuthorityInfo(userRootKeypair.publicKey),
   rootActions,
   userRootKeypair.publicKey,
   [userRootKeypair],
@@ -115,27 +108,12 @@ let swig = await fetchSwig(connection, swigAddress);
 //
 // * find role by authority
 //
-let rootRole = swig.findRoleByAuthority(rootAuthority);
-
-if (!rootRole) throw new Error('Role not found for authority');
-
-let authorityManager = Ed25519Authority.fromPublicKey(
-  userAuthorityManagerKeypair.publicKey,
-);
+let rootRole = swig.findRolesByEd25519SignerPk(userRootKeypair.publicKey)[0];
 
 //
 // * helper for creating actions
 //
-let manageAuthorityActions = Actions.set()
-  // .all()
-  .manageAuthority()
-  // .solTemporal({
-  //   amount: BigInt(LAMPORTS_PER_SOL),
-  //   window: 150n,
-  //   last: 150_000n,
-  // })
-  // .tokenManage({ key: PublicKey.unique(), amount: BigInt(100_100) })
-  .get();
+let manageAuthorityActions = Actions.set().manageAuthority().get();
 
 //
 // * can call instructions associated with a role (or authority)
@@ -147,7 +125,7 @@ let manageAuthorityActions = Actions.set()
 let addAuthorityIx = await addAuthorityInstruction(
   rootRole,
   userRootKeypair.publicKey,
-  authorityManager,
+  createEd25519AuthorityInfo(userAuthorityManagerKeypair.publicKey),
   manageAuthorityActions,
 );
 
@@ -160,7 +138,9 @@ await sleep(3);
 //
 await swig.refetch(connection);
 
-let managerRole = swig.findRoleByAuthority(authorityManager);
+let managerRole = swig.findRolesByEd25519SignerPk(
+  userAuthorityManagerKeypair.publicKey,
+)[0];
 
 if (!managerRole) throw new Error('Role not found for authority');
 
@@ -175,10 +155,6 @@ if (!managerRole) throw new Error('Role not found for authority');
 if (!managerRole.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
 
-let dappAuthority = Ed25519Authority.fromPublicKey(
-  dappAuthorityKeypair.publicKey,
-);
-
 //
 // * allocate 0.1 max sol spend, for the dapp
 //
@@ -192,7 +168,7 @@ let dappAuthorityActions = Actions.set()
 let addDappAuthorityInstruction = await addAuthorityInstruction(
   managerRole,
   userAuthorityManagerKeypair.publicKey,
-  dappAuthority,
+  createEd25519AuthorityInfo(dappAuthorityKeypair.publicKey),
   dappAuthorityActions,
 );
 
@@ -237,7 +213,7 @@ if (!maybeDappRole) throw new Error('Role does not exist');
 //
 // * check if the authority on a role matches
 //
-if (!maybeDappRole.authority.isEqual(dappAuthority))
+if (!maybeDappRole.authority.matchesSigner(dappAuthorityKeypair.publicKey.toBytes()))
   throw new Error('Role authority is not the authority');
 
 console.log(
@@ -254,12 +230,10 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
-
-if (!dappAutorityRole) throw new Error('Role not found for authority');
+let dappAuthorityRole = swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.publicKey)[0];
 
 let signTransfer = await signInstruction(
-  dappAutorityRole,
+  dappAuthorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],
 );
@@ -286,12 +260,10 @@ transfer = SystemProgram.transfer({
   lamports: 0.05 * LAMPORTS_PER_SOL,
 });
 
-dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
-
-if (!dappAutorityRole) throw new Error('Role not found for authority');
+dappAuthorityRole = swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.publicKey)[0];
 
 signTransfer = await signInstruction(
-  dappAutorityRole,
+  dappAuthorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],
 );

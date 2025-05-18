@@ -1,10 +1,10 @@
-import { hexToBytes } from '@noble/curves/abstract/utils';
 import { PublicKey } from '@solana/web3.js';
 import {
   AuthorityType,
   getCreateSecp256k1SessionEncoder,
   getEd25519SessionEncoder,
 } from '@swig-wallet/coder';
+import { getUnprefixedSecpBytes } from '../utils';
 
 export interface AuthorityInfo {
   data: Uint8Array;
@@ -33,7 +33,7 @@ export function createEd25519SessionAuthorityInfo(
   });
 
   return {
-    data: Uint8Array.from(sessionData),
+    data: Uint8Array.from(sessionData.slice(0, 72)),
     type: AuthorityType.Ed25519Session,
   };
 }
@@ -46,13 +46,7 @@ export function createEd25519SessionAuthorityInfo(
 export function createSecp256k1AuthorityInfo(
   publicKey: string | Uint8Array,
 ): AuthorityInfo {
-  let publicKeyBytes: Uint8Array;
-
-  if (typeof publicKey === 'string') {
-    publicKeyBytes = hexToBytes(publicKey);
-  } else {
-    publicKeyBytes = publicKey;
-  }
+  let publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
   return {
     data:
@@ -71,13 +65,7 @@ export function createSecp256k1SessionAuthorityInfo(
   maxSessionDuration: bigint,
   sessionKey?: PublicKey,
 ): AuthorityInfo {
-  let publicKeyBytes: Uint8Array;
-
-  if (typeof publicKey === 'string') {
-    publicKeyBytes = hexToBytes(publicKey);
-  } else {
-    publicKeyBytes = publicKey;
-  }
+  let publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
   let sessionData = getCreateSecp256k1SessionEncoder().encode({
     publicKey: publicKeyBytes,

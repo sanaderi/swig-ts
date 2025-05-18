@@ -1,19 +1,17 @@
 import { Wallet } from '@ethereumjs/wallet';
-import { bytesToHex } from '@noble/curves/abstract/utils';
-import { secp256k1 } from '@noble/curves/secp256k1';
 import {
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
   SystemProgram,
   Transaction,
-  sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import {
   Actions,
+  createSecp256k1AuthorityInfo,
   findSwigPda,
   getSigningFnForSecp256k1PrivateKey,
-  Secp256k1Authority,
   signInstruction,
   Swig,
   type InstructionDataOptions,
@@ -64,18 +62,12 @@ const id = Uint8Array.from(Array(32).fill(1)); // use any 32-byte identifier
 const [swigAddress] = findSwigPda(id);
 
 //
-// * make an Authority (in this case, out of a secp256k1 publickey)
-//
-const pk = secp256k1.getPublicKey(userWallet.getPrivateKey(), false);
-const rootAuthority = Secp256k1Authority.fromPublicKeyString(bytesToHex(pk));
-
-//
 // * create swig instruction
 //
 const rootActions = Actions.set().all().get();
 
 const createSwigInstruction = Swig.create({
-  authority: rootAuthority,
+  authorityInfo: createSecp256k1AuthorityInfo(userWallet.getPublicKey()),
   id,
   payer: payer.publicKey,
   actions: rootActions,
@@ -83,7 +75,6 @@ const createSwigInstruction = Swig.create({
 
 const createSwigTx = new Transaction().add(createSwigInstruction);
 await sendAndConfirmTransaction(connection, createSwigTx, [payer]);
-
 
 //
 // * fund the swig pda
@@ -101,13 +92,17 @@ const swig = Swig.fromRawAccountData(swigAddress, swigAccount.data);
 //
 // * find role by authority
 //
-const rootRole = swig.findRoleByAuthority(rootAuthority);
+const rootRole = swig.findRolesBySecp256k1SignerAddress(
+  userWallet.getAddress(),
+)[0];
 if (!rootRole) throw new Error('Role not found for authority');
 
 //
 // * prepare signing context
 //
-const signingFn = getSigningFnForSecp256k1PrivateKey(userWallet.getPrivateKey());
+const signingFn = getSigningFnForSecp256k1PrivateKey(
+  userWallet.getPrivateKey(),
+);
 const slot = await connection.getSlot('finalized');
 const instOptions: InstructionDataOptions = {
   currentSlot: BigInt(slot),
@@ -119,7 +114,10 @@ const instOptions: InstructionDataOptions = {
 //
 const lamports = 0.1 * LAMPORTS_PER_SOL;
 
-console.log('balance before first transfer:', await connection.getBalance(swigAddress));
+console.log(
+  'balance before first transfer:',
+  await connection.getBalance(swigAddress),
+);
 
 const transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
@@ -137,6 +135,11 @@ const signedTransfer = await signInstruction(
 const tx = new Transaction().add(signedTransfer);
 const sig = await sendAndConfirmTransaction(connection, tx, [signer]);
 
-console.log(`Transfer sent: https://explorer.solana.com/tx/${sig}?cluster=custom`);
+console.log(
+  `Transfer sent: https://explorer.solana.com/tx/${sig}?cluster=custom`,
+);
 
-console.log('balance after first transfer:', await connection.getBalance(swigAddress));
+console.log(
+  'balance after first transfer:',
+  await connection.getBalance(swigAddress),
+);

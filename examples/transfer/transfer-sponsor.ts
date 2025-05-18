@@ -15,8 +15,8 @@ import {
 import {
   Actions,
   addAuthorityInstruction,
+  createEd25519AuthorityInfo,
   createSwig,
-  Ed25519Authority,
   fetchSwig,
   findSwigPda,
   signInstruction,
@@ -57,12 +57,11 @@ await new Promise((r) => setTimeout(r, 3_000));
 //swig setup
 const id = crypto.getRandomValues(new Uint8Array(32));
 const [swigAddr] = findSwigPda(id);
-const rootAuth = Ed25519Authority.fromPublicKey(userRoot.publicKey);
 
 await createSwig(
   conn,
   id,
-  rootAuth,
+  createEd25519AuthorityInfo(userRoot.publicKey),
   Actions.set().all().get(),
   userRoot.publicKey,
   [userRoot],
@@ -71,11 +70,10 @@ await new Promise((r) => setTimeout(r, 3_000));
 let swig = await fetchSwig(conn, swigAddr);
 
 //manage role
-const mgrAuth = Ed25519Authority.fromPublicKey(userMgr.publicKey);
 const mgrIx = await addAuthorityInstruction(
-  swig.findRoleByAuthority(rootAuth)!,
+  swig.findRolesByEd25519SignerPk(userRoot.publicKey)[0],
   userRoot.publicKey,
-  mgrAuth,
+  createEd25519AuthorityInfo(userMgr.publicKey),
   Actions.set().manageAuthority().get(),
 );
 await sendAndConfirm(conn, mgrIx, userRoot);
@@ -115,11 +113,10 @@ await mintTo(
 
 await swig.refetch(conn);
 
-const devAuth = Ed25519Authority.fromPublicKey(devWallet.publicKey);
 const devRoleIx = await addAuthorityInstruction(
-  swig.findRoleByAuthority(mgrAuth)!,
+  swig.findRolesByEd25519SignerPk(userMgr.publicKey)[0],
   userMgr.publicKey,
-  devAuth,
+  createEd25519AuthorityInfo(devWallet.publicKey),
   Actions.set()
     .tokenLimit({
       mint: usdcMint,
@@ -132,7 +129,7 @@ await sendAndConfirm(conn, devRoleIx, userMgr);
 //transfer USDC to recipient
 await swig.refetch(conn);
 
-const devRole = swig.findRoleByAuthority(devAuth)!;
+const devRole = swig.findRolesByEd25519SignerPk(devWallet.publicKey)[0];
 const xferIx = createTransferInstruction(
   swigUsdcAta.address,
   recipUsdcAta.address,

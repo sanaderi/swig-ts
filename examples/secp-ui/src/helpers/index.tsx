@@ -21,7 +21,7 @@ export const Providers = ({ children }: { children: ReactNode }) => {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <ConnectionProvider endpoint='http://localhost:8899'>
+        <ConnectionProvider endpoint="http://localhost:8899">
           <RainbowKitProvider>{children}</RainbowKitProvider>
         </ConnectionProvider>
       </QueryClientProvider>

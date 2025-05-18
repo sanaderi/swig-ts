@@ -1,3 +1,6 @@
+import { hexToBytes } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { keccak_256 } from '@noble/hashes/sha3';
 import { AccountRole, address, type IAccountMeta } from '@solana/kit';
 import {
   Connection,
@@ -8,9 +11,6 @@ import {
   type Commitment,
 } from '@solana/web3.js';
 import { SWIG_PROGRAM_ADDRESS } from './consts';
-import { hexToBytes } from '@noble/curves/abstract/utils';
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { keccak_256 } from '@noble/hashes/sha3';
 
 /**
  * Creates a SWIG Instruction with the swig program addresss
@@ -89,19 +89,24 @@ export function findSwigPda(id: Uint8Array): [PublicKey, number] {
 
 export function compressedPubkeyToAddress(
   compressed: Uint8Array | string,
-): `0x${string}` {
-  const compressedBytes =
-    typeof compressed === 'string' ? hexToBytes(compressed) : compressed;
+): Uint8Array {
+  const compressedBytes = getUnprefixedSecpBytes(compressed, 32);
 
   const point = secp256k1.ProjectivePoint.fromHex(compressedBytes);
 
-  const uncompressed = point.toRawBytes(false).slice(1); // remove 0x04 prefix
+  const uncompressed = point.toRawBytes(false).slice(1);
 
-  // Keccak hash
   const hash = keccak_256(uncompressed);
 
-  // Last 20 bytes
-  const address = `0x${hash.slice(-40)}` as const;
+  return hash.slice(12);
+}
 
-  return address;
+export function getUnprefixedSecpBytes(
+  hexOrBytes: Uint8Array | string,
+  length: 64 | 32 | 20,
+): Uint8Array {
+  const bytes =
+    typeof hexOrBytes === 'string' ? hexToBytes(hexOrBytes) : hexOrBytes;
+
+  return bytes.length + 1 === length ? bytes.slice(1) : bytes;
 }

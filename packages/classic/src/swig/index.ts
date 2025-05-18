@@ -10,6 +10,7 @@ import { type Actions } from '../actions';
 import { Authority, type AuthorityInfo } from '../authority';
 import { createSwigInstruction } from '../instructions';
 import { deserializeRoles, type Role, type SessionBasedRole } from '../role';
+import { getUnprefixedSecpBytes } from '../utils';
 
 export class Swig {
   private constructor(
@@ -165,5 +166,25 @@ export class Swig {
    */
   findRolesByAuthoritySigner(signer: Uint8Array) {
     return this.roles.filter((role) => role.authority.matchesSigner(signer));
+  }
+
+  /**
+   * Find a Role by Ed25519 Signer Publickey
+   * @param signerPk Ed25519 Publickey
+   * @returns Role[]
+   */
+  findRolesByEd25519SignerPk(signerPk: PublicKey) {
+    return this.findRolesByAuthoritySigner(signerPk.toBytes());
+  }
+
+  /**
+   * Find a Role by Authority Signer
+   * @param signerAddress Secp256k1 Signer Address hex or bytes
+   * @returns Role[]
+   */
+  findRolesBySecp256k1SignerAddress(signerAddress: Uint8Array | string) {
+    return this.findRolesByAuthoritySigner(
+      getUnprefixedSecpBytes(signerAddress, 20),
+    );
   }
 }

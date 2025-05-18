@@ -20,15 +20,19 @@ export class Secp256k1Authority
   }
 
   get id() {
-    return hexToBytes(this.secp256k1Address);
+    return this.secp256k1Address;
   }
 
   get signer() {
-    return this.publicKeyBytes;
+    return this.secp256k1Address;
   }
 
   get secp256k1Address() {
     return compressedPubkeyToAddress(this.publicKeyBytes);
+  }
+
+  get secp256k1AddressString(): string {
+    return `Ox${bytesToHex(this.secp256k1Address)}`;
   }
 
   get secp256k1PublicKey() {
