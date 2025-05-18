@@ -37,13 +37,14 @@ export async function createSwig(
   actions: Actions,
   payer: PublicKey,
   signers: Array<Signer>,
-  options?: { commitment?: Commitment },
+  options?: { commitment?: Commitment, authorityRaw?: Uint8Array },
 ): Promise<TransactionSignature> {
-  let createInstruction = Swig.create({
+  let createInstruction = await Swig.create({
     authority,
     payer,
     id,
     actions,
+    authorityRaw: options?.authorityRaw,
   });
 
   let transaction = await createLegacyTransaction(
@@ -149,7 +150,7 @@ export async function addAuthority(
   payer: Keypair,
   signers: Signer[] = [],
   signingFn?: SigningFn,
-  options?: { commitment: Commitment },
+  options?: { commitment: Commitment, newAuthorityRaw?: Uint8Array },
 ): Promise<TransactionSignature> {
   let swig = await fetchSwig(connection, swigAddress, options);
 
@@ -173,6 +174,7 @@ export async function addAuthority(
     newAuthority,
     actions,
     instOptions,
+    options?.newAuthorityRaw
   );
 
   // todo: option for sending versioned

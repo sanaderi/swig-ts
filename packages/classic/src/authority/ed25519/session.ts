@@ -18,9 +18,11 @@ export class Ed25519SessionAuthority
 
   constructor(
     public data: Uint8Array,
-    roleId?: number,
+    options?:
+      | { roleId: number; createData?: undefined }
+      | { roleId?: undefined; createData?: Uint8Array },
   ) {
-    super(data, roleId ?? null);
+    super(data, options ? (options.roleId ?? null) : null);
   }
 
   static fromBytes(bytes: Uint8Array): Ed25519SessionAuthority {
@@ -76,7 +78,7 @@ export class Ed25519SessionAuthority
     return this.info.maxSessionLength;
   }
 
-  createAuthorityData(): Uint8Array {
+  async createAuthorityData() {
     return this.data.slice(0, 32 + 32 + 8);
   }
 
@@ -89,11 +91,11 @@ export class Ed25519SessionAuthority
     };
   }
 
-  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
+  async create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
       { payer: args.payer },
       {
-        authorityData: this.createAuthorityData(),
+        authorityData: await this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -121,12 +123,13 @@ export class Ed25519SessionAuthority
     );
   }
 
-  addAuthority(args: {
+  async addAuthority(args: {
     swigAddress: PublicKey;
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
+    newAuthorityRaw?: Uint8Array;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -137,7 +140,9 @@ export class Ed25519SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.createAuthorityData(),
+        newAuthorityData: await args.newAuthority.createAuthorityData(
+          args.newAuthorityRaw,
+        ),
         newAuthorityType: args.newAuthority.type,
         noOfActions: args.actions.count,
       },

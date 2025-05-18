@@ -14,21 +14,24 @@ export function getAuthority(
   type: AuthorityType,
   data: Uint8Array,
   roleId?: number,
+  createData?: Uint8Array,
 ): Authority {
+  let option = roleId ? { roleId } : { createData };
+
   if (type === AuthorityType.Ed25519) {
-    return new Ed25519Authority(data, roleId);
+    return new Ed25519Authority(data, option);
   }
 
   if (type === AuthorityType.Ed25519Session) {
-    return new Ed25519SessionAuthority(data, roleId);
+    return new Ed25519SessionAuthority(data, option);
   }
 
   if (type === AuthorityType.Secp256k1) {
-    return new Secp256k1Authority(data, roleId);
+    return new Secp256k1Authority(data, option);
   }
 
   if (type === AuthorityType.Secp256k1Session) {
-    return new Secp256k1SessionAuthority(data, roleId);
+    return new Secp256k1SessionAuthority(data, option);
   }
 
   throw new Error('Invalid authority');

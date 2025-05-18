@@ -39,6 +39,7 @@ export abstract class Authority {
   constructor(
     public data: Uint8Array,
     public roleId: number | null,
+    public createData?: Uint8Array,
   ) {}
 
   /**
@@ -54,13 +55,17 @@ export abstract class Authority {
    * @param args - The parameters required to create the Swig instruction.
    * @param args.payer - The public key of the account paying for the transaction.
    * @param args.id - 32-bytes Uint8Array.
-   * @param args.actions - A container holding the set of actions to include.   * @returns The serialized instruction for creating the Swig.
+   * @param args.actions - A container holding the set of actions to include.
+   * @param args.authorityRaw - Include the authority raw bytes as an option e.g publickey as in ED25519 or Secp256k1 based authorities
+   * @param args.options {@link InstructionDataOptions}
+   * @returns The serialized instruction for creating the Swig.
    */
   abstract create(args: {
     payer: PublicKey;
     id: Uint8Array;
     actions: Actions;
-  }): TransactionInstruction;
+    authorityRaw?: Uint8Array,
+  }): Promise<TransactionInstruction>;
 
   /**
    * Creates a `Sign` instruction for signing provided instructions with the Swig
@@ -89,6 +94,7 @@ export abstract class Authority {
    * @param args.actingRoleId The ID of the role signing the instruction.
    * @param args.newAuthority Authority to add
    * @param args.actions Actions of the new authority
+   * @param args.newAuthorityRaw - Include the authority raw bytes as an option e.g publickey for Secp256k1 based authorities
    * @param args.options {@link InstructionDataOptions}
    *
    * @returns `AddAuthority` Instruction.
@@ -99,6 +105,7 @@ export abstract class Authority {
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
+    newAuthorityRaw?: Uint8Array
     options?: InstructionDataOptions;
   }): Promise<TransactionInstruction>;
 
@@ -126,7 +133,7 @@ export abstract class Authority {
    *
    * this is usually used when creating a new Role from an unitialized authority, with the AddInstruction
    */
-  abstract createAuthorityData(): Uint8Array;
+  abstract createAuthorityData(createData?: Uint8Array): Promise<Uint8Array>;
 
   /**
    * Check two {@link Authority} are partially equal

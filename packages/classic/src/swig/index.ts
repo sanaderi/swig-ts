@@ -126,11 +126,13 @@ export class Swig {
     id: Uint8Array;
     actions: Actions;
     authority: Authority;
+    authorityRaw?: Uint8Array
   }) {
     return args.authority.create({
       payer: args.payer,
       id: args.id,
       actions: args.actions,
+      authorityRaw: args.authorityRaw
     });
   }
 

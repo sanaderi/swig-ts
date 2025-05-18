@@ -12,8 +12,13 @@ export class Ed25519Authority
 {
   type = AuthorityType.Ed25519;
 
-  constructor(data: Uint8Array, roleId?: number) {
-    super(data, roleId ?? null);
+  constructor(
+    data: Uint8Array,
+    options?:
+      | { roleId: number; createData?: undefined }
+      | { roleId?: undefined; createData?: Uint8Array },
+  ) {
+    super(data, options ? (options.roleId ?? null) : null);
   }
 
   static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
@@ -40,19 +45,15 @@ export class Ed25519Authority
     return new PublicKey(this.data);
   }
 
-  createAuthorityData() {
+  async createAuthorityData(_?: Uint8Array) {
     return this.data;
   }
 
-  create(args: {
-    payer: PublicKey;
-    id: Uint8Array;
-    actions: Actions;
-  }): TransactionInstruction {
+  async create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
       { payer: args.payer },
       {
-        authorityData: this.createAuthorityData(),
+        authorityData: await this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -80,12 +81,13 @@ export class Ed25519Authority
     );
   }
 
-  addAuthority(args: {
+  async addAuthority(args: {
     swigAddress: PublicKey;
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
+    newAuthorityRaw?: Uint8Array;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -96,7 +98,9 @@ export class Ed25519Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.createAuthorityData(),
+        newAuthorityData: await args.newAuthority.createAuthorityData(
+          args.newAuthorityRaw,
+        ),
         newAuthorityType: args.newAuthority.type,
         noOfActions: args.actions.count,
       },

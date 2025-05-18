@@ -15,8 +15,13 @@ export class Secp256k1Authority
 {
   type = AuthorityType.Secp256k1;
 
-  constructor(data: Uint8Array, roleId?: number) {
-    super(data, roleId ?? null);
+  constructor(
+    data: Uint8Array,
+    options?:
+      | { roleId: number; createData?: undefined }
+      | { roleId?: undefined; createData?: Uint8Array },
+  ) {
+    super(data, options ? (options.roleId ?? null) : null);
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
@@ -67,15 +72,22 @@ export class Secp256k1Authority
     return bytesToHex(this.publicKeyBytes);
   }
 
-  createAuthorityData(): Uint8Array {
-    return this.data;
+  async createAuthorityData(createData?: Uint8Array) {
+    if (!this.createData || createData)
+      throw new Error('PublicKey required to add Secp256k1 authority');
+    return createData || this.createData;
   }
 
-  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
+  async create(args: {
+    payer: PublicKey;
+    id: Uint8Array;
+    actions: Actions;
+    authorityRaw?: Uint8Array;
+  }) {
     return createSwigInstruction(
       { payer: args.payer },
       {
-        authorityData: this.data,
+        authorityData: await this.createAuthorityData(args.authorityRaw),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -105,12 +117,13 @@ export class Secp256k1Authority
     );
   }
 
-  addAuthority(args: {
+  async addAuthority(args: {
     swigAddress: PublicKey;
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
     newAuthority: Authority;
+    newAuthorityRaw?: Uint8Array;
     options: InstructionDataOptions;
   }) {
     return Secp256k1Instruction.addAuthorityV1Instruction(
@@ -122,7 +135,9 @@ export class Secp256k1Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.data,
+        newAuthorityData: await args.newAuthority.createAuthorityData(
+          args.newAuthorityRaw,
+        ),
         newAuthorityType: args.newAuthority.type,
         noOfActions: args.actions.count,
       },

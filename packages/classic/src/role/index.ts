@@ -189,6 +189,7 @@ export function addAuthorityInstruction(
   newAuthority: Authority,
   actions: Actions,
   options?: InstructionDataOptions,
+  newAuthorityRaw?: Uint8Array
 ) {
   return role.authority.addAuthority({
     payer,
@@ -197,6 +198,7 @@ export function addAuthorityInstruction(
     actions,
     newAuthority,
     options,
+    newAuthorityRaw
   });
 }
 
@@ -285,8 +287,6 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
 
   return { position, authority, actions };
 }
-
-// todo: delete roles recursively!
 
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 
