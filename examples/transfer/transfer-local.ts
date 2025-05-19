@@ -19,6 +19,12 @@ import {
 //
 // Helpers
 //
+function formatSolLimit(limit: bigint | null): string {
+  return limit === null
+    ? 'unlimited'
+    : `${Number(limit) / LAMPORTS_PER_SOL} SOL`;
+}
+
 async function sendTransaction(
   connection: Connection,
   instruction: TransactionInstruction,
@@ -160,6 +166,11 @@ await sleep(3);
 //
 await swig.refetch(connection);
 
+console.log(
+  'Spending limits:',
+  swig.roles.map((role) => formatSolLimit(role.solSpendLimit())),
+);
+
 let managerRole = swig.findRoleByAuthority(authorityManager);
 
 if (!managerRole) throw new Error('Role not found for authority');
@@ -208,6 +219,15 @@ await sleep(3);
 
 await swig.refetch(connection);
 
+let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
+
+if (!dappAutorityRole) throw new Error('Role not found for authority');
+
+console.log('Spending limits for each role:');
+console.log('Root role:', formatSolLimit(rootRole.solSpendLimit()));
+console.log('Manager role:', formatSolLimit(managerRole.solSpendLimit()));
+console.log('Dapp role:', formatSolLimit(dappAutorityRole.solSpendLimit()));
+
 //
 // * role array methods (we check what roles can spend sol)
 //
@@ -253,10 +273,6 @@ let transfer = SystemProgram.transfer({
   toPubkey: dappAuthorityKeypair.publicKey,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
-
-let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
-
-if (!dappAutorityRole) throw new Error('Role not found for authority');
 
 let signTransfer = await signInstruction(
   dappAutorityRole,
