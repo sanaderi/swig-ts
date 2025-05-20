@@ -23,7 +23,7 @@ import { createLegacyTransaction } from '../utils';
  * Creates a `SwigAccount`
  * @param connection `Connection`
  * @param id id pda seed
- * @param authority Swig `Authority`
+ * @param authorityInfo {@link AuthorityInfo}
  * @param actions Actions the authority can perform
  * @param payer Ed25519 payer
  * @param signers Signers of the transaction

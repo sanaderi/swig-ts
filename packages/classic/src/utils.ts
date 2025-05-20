@@ -106,7 +106,11 @@ export function getUnprefixedSecpBytes(
   length: 64 | 32 | 20,
 ): Uint8Array {
   const bytes =
-    typeof hexOrBytes === 'string' ? hexToBytes(hexOrBytes) : hexOrBytes;
+    typeof hexOrBytes === 'string'
+      ? hexToBytes(
+          hexOrBytes.startsWith('0x') ? hexOrBytes.slice(2) : hexOrBytes,
+        )
+      : hexOrBytes;
 
   return bytes.length + 1 === length ? bytes.slice(1) : bytes;
 }

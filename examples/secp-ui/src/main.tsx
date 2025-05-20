@@ -1,12 +1,10 @@
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
-
-// Import the generated route tree
-import { routeTree } from './routeTree.gen';
-
-import { Providers } from './helpers/index.tsx';
+import { Toaster } from 'sonner';
+import { Providers } from './context/index.tsx';
 import reportWebVitals from './reportWebVitals.ts';
+import { routeTree } from './routeTree.gen';
 import './styles.css';
 
 // Create a new router instance
@@ -34,6 +32,7 @@ if (rootElement && !rootElement.innerHTML) {
     <StrictMode>
       <Providers>
         <RouterProvider router={router} />
+        <Toaster />
       </Providers>
     </StrictMode>,
   );

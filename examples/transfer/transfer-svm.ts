@@ -21,6 +21,7 @@ import {
   TransactionMetadata,
 } from 'litesvm';
 import { readFileSync } from 'node:fs';
+import { buffer } from 'node:stream/consumers';
 
 //
 // Helpers

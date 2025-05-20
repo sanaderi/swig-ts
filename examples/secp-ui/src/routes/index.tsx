@@ -1,4 +1,4 @@
-import { SignMessage } from '@/components/SignMessge';
+import { Swig } from '@/components/Swig';
 import { createFileRoute } from '@tanstack/react-router';
 import { useAccount } from 'wagmi';
 
@@ -10,9 +10,8 @@ function App() {
   const { isConnected } = useAccount();
 
   return (
-    <div className="text-center">
-      {/* <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]"></header> */}
-      <div>{isConnected ? <SignMessage /> : 'not connected'}</div>
+    <div className="text-center flex flex-col items-center justify-center w-full p-4 mt-12">
+      {isConnected ? <Swig /> : 'Connect EVM Wallet to interact with Swig'}
     </div>
   );
 }

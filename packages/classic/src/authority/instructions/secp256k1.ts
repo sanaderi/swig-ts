@@ -1,4 +1,5 @@
-import { keccak_256 } from '@noble/hashes/sha3';
+import { sha256 } from '@noble/hashes/sha2';
+import { bytesToHex, toBytes } from '@noble/hashes/utils';
 import { getArrayEncoder, getU8Encoder } from '@solana/kit';
 import type { AccountMeta } from '@solana/web3.js';
 import {
@@ -167,14 +168,19 @@ export async function prepareSecpPayload(
   message.set(accountsPayloadBytes, dataPayload.length);
   message.set(slot, dataPayload.length + accountsPayloadBytes.length);
 
-  const hash = keccak_256(message);
+  let messageShaHash = sha256(message);
+  let messageHashHex = bytesToHex(messageShaHash);
 
-  let sig = await options.signingFn(hash);
+  let { signature, prefix } = await options.signingFn(toBytes(messageHashHex));
 
-  const authorityPayload = new Uint8Array(sig.length + u64Len);
+  let prefixPayload = prefix ?? new Uint8Array(0);
 
+  const authorityPayload = new Uint8Array(
+    signature.length + u64Len + prefixPayload.length,
+  );
   authorityPayload.set(slot);
-  authorityPayload.set(sig, slot.length);
+  authorityPayload.set(signature, slot.length);
+  authorityPayload.set(prefixPayload, slot.length + signature.length);
 
   return authorityPayload;
 }

@@ -7,7 +7,6 @@ import { Secp256k1Authority, Secp256k1SessionAuthority } from './secp256k1';
  * Get a parsed authority from the authority raw bytes.
  * @param type AuthorityType
  * @param data Authority raw bytes
- * @param [roleId] Role ID
  * @returns Parsed authority
  */
 export function getAuthority(
@@ -38,7 +37,6 @@ export function getAuthority(
  * `getAuthority` with enforced Role ID.
  * @param type AuthorityType
  * @param data Authority raw bytes
- * @param roleId Role ID
  * @returns Parsed authority
  */
 export function getRoleAuthority(

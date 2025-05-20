@@ -180,7 +180,7 @@ export function signInstruction(
  * `AddAuthority` Instruction
  * @param role Acting Swig `Role`
  * @param payer Payer public key
- * @param newAuthority Swig `Authority` to add to the swig
+ * @param newAuthorityInfo new {@link AuthorityInfo} to add
  * @param actions `Actions` the authority can perform on behalf of the swig
  * @returns `TransactionInstruction`
  */
