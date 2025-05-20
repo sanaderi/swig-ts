@@ -11,7 +11,6 @@ import {
   addAuthorityInstruction,
   createEd25519AuthorityInfo,
   createSwig,
-  Ed25519Authority,
   fetchSwig,
   findSwigPda,
   signInstruction,
@@ -20,6 +19,12 @@ import {
 //
 // Helpers
 //
+function formatSolLimit(limit: bigint | null): string {
+  return limit === null
+    ? 'unlimited'
+    : `${Number(limit) / LAMPORTS_PER_SOL} SOL`;
+}
+
 async function sendTransaction(
   connection: Connection,
   instruction: TransactionInstruction,
