@@ -7,11 +7,12 @@ import {
   createSecp256k1AuthorityInfo,
   createSwig,
   fetchSwig,
+  getEvmPersonalSignPrefix,
   signAndSend,
 } from '@swig-wallet/classic';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { hashMessage, hexToBytes, recoverPublicKey, toBytes } from 'viem';
+import { hashMessage, hexToBytes, recoverPublicKey } from 'viem';
 import { useAccount, useSignMessage } from 'wagmi';
 import { SwigIdStore } from '../helpers/session';
 
@@ -182,7 +183,7 @@ export function useSwigTransfer() {
 
           return {
             signature: hexToBytes(signed),
-            prefix: toBytes(`\x19Ethereum Signed Message:\n${message.length}`),
+            prefix: getEvmPersonalSignPrefix(message.length),
           };
         },
       );

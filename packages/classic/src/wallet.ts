@@ -2,6 +2,7 @@ import { secp256k1 } from '@noble/curves/secp256k1';
 import { keccak_256 } from '@noble/hashes/sha3';
 import type { Connection, PublicKey } from '@solana/web3.js';
 import type { Authority, SigningFn } from './authority';
+import { utf8ToBytes } from '@noble/hashes/utils';
 
 /**
  * Get {@link SigningFn} for Secp268k1-based Private key
@@ -21,6 +22,15 @@ export function getSigningFnForSecp256k1PrivateKey(
 
     return { signature };
   };
+}
+
+/**
+ * Get `personal-sign` prefix for evm based wallets
+ * @param messageLen Length of the message to be signed
+ * @returns Prefix bytes
+ */
+export function getEvmPersonalSignPrefix(messageLen: number): Uint8Array {
+  return utf8ToBytes(`\x19Ethereum Signed Message:\n${messageLen}`);
 }
 
 /**
