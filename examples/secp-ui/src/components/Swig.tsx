@@ -29,12 +29,12 @@ export function Swig() {
 
   return (
     <Card className="max-w-3xl w-full">
-      <CardHeader>Address: {swigAddress?.toBase58() || '...'}</CardHeader>
+      <CardHeader>Swig Address: {swigAddress?.toBase58() || '...'}</CardHeader>
       <CardContent className="space-y-4">
         <CardDescription className="text-6xl text-primary">
           {sol} <span className="text-xl">SOL</span>{' '}
         </CardDescription>
-        <CardDescription>Balance: {lamports} lamports</CardDescription>
+        <CardDescription>Swig Balance: {lamports} lamports</CardDescription>
       </CardContent>
       <CardFooter className="justify-center space-x-4">
         <Button variant={'secondary'} onClick={() => generateId()}>

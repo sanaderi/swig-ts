@@ -6,10 +6,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bun --filter '*' build",
+    "build": "bun build:packages && bun build:examples",
+    "build:examples": "bun --filter 'secp-ui' build",
     "build:classic": "bun --filter '@swig-wallet/classic' build",
     "build:coder": "bun --filter '@swig-wallet/coder' build",
     "build:docs": "typedoc",
+    "build:packages": "bun build:coder && bun build:classic",
     "changeset": "changeset",
     "dev": "bun --filter '*' dev",
     "dev:classic": "bun --filter '@swig-wallet/classic' dev",
