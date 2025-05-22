@@ -61,15 +61,13 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('swig.so'));
+let swigProgram = Uint8Array.from(readFileSync('../../swig.so'));
 
 let svm = new LiteSVM();
 
 svm.addProgram(SWIG_PROGRAM_ADDRESS, swigProgram);
 
 let userWallet = Wallet.generate();
-
-let dappSecpWallet = Wallet.generate();
 
 // user root
 //

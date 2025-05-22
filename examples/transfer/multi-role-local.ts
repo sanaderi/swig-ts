@@ -10,7 +10,6 @@ import {
   addAuthorityInstruction,
   createEd25519AuthorityInfo,
   createSwig,
-  Ed25519Authority,
   fetchSwig,
   findSwigPda,
 } from '@swig-wallet/classic';
@@ -77,7 +76,7 @@ async function sendTransaction(
   const swig = await fetchSwig(connection, swigAddress);
   const rootRoles = swig.findRolesByEd25519SignerPk(rootKeypair.publicKey);
   if (!rootRoles.length) throw new Error('Root role not found');
-  const rootRole = rootRoles[0]
+  const rootRole = rootRoles[0];
 
   const rolesToCreate = [
     { name: 'data-entry', amount: 0.05 },

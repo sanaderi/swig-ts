@@ -62,7 +62,7 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('swig.so'));
+let swigProgram = Uint8Array.from(readFileSync('../../swig.so'));
 
 let svm = new LiteSVM();
 
