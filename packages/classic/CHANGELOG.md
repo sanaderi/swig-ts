@@ -1,6 +1,6 @@
 # @swig-wallet/classic
 
-## 0.2.0
+## 0.2.0-beta.3
 
 ### Patch Changes
 
