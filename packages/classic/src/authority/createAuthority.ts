@@ -48,8 +48,6 @@ export function createSecp256k1AuthorityInfo(
   let data = getUnprefixedSecpBytes(publicKey, 64);
   let type = AuthorityType.Secp256k1;
 
-  console.log('data len:', data.length);
-
   return { createAuthorityInfo: { data, type } };
 }
 
