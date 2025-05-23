@@ -1,10 +1,15 @@
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import { AuthorityType, getEd25519SessionDecoder } from '@swig-wallet/coder';
+import {
+  AuthorityType,
+  getEd25519SessionDecoder,
+  getEd25519SessionEncoder,
+} from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
+import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
-import type { AuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
+import type { CreateAuthorityInfo } from '../createAuthority';
 
 export class Ed25519SessionAuthority
   extends SessionBasedAuthority
@@ -12,8 +17,32 @@ export class Ed25519SessionAuthority
 {
   type = AuthorityType.Ed25519Session;
 
-  constructor(public data: Uint8Array) {
-    super(data);
+  constructor(
+    public data: Uint8Array,
+    roleId?: number,
+  ) {
+    super(data, roleId ?? null);
+  }
+
+  static fromBytes(bytes: Uint8Array): Ed25519SessionAuthority {
+    return new Ed25519SessionAuthority(bytes);
+  }
+
+  static uninitialized(
+    publicKey: PublicKey,
+    maxSessionDuration: bigint,
+    sessionKey?: PublicKey,
+  ): Ed25519SessionAuthority {
+    let sessionData = getEd25519SessionEncoder().encode({
+      publicKey: publicKey.toBytes(),
+      sessionKey: sessionKey
+        ? sessionKey.toBytes()
+        : Uint8Array.from(Array(32)),
+      currentSessionExpiration: 0n,
+      maxSessionLength: maxSessionDuration,
+    });
+
+    return new Ed25519SessionAuthority(Uint8Array.from(sessionData));
   }
 
   get id() {
@@ -48,7 +77,7 @@ export class Ed25519SessionAuthority
     return this.info.maxSessionLength;
   }
 
-  async createAuthorityData() {
+  createAuthorityData(): Uint8Array {
     return this.data.slice(0, 32 + 32 + 8);
   }
 
@@ -59,6 +88,19 @@ export class Ed25519SessionAuthority
       publicKey: new PublicKey(data.publicKey),
       sessionKey: new PublicKey(data.sessionKey),
     };
+  }
+
+  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
+    return createSwigInstruction(
+      { payer: args.payer },
+      {
+        authorityData: this.createAuthorityData(),
+        id: args.id,
+        actions: args.actions.bytes(),
+        authorityType: this.type,
+        noOfActions: args.actions.count,
+      },
+    );
   }
 
   sign(args: {
@@ -85,7 +127,7 @@ export class Ed25519SessionAuthority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthorityInfo: AuthorityInfo;
+    newAuthorityInfo: CreateAuthorityInfo;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -96,8 +138,8 @@ export class Ed25519SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthorityInfo.data,
-        newAuthorityType: args.newAuthorityInfo.type,
+        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

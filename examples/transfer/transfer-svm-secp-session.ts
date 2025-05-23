@@ -127,7 +127,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 let currentSlot = svm.getClock().slot;
 
 let signingFn = getSigningFnForSecp256k1PrivateKey(
-  userWallet.getPrivateKeyString().slice(2),
+  userWallet.getPrivateKeyString(),
 );
 
 let instOptions: InstructionDataOptions = { currentSlot, signingFn };
@@ -146,7 +146,7 @@ sendSVMTransaction(svm, newSessionInstruction, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
-rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey);
+rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey)!;
 
 if (!rootRole) throw new Error('Role not found for authority');
 

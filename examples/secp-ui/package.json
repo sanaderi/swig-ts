@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite --port 3000",
     "start": "vite --port 3000",
-    "build": "bun prebuild && vite build && tsc",
+    "build": "vite build && tsc",
     "build:packages": "cd ../.. && bun build:packages",
     "serve": "vite preview",
     "start-validator": "./test-validator/start.sh",

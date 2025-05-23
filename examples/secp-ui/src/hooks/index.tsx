@@ -17,8 +17,6 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { SwigIdStore } from '../helpers/session';
 
 export function useSwigAddres() {
-  const {} = getSwigAddress();
-
   const query = useQuery({
     queryKey: ['swig', 'address'],
     queryFn: () => getSwigAddress(),

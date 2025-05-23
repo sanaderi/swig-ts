@@ -10,7 +10,7 @@ import {
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
-  type AuthorityInfo,
+  type CreateAuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
 
@@ -180,14 +180,14 @@ export function signInstruction(
  * `AddAuthority` Instruction
  * @param role Acting Swig `Role`
  * @param payer Payer public key
- * @param newAuthorityInfo new {@link AuthorityInfo} to add
+ * @param newAuthorityInfo new {@link CreateAuthorityInfo} to add
  * @param actions `Actions` the authority can perform on behalf of the swig
  * @returns `TransactionInstruction`
  */
 export function addAuthorityInstruction(
   role: Role,
   payer: PublicKey,
-  newAuthorityInfo: AuthorityInfo,
+  newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: InstructionDataOptions,
 ) {
@@ -277,11 +277,17 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   let authorityData = roleData.slice(0, position.authorityLen);
   let rawActions = roleData.slice(position.authorityLen);
 
-  let authority = getRoleAuthority(position.authorityType, authorityData);
+  let authority = getRoleAuthority(
+    position.authorityType,
+    authorityData,
+    position.id,
+  );
   let actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };
 }
+
+// todo: delete roles recursively!
 
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 

@@ -2,10 +2,10 @@ import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
 import { uint8ArraysEqual } from '../utils';
-import type { AuthorityInfo } from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
+import type { AuthorityCreateInfo, CreateAuthorityInfo } from './createAuthority';
 
-export abstract class Authority {
+export abstract class Authority implements CreateAuthorityInfo {
   /**
    * Indicates if {@link Authority} is Session-based or not. `true` if Authority is Session-based
    */
@@ -37,7 +37,31 @@ export abstract class Authority {
    */
   abstract signer: Uint8Array;
 
-  constructor(public data: Uint8Array) {}
+  constructor(
+    public data: Uint8Array,
+    public roleId: number | null,
+  ) {}
+
+  /**
+   * Authority is initilized if a role id is assigned
+   * @returns boolean
+   */
+  isInitialized(): boolean {
+    return this.roleId !== null;
+  }
+
+  /**
+   * Creates a `Swig` instruction for initializing a new entity on-chain.
+   * @param args - The parameters required to create the Swig instruction.
+   * @param args.payer - The public key of the account paying for the transaction.
+   * @param args.id - 32-bytes Uint8Array.
+   * @param args.actions - A container holding the set of actions to include.   * @returns The serialized instruction for creating the Swig.
+   */
+  abstract create(args: {
+    payer: PublicKey;
+    id: Uint8Array;
+    actions: Actions;
+  }): TransactionInstruction;
 
   /**
    * Creates a `Sign` instruction for signing provided instructions with the Swig
@@ -64,7 +88,7 @@ export abstract class Authority {
    * @param args.swigAddress The public key of the swig
    * @param args.payer The public key of the swig payer.
    * @param args.actingRoleId The ID of the role signing the instruction.
-   * @param args.newAuthorityInfo AuthorityInfo of new Authority to add
+   * @param args.newAuthorityInfo {@link CreateAuthorityInfo} of new Authority to add
    * @param args.actions Actions of the new authority
    * @param args.options {@link InstructionDataOptions}
    *
@@ -75,7 +99,7 @@ export abstract class Authority {
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthorityInfo: AuthorityInfo;
+    newAuthorityInfo: CreateAuthorityInfo;
     options?: InstructionDataOptions;
   }): Promise<TransactionInstruction>;
 
@@ -97,6 +121,25 @@ export abstract class Authority {
     roleIdToRemove: number;
     options?: InstructionDataOptions;
   }): Promise<TransactionInstruction>;
+
+  /**
+   * Data required to create a new authority.
+   *
+   * this is usually used when creating a new Role from an unitialized authority, with the AddInstruction
+   */
+  abstract createAuthorityData(): Uint8Array;
+
+  /**
+   * Data required to create a new authority.
+   *
+   * this is usually used when creating a new Role from an unitialized authority, with the AddInstruction
+   */
+  get createAuthorityInfo(): AuthorityCreateInfo {
+    return {
+      type: this.type,
+      data: this.createAuthorityData(),
+    };
+  }
 
   /**
    * Check two {@link Authority} are partially equal

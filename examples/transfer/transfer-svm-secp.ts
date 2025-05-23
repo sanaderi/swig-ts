@@ -122,8 +122,6 @@ let rootRole = swig.findRolesBySecp256k1SignerAddress(
   userWallet.getAddress(),
 )[0];
 
-console.log('root role');
-
 if (!rootRole) throw new Error('Role not found for authority');
 
 let currentSlot = svm.getClock().slot;

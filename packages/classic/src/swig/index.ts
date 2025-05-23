@@ -7,7 +7,7 @@ import {
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
-import { Authority, type AuthorityInfo } from '../authority';
+import { Authority, type CreateAuthorityInfo } from '../authority';
 import { createSwigInstruction } from '../instructions';
 import { deserializeRoles, type Role, type SessionBasedRole } from '../role';
 import { getUnprefixedSecpBytes } from '../utils';
@@ -127,15 +127,15 @@ export class Swig {
     payer: PublicKey;
     id: Uint8Array;
     actions: Actions;
-    authorityInfo: AuthorityInfo;
+    authorityInfo: CreateAuthorityInfo;
   }) {
     return createSwigInstruction(
       { payer: args.payer },
       {
         id: args.id,
         actions: args.actions.bytes(),
-        authorityData: args.authorityInfo.data,
-        authorityType: args.authorityInfo.type,
+        authorityData: args.authorityInfo.createAuthorityInfo.data,
+        authorityType: args.authorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

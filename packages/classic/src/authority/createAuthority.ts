@@ -6,36 +6,35 @@ import {
 } from '@swig-wallet/coder';
 import { getUnprefixedSecpBytes } from '../utils';
 
-export interface AuthorityInfo {
-  data: Uint8Array;
-  type: AuthorityType;
+export type AuthorityCreateInfo = { data: Uint8Array; type: AuthorityType };
+
+export interface CreateAuthorityInfo {
+  createAuthorityInfo: AuthorityCreateInfo;
 }
 
 export function createEd25519AuthorityInfo(
   publicKey: PublicKey,
-): AuthorityInfo {
-  return {
-    data: publicKey.toBytes(),
-    type: AuthorityType.Ed25519,
-  };
+): CreateAuthorityInfo {
+  let data = publicKey.toBytes();
+  let type = AuthorityType.Ed25519;
+  return { createAuthorityInfo: { data, type } };
 }
 
 export function createEd25519SessionAuthorityInfo(
   publicKey: PublicKey,
   maxSessionDuration: bigint,
   sessionKey?: PublicKey,
-): AuthorityInfo {
+): CreateAuthorityInfo {
   let sessionData = getEd25519SessionEncoder().encode({
     publicKey: publicKey.toBytes(),
     sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
     currentSessionExpiration: 0n,
     maxSessionLength: maxSessionDuration,
   });
+  let data = Uint8Array.from(sessionData.slice(0, 72));
+  let type = AuthorityType.Ed25519Session;
 
-  return {
-    data: Uint8Array.from(sessionData.slice(0, 72)),
-    type: AuthorityType.Ed25519Session,
-  };
+  return { createAuthorityInfo: { data, type } };
 }
 
 /**
@@ -45,14 +44,13 @@ export function createEd25519SessionAuthorityInfo(
  */
 export function createSecp256k1AuthorityInfo(
   publicKey: string | Uint8Array,
-): AuthorityInfo {
-  let publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
+): CreateAuthorityInfo {
+  let data = getUnprefixedSecpBytes(publicKey, 64);
+  let type = AuthorityType.Secp256k1;
 
-  return {
-    data:
-      publicKeyBytes.length === 65 ? publicKeyBytes.slice(1) : publicKeyBytes,
-    type: AuthorityType.Secp256k1,
-  };
+  console.log('data len:', data.length);
+
+  return { createAuthorityInfo: { data, type } };
 }
 
 /**
@@ -64,7 +62,7 @@ export function createSecp256k1SessionAuthorityInfo(
   publicKey: string | Uint8Array,
   maxSessionDuration: bigint,
   sessionKey?: PublicKey,
-): AuthorityInfo {
+): CreateAuthorityInfo {
   let publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
   let sessionData = getCreateSecp256k1SessionEncoder().encode({
@@ -73,8 +71,8 @@ export function createSecp256k1SessionAuthorityInfo(
     maxSessionLength: maxSessionDuration,
   });
 
-  return {
-    data: Uint8Array.from(sessionData),
-    type: AuthorityType.Secp256k1Session,
-  };
+  let data = Uint8Array.from(sessionData);
+  let type = AuthorityType.Secp256k1Session;
+
+  return { createAuthorityInfo: { data, type } };
 }
