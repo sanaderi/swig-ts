@@ -1,5 +1,11 @@
 # @swig-wallet/classic
 
+## 0.2.0
+
+### Patch Changes
+
+- c1571a8: Update Secp sign, AuthorityInfo
+
 ## 0.2.0-beta.2
 
 ### Patch Changes
