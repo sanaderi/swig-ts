@@ -1,4 +1,6 @@
-import { AccountRole, address, type IAccountMeta } from '@solana/kit';
+import { hexToBytes } from '@noble/curves/abstract/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { keccak_256 } from '@noble/hashes/sha3';
 import {
   Connection,
   PublicKey,
@@ -28,33 +30,6 @@ export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   return a.every((value, index) => value === b[index]);
 }
 
-export function convertKeysToMetas(meta: AccountMeta): IAccountMeta {
-  return {
-    address: address(meta.pubkey.toBase58()),
-    role: getRoleFromMetas(meta),
-  };
-}
-
-export function getRoleFromMetas({
-  isSigner,
-  isWritable,
-}: {
-  isSigner: boolean;
-  isWritable: boolean;
-}) {
-  if (isWritable && isSigner) {
-    return AccountRole.WRITABLE_SIGNER;
-  }
-  if (isWritable && !isSigner) {
-    return AccountRole.WRITABLE;
-  }
-  if (!isWritable && isSigner) {
-    return AccountRole.READONLY_SIGNER;
-  }
-
-  return AccountRole.READONLY;
-}
-
 export async function createLegacyTransaction(
   connection: Connection,
   instructions: TransactionInstruction[],
@@ -82,4 +57,34 @@ export function findSwigPda(id: Uint8Array): [PublicKey, number] {
     [Buffer.from('swig'), Buffer.from(id)],
     SWIG_PROGRAM_ADDRESS,
   );
+}
+
+export function compressedPubkeyToAddress(
+  compressed: Uint8Array | string,
+): Uint8Array {
+  const compressedBytes = getUnprefixedSecpBytes(compressed, 33);
+
+  const point = secp256k1.ProjectivePoint.fromHex(compressedBytes);
+
+  const uncompressed = point.toRawBytes(false).slice(1);
+
+  const hash = keccak_256(uncompressed);
+
+  return hash.slice(12);
+}
+
+export function getUnprefixedSecpBytes(
+  hexOrBytes: Uint8Array | string,
+  length: 64 | 33 | 32 | 20,
+): Uint8Array {
+  const bytes =
+    typeof hexOrBytes === 'string'
+      ? hexToBytes(unprefixedHexString(hexOrBytes))
+      : hexOrBytes;
+
+  return bytes.length === length + 1 ? bytes.slice(1) : bytes;
+}
+
+export function unprefixedHexString(hex: string): string {
+  return hex.startsWith('0x') ? hex.slice(2) : hex;
 }

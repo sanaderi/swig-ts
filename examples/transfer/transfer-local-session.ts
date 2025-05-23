@@ -9,6 +9,7 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
+  createEd25519SessionAuthorityInfo,
   createSessionInstruction,
   createSwig,
   Ed25519SessionAuthority,
@@ -78,17 +79,6 @@ let id = randomBytes(32);
 //
 let [swigAddress] = findSwigPda(id);
 
-//
-// * make an Authority (in this case, out of a Ed25519 publickey)
-//
-// * e.g new Secp256k1Authority
-// * session based Authority support
-//
-let rootAuthority = Ed25519SessionAuthority.uninitialized(
-  userRootKeypair.publicKey,
-  100n,
-);
-
 let rootActions = Actions.set().all().get();
 
 //
@@ -97,7 +87,7 @@ let rootActions = Actions.set().all().get();
 await createSwig(
   connection,
   id,
-  rootAuthority,
+  createEd25519SessionAuthorityInfo(userRootKeypair.publicKey, 100n),
   rootActions,
   userRootKeypair.publicKey,
   [userRootKeypair],

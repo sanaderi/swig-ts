@@ -2,6 +2,15 @@ import type { Authority } from '../abstract';
 import type { Ed25519BasedAuthority } from '../ed25519';
 
 export interface Secp256k1BasedAuthority {
+  // todo: address
+  /**
+   *  Secp256k1 0x-prefixed address string
+   */
+  secp256k1AddressString: string;
+  /**
+   * 20-byte Secp256k1 address
+   */
+  secp256k1Address: Uint8Array;
   /**
    * 33-byte Secp256k1 compressed publickey bytes
    */

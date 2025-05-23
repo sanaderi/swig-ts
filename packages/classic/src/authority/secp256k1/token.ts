@@ -8,6 +8,8 @@ import { Authority, TokenBasedAuthority } from '../abstract';
 import { Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 import type { Secp256k1BasedAuthority } from './based';
+import type { CreateAuthorityInfo } from '../createAuthority';
+import { compressedPubkeyToAddress, getUnprefixedSecpBytes } from '../../utils';
 
 export class Secp256k1Authority
   extends TokenBasedAuthority
@@ -28,12 +30,25 @@ export class Secp256k1Authority
     return new Secp256k1Authority(pkBytes.slice(1));
   }
 
+  static fromPublicKey(pk: string | Uint8Array): Secp256k1Authority {
+    let data = getUnprefixedSecpBytes(pk, 64);
+    return new Secp256k1Authority(data);
+  }
+
   get id() {
-    return this.publicKeyBytes;
+    return this.secp256k1Address;
   }
 
   get signer() {
-    return this.publicKeyBytes;
+    return this.secp256k1Address;
+  }
+
+  get secp256k1Address() {
+    return compressedPubkeyToAddress(this.publicKeyBytes);
+  }
+
+  get secp256k1AddressString(): string {
+    return `Ox${bytesToHex(this.secp256k1Address)}`;
   }
 
   get secp256k1PublicKey() {
@@ -110,7 +125,7 @@ export class Secp256k1Authority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthority: Authority;
+    newAuthorityInfo: CreateAuthorityInfo;
     options: InstructionDataOptions;
   }) {
     return Secp256k1Instruction.addAuthorityV1Instruction(
@@ -122,8 +137,8 @@ export class Secp256k1Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.data,
-        newAuthorityType: args.newAuthority.type,
+        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
       args.options,

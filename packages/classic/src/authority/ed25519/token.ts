@@ -3,6 +3,7 @@ import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { Authority, TokenBasedAuthority } from '../abstract';
+import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
 
@@ -85,7 +86,7 @@ export class Ed25519Authority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthority: Authority;
+    newAuthorityInfo: CreateAuthorityInfo;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -96,8 +97,8 @@ export class Ed25519Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.createAuthorityData(),
-        newAuthorityType: args.newAuthority.type,
+        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

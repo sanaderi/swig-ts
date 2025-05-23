@@ -10,7 +10,9 @@ import {
 } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
-import { Authority, SessionBasedAuthority } from '../abstract';
+import { compressedPubkeyToAddress, getUnprefixedSecpBytes } from '../../utils';
+import { SessionBasedAuthority } from '../abstract';
+import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 import type { Secp256k1BasedAuthority } from './based';
@@ -26,7 +28,7 @@ export class Secp256k1SessionAuthority
   }
 
   get id() {
-    return this.publicKeyBytes;
+    return this.secp256k1Address;
   }
 
   get signer() {
@@ -43,6 +45,14 @@ export class Secp256k1SessionAuthority
 
   get publicKeyString(): string {
     return bytesToHex(this.publicKeyBytes);
+  }
+
+  get secp256k1Address() {
+    return compressedPubkeyToAddress(this.publicKeyBytes);
+  }
+
+  get secp256k1AddressString(): string {
+    return `Ox${bytesToHex(this.secp256k1Address)}`;
   }
 
   get secp256k1PublicKey() {
@@ -100,12 +110,12 @@ export class Secp256k1SessionAuthority
   }
 
   static uninitialized(
-    publicKey: Uint8Array,
+    publicKey: string | Uint8Array,
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
     let sessionData = getCreateSecp256k1SessionEncoder().encode({
-      publicKey: publicKey.slice(1),
+      publicKey: getUnprefixedSecpBytes(publicKey, 64),
       sessionKey: sessionKey
         ? sessionKey.toBytes()
         : Uint8Array.from(Array(32)),
@@ -156,7 +166,7 @@ export class Secp256k1SessionAuthority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthority: Authority;
+    newAuthorityInfo: CreateAuthorityInfo;
     options: InstructionDataOptions;
   }) {
     return Secp256k1Instruction.addAuthorityV1Instruction(
@@ -168,8 +178,8 @@ export class Secp256k1SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.data,
-        newAuthorityType: args.newAuthority.type,
+        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
       args.options,

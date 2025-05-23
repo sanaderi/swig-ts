@@ -10,7 +10,7 @@ import {
   type TransactionSignature,
 } from '@solana/web3.js';
 import type { Actions } from '../actions';
-import type { Authority, SigningFn } from '../authority';
+import type { Authority, CreateAuthorityInfo, SigningFn } from '../authority';
 import {
   addAuthorityInstruction,
   removeAuthorityInstruction,
@@ -23,7 +23,7 @@ import { createLegacyTransaction } from '../utils';
  * Creates a `SwigAccount`
  * @param connection `Connection`
  * @param id id pda seed
- * @param authority Swig `Authority`
+ * @param authorityInfo {@link CreateAuthorityInfo}
  * @param actions Actions the authority can perform
  * @param payer Ed25519 payer
  * @param signers Signers of the transaction
@@ -33,14 +33,14 @@ import { createLegacyTransaction } from '../utils';
 export async function createSwig(
   connection: Connection,
   id: Uint8Array,
-  authority: Authority,
+  authorityInfo: CreateAuthorityInfo,
   actions: Actions,
   payer: PublicKey,
   signers: Array<Signer>,
   options?: { commitment?: Commitment },
 ): Promise<TransactionSignature> {
   let createInstruction = Swig.create({
-    authority,
+    authorityInfo,
     payer,
     id,
     actions,

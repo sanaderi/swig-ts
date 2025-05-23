@@ -7,8 +7,10 @@ import {
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
-import { Authority } from '../authority';
+import { Authority, type CreateAuthorityInfo } from '../authority';
+import { createSwigInstruction } from '../instructions';
 import { deserializeRoles, type Role, type SessionBasedRole } from '../role';
+import { getUnprefixedSecpBytes } from '../utils';
 
 export class Swig {
   private constructor(
@@ -125,13 +127,18 @@ export class Swig {
     payer: PublicKey;
     id: Uint8Array;
     actions: Actions;
-    authority: Authority;
+    authorityInfo: CreateAuthorityInfo;
   }) {
-    return args.authority.create({
-      payer: args.payer,
-      id: args.id,
-      actions: args.actions,
-    });
+    return createSwigInstruction(
+      { payer: args.payer },
+      {
+        id: args.id,
+        actions: args.actions.bytes(),
+        authorityData: args.authorityInfo.createAuthorityInfo.data,
+        authorityType: args.authorityInfo.createAuthorityInfo.type,
+        noOfActions: args.actions.count,
+      },
+    );
   }
 
   /**
@@ -159,5 +166,25 @@ export class Swig {
    */
   findRolesByAuthoritySigner(signer: Uint8Array) {
     return this.roles.filter((role) => role.authority.matchesSigner(signer));
+  }
+
+  /**
+   * Find a Role by Ed25519 Signer Publickey
+   * @param signerPk Ed25519 Publickey
+   * @returns Role[]
+   */
+  findRolesByEd25519SignerPk(signerPk: PublicKey) {
+    return this.findRolesByAuthoritySigner(signerPk.toBytes());
+  }
+
+  /**
+   * Find a Role by Authority Signer
+   * @param signerAddress Secp256k1 Signer Address hex or bytes
+   * @returns Role[]
+   */
+  findRolesBySecp256k1SignerAddress(signerAddress: Uint8Array | string) {
+    return this.findRolesByAuthoritySigner(
+      getUnprefixedSecpBytes(signerAddress, 20),
+    );
   }
 }

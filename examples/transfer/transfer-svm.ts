@@ -9,7 +9,7 @@ import {
 import {
   Actions,
   addAuthorityInstruction,
-  Ed25519Authority,
+  createEd25519AuthorityInfo,
   findSwigPda,
   signInstruction,
   Swig,
@@ -21,6 +21,7 @@ import {
   TransactionMetadata,
 } from 'litesvm';
 import { readFileSync } from 'node:fs';
+import { buffer } from 'node:stream/consumers';
 
 //
 // Helpers
@@ -58,7 +59,7 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('swig.so'));
+let swigProgram = Uint8Array.from(readFileSync('../../swig.so'));
 
 let svm = new LiteSVM();
 
@@ -81,17 +82,14 @@ svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 let dappTreasury = Keypair.generate().publicKey;
 
-let id = Uint8Array.from(Array(32).fill(0));
+let id = Uint8Array.from(Array(32).fill(2));
 
 //
 // * Find a swig pda by id
 //
 let [swigAddress] = findSwigPda(id);
 
-//
-// * make an Authority (in this case, out of a ed25519 publickey)
-//
-let rootAuthority = Ed25519Authority.fromPublicKey(userRootKeypair.publicKey);
+console.log("swig address:", swigAddress.toBase58())
 
 //
 // * create swig instruction
@@ -101,7 +99,7 @@ let rootAuthority = Ed25519Authority.fromPublicKey(userRootKeypair.publicKey);
 let rootActions = Actions.set().all().get();
 
 let createSwigInstruction = Swig.create({
-  authority: rootAuthority,
+  authorityInfo: createEd25519AuthorityInfo(userRootKeypair.publicKey),
   id,
   payer: userRootKeypair.publicKey,
   actions: rootActions,
@@ -118,31 +116,18 @@ let swig = fetchSwig(svm, swigAddress);
 // swig.refetch(connection)
 
 //
-// * find role by authority
+// * find role by ed25519 signer
 //
-let rootRole = swig.findRoleByAuthority(
-  Ed25519Authority.fromPublicKey(userRootKeypair.publicKey),
-);
+let rootRoles = swig.findRolesByEd25519SignerPk(userRootKeypair.publicKey);
 
-if (!rootRole) throw new Error('Role not found for authority');
+if (!rootRoles.length) throw new Error('Role not found for authority');
 
-let authorityManager = Ed25519Authority.fromPublicKey(
-  userAuthorityManagerKeypair.publicKey,
-);
+let rootRole = rootRoles[0];
 
 //
 // * helper for creating actions
 //
-let manageAuthorityActions = Actions.set()
-  // .all()
-  .manageAuthority()
-  // .solTemporal({
-  //   amount: BigInt(LAMPORTS_PER_SOL),
-  //   window: 150_000n,
-  //   last: 150n,
-  // })
-  // .tokenManage({ key: TOKEN_ADDRESS, amount: BigInt(100_100) })
-  .get();
+let manageAuthorityActions = Actions.set().manageAuthority().get();
 
 //
 // * can call instructions associated with a role (or authority)
@@ -154,7 +139,7 @@ let manageAuthorityActions = Actions.set()
 let addAuthorityIx = await addAuthorityInstruction(
   rootRole,
   userRootKeypair.publicKey,
-  authorityManager,
+  createEd25519AuthorityInfo(userAuthorityManagerKeypair.publicKey),
   manageAuthorityActions,
 );
 
@@ -162,9 +147,13 @@ sendSVMTransaction(svm, addAuthorityIx, userRootKeypair);
 
 swig = fetchSwig(svm, swigAddress);
 
-let managerRole = swig.findRoleByAuthority(authorityManager);
+let managerRoles = swig.findRolesByEd25519SignerPk(
+  userAuthorityManagerKeypair.publicKey,
+);
 
-if (!managerRole) throw new Error('Role not found for authority');
+if (!managerRoles) throw new Error('Role not found for authority');
+
+let managerRole = managerRoles[0];
 
 //
 // * perform actions check on a role
@@ -176,10 +165,6 @@ if (!managerRole) throw new Error('Role not found for authority');
 //
 if (!managerRole.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
-
-let dappAuthority = Ed25519Authority.fromPublicKey(
-  dappAuthorityKeypair.publicKey,
-);
 
 //
 // * allocate 0.1 max sol spend, for the dapp
@@ -194,7 +179,7 @@ let dappAuthorityActions = Actions.set()
 let addDappAuthorityInstruction = await addAuthorityInstruction(
   managerRole,
   userAuthorityManagerKeypair.publicKey,
-  dappAuthority,
+  createEd25519AuthorityInfo(dappAuthorityKeypair.publicKey),
   dappAuthorityActions,
 );
 
@@ -237,7 +222,11 @@ if (!maybeDappRole) throw new Error('Role does not exist');
 //
 // * check if the authority on a role matches
 //
-if (!maybeDappRole.authority.isEqual(dappAuthority))
+if (
+  !maybeDappRole.authority.matchesSigner(
+    dappAuthorityKeypair.publicKey.toBytes(),
+  )
+)
   throw new Error('Role authority is not the authority');
 
 console.log('balance before first transfer:', svm.getBalance(swigAddress));
@@ -251,12 +240,16 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
+let dappAuthorityRoles = swig.findRolesByEd25519SignerPk(
+  dappAuthorityKeypair.publicKey,
+);
 
-if (!dappAutorityRole) throw new Error('Role not found for authority');
+if (!dappAuthorityRoles.length) throw new Error('Role not found for authority');
+
+let dappAuthorityRole = dappAuthorityRoles[0];
 
 let signTransfer = await signInstruction(
-  dappAutorityRole,
+  dappAuthorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],
 );
@@ -276,12 +269,12 @@ transfer = SystemProgram.transfer({
   lamports: 0.05 * LAMPORTS_PER_SOL,
 });
 
-dappAutorityRole = swig.findRoleByAuthority(dappAuthority);
+// dappAuthorityRole = swig.findRoleByAuthority(dappAuthority);
 
-if (!dappAutorityRole) throw new Error('Role not found for authority');
+// if (!dappAutorityRole) throw new Error('Role not found for authority');
 
 signTransfer = await signInstruction(
-  dappAutorityRole,
+  dappAuthorityRole,
   dappAuthorityKeypair.publicKey,
   [transfer],
 );

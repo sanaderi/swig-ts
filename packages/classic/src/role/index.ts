@@ -10,6 +10,7 @@ import {
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
+  type CreateAuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
 
@@ -179,14 +180,14 @@ export function signInstruction(
  * `AddAuthority` Instruction
  * @param role Acting Swig `Role`
  * @param payer Payer public key
- * @param newAuthority Swig `Authority` to add to the swig
+ * @param newAuthorityInfo new {@link CreateAuthorityInfo} to add
  * @param actions `Actions` the authority can perform on behalf of the swig
  * @returns `TransactionInstruction`
  */
 export function addAuthorityInstruction(
   role: Role,
   payer: PublicKey,
-  newAuthority: Authority,
+  newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: InstructionDataOptions,
 ) {
@@ -195,7 +196,7 @@ export function addAuthorityInstruction(
     swigAddress: role.swigAddress,
     actingRoleId: role.id,
     actions,
-    newAuthority,
+    newAuthorityInfo,
     options,
   });
 }

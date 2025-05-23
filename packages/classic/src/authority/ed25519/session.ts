@@ -9,6 +9,7 @@ import { createSwigInstruction } from '../../instructions';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
+import type { CreateAuthorityInfo } from '../createAuthority';
 
 export class Ed25519SessionAuthority
   extends SessionBasedAuthority
@@ -126,7 +127,7 @@ export class Ed25519SessionAuthority
     payer: PublicKey;
     actingRoleId: number;
     actions: Actions;
-    newAuthority: Authority;
+    newAuthorityInfo: CreateAuthorityInfo;
   }) {
     return Ed25519Instruction.addAuthorityV1Instruction(
       {
@@ -137,8 +138,8 @@ export class Ed25519SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthority.createAuthorityData(),
-        newAuthorityType: args.newAuthority.type,
+        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

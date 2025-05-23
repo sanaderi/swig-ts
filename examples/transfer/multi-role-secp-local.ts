@@ -8,20 +8,25 @@ import {
   import {
     Swig,
     Actions,
-    Secp256k1Authority,
     getSigningFnForSecp256k1PrivateKey,
     findSwigPda,
     addAuthorityInstruction,
     fetchSwig,
     type InstructionDataOptions,
+    createSecp256k1AuthorityInfo,
   } from "@swig-wallet/classic";
   import { Wallet } from "@ethereumjs/wallet";
-  import { secp256k1 } from "@noble/curves/secp256k1";
-  import { bytesToHex } from "@noble/curves/abstract/utils";
   
   function sleep(s: number) {
     return new Promise((r) => setTimeout(r, s * 1000));
   }
+
+  function randomBytes(length: number): Uint8Array {
+    const randomArray = new Uint8Array(length);
+    crypto.getRandomValues(randomArray);
+    return randomArray;
+  }
+
   
   (async () => {
     const connection = new Connection("http://localhost:8899", "confirmed");
@@ -33,25 +38,24 @@ import {
   
 
     const evmWallet = Wallet.generate();
-    const pubkey = secp256k1.getPublicKey(evmWallet.getPrivateKey(), false);
-    const authority = Secp256k1Authority.fromPublicKeyString(bytesToHex(pubkey));
+    const authorityInfo = createSecp256k1AuthorityInfo(evmWallet.getPublicKey());
     const signingFn = getSigningFnForSecp256k1PrivateKey(evmWallet.getPrivateKey());
   
-    const swigId = Uint8Array.from(Array(32).fill(7));
+    const swigId = randomBytes(32);
     const [swigAddress] = findSwigPda(swigId);
   
-    const slot = await connection.getSlot("finalized");
+    const slot = await connection.getSlot();
     const instOptions: InstructionDataOptions = {
       currentSlot: BigInt(slot),
       signingFn,
     };
   
     // Create Swig
-    const ix = await Swig.create(
+    const ix = Swig.create(
       {
         id: swigId,
         payer: payer.publicKey,
-        authority,
+        authorityInfo,
         actions: Actions.set().all().get(),
       },
     );
@@ -63,8 +67,9 @@ import {
     // Fetch Swig and get root role
     await sleep(2);
     const swig = await fetchSwig(connection, swigAddress);
-    const rootRole = swig.findRoleByAuthority(authority);
-    if (!rootRole) throw new Error("Root role not found");
+    const rootRoles = swig.findRolesBySecp256k1SignerAddress(evmWallet.getAddress());
+    if (!rootRoles) throw new Error("Root role not found");
+    const rootRole = rootRoles[0]
   
     const rolesToCreate = [
       { name: "data-entry", amount: 0.05 },
@@ -74,6 +79,8 @@ import {
     ];
   
     for (const { name, amount } of rolesToCreate) {
+      let roleAuthorityInfo = createSecp256k1AuthorityInfo(Wallet.generate().getPublicKey());
+
       const actions = Actions.set()
         .solLimit({ amount: BigInt(amount * LAMPORTS_PER_SOL) })
         .get();
@@ -81,9 +88,9 @@ import {
       const ix = await addAuthorityInstruction(
         rootRole,
         payer.publicKey,
-        authority,
+        roleAuthorityInfo,
         actions,
-        instOptions
+        instOptions,
       );
   
       const tx = new Transaction().add(ix);

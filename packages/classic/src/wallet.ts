@@ -1,6 +1,9 @@
 import { secp256k1 } from '@noble/curves/secp256k1';
+import { keccak_256 } from '@noble/hashes/sha3';
+import { utf8ToBytes } from '@noble/hashes/utils';
 import type { Connection, PublicKey } from '@solana/web3.js';
 import type { Authority, SigningFn } from './authority';
+import { getUnprefixedSecpBytes } from './utils';
 
 /**
  * Get {@link SigningFn} for Secp268k1-based Private key
@@ -11,15 +14,26 @@ export function getSigningFnForSecp256k1PrivateKey(
   privateKey: Uint8Array | string,
 ): SigningFn {
   return async (message: Uint8Array) => {
-    let sig = new Uint8Array(65);
+    const hash = keccak_256(message);
+    let sig = secp256k1.sign(hash, getUnprefixedSecpBytes(privateKey, 32), {
+      lowS: true,
+    });
 
-    let _sig = secp256k1.sign(message, privateKey, { lowS: true });
+    let signature = new Uint8Array(65);
+    signature.set(sig.toCompactRawBytes()); // 64-bytes
+    signature.set(Uint8Array.from([sig.recovery + 27]), 64);
 
-    sig.set(_sig.toCompactRawBytes());
-    sig.set(Uint8Array.from(_sig.recovery ? [0x1c] : [0x1b]), 64);
-
-    return sig;
+    return { signature };
   };
+}
+
+/**
+ * Get `personal-sign` prefix for evm based wallets
+ * @param messageLen Length of the message to be signed
+ * @returns Prefix bytes
+ */
+export function getEvmPersonalSignPrefix(messageLen: number): Uint8Array {
+  return utf8ToBytes(`\x19Ethereum Signed Message:\n${messageLen}`);
 }
 
 /**
