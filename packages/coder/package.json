@@ -8,7 +8,7 @@
     "build": "tsup-node",
     "dev": "tsup-node --watch",
     "lint": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src",
-    "lint:fix": "eslint --config ../../eslint.config.mjs --fix js,ts,tsx src"
+    "lint:fix": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src --fix"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
