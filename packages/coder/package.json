@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "build-pkg": "tsup-node",
-    "build": "./build.sh",
+    "build": "tsup-node",
     "dev": "tsup-node --watch",
-    "gen-sanity": "cd tests/sanity && cargo run"
+    "lint": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src",
+    "lint:fix": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src --fix"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
