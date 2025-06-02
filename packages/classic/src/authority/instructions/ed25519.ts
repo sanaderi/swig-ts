@@ -5,6 +5,11 @@ import {
   getAddV1BaseAccountMetasWithAuthority,
   getRemoveV1BaseAccountMetasWithAuthority,
   getSignV1BaseAccountMetasWithAuthority,
+  getSubAccountCreateV1BaseAccountMetasWithAuthority,
+  getSubAccountSignV1BaseAccountMetasWithAuthority,
+  getSubAccountToggleV1BaseAccountMetasWithAuthority,
+  getSubAccountWithdrawV1SolAccountMetasWithAuthority,
+  getSubAccountWithdrawV1TokenAccountMetasWithAuthority,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
 import type { AuthorityInstruction } from './interface';
@@ -65,6 +70,74 @@ export const Ed25519Instruction: AuthorityInstruction = {
     return SwigInstructionV1.createSession(createSessionAccount, {
       ...data,
       authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
+  
+  async subAccountCreateV1Instruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
+
+    let [metas, authorityPayload] =
+      getSubAccountCreateV1BaseAccountMetasWithAuthority(accounts, authority);
+
+    return SwigInstructionV1.subAccountCreate(metas, {
+      ...data,
+      authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
+  
+  async subAccountWithdrawV1SolInstruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
+
+    let [metas, authorityPayload] =
+      getSubAccountWithdrawV1SolAccountMetasWithAuthority(accounts, authority);
+
+    return SwigInstructionV1.subAccountWithdraw(metas, {
+      ...data,
+      authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
+  
+  async subAccountWithdrawV1TokenInstruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
+
+    let [metas, authorityPayload] =
+      getSubAccountWithdrawV1TokenAccountMetasWithAuthority(accounts, authority);
+
+    return SwigInstructionV1.subAccountWithdraw(metas, {
+      ...data,
+      authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
+ 
+  async subAccountToggleV1Instruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
+
+    let [metas, authorityPayload] =
+      getSubAccountToggleV1BaseAccountMetasWithAuthority(accounts, authority);
+
+    return SwigInstructionV1.subAccountToggle(metas, {
+      ...data,
+      authorityPayload: Uint8Array.from([authorityPayload]),
+    });
+  },
+
+  async subAccountSignV1Instruction(accounts, data) {
+    let authority = new PublicKey(data.authorityData);
+
+    let [signAccounts, authorityPayload] =
+      getSubAccountSignV1BaseAccountMetasWithAuthority(accounts, authority);
+
+    let { accounts: metas, compactIxs } = compactInstructions(
+      accounts.swig,
+      signAccounts,
+      data.innerInstructions,
+      accounts.subAccount
+    );
+
+    return SwigInstructionV1.sign(metas, {
+      roleId: data.roleId,
+      authorityPayload: new Uint8Array([authorityPayload]),
+      compactInstructions: compactIxs,
     });
   },
 };

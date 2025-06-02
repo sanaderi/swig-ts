@@ -62,6 +62,26 @@ export function getSubAccountSignV1InstructionDataCodec() {
     }),
   );
 
+  let payloadEncoder: Encoder<
+    Omit<SubAccountSignV1InstructionDataArgs, 'authorityPayload'>
+  > = transformEncoder(
+    getStructEncoder([
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+      ['instructionPayloadLen', getU16Encoder()],
+      ['roleId', getU32Encoder()],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 8)],
+      ['compactInstructions', getCompactInstructionsEncoder()],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.SubAccountSignV1,
+      instructionPayloadLen: getCompactInstructionsEncoder().encode(
+        value.compactInstructions,
+      ).length,
+      _padding: new Uint8Array(2),
+    }),
+  );
+
   let decoder: Decoder<SubAccountSignV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['instructionPayloadLen', getU16Decoder()],
@@ -76,5 +96,5 @@ export function getSubAccountSignV1InstructionDataCodec() {
     SubAccountSignV1InstructionData
   > = combineCodec(encoder, decoder);
 
-  return { encoder, decoder, codec };
+  return { encoder, decoder, codec, payloadEncoder };
 }

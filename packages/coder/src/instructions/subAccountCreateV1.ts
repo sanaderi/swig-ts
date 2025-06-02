@@ -56,6 +56,24 @@ export function getSubAccountCreateV1InstructionDataCodec() {
       }),
     );
 
+  let payloadEncoder: Encoder<
+    Omit<SubAccountCreateV1InstructionDataArgs, 'authorityPayload'>
+  > = transformEncoder(
+    getStructEncoder([
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+      ['_padding1', fixEncoderSize(getBytesEncoder(), 2)],
+      ['roleId', getU32Encoder()],
+      ['bump', getU8Encoder()],
+      ['_padding2', fixEncoderSize(getBytesEncoder(), 7)],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.SubAccountCreateV1,
+      _padding1: new Uint8Array(2),
+      _padding2: new Uint8Array(7),
+    }),
+  );
+
   let decoder: Decoder<SubAccountCreateV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['_padding1', fixDecoderSize(getBytesDecoder(), 2)],
@@ -70,5 +88,6 @@ export function getSubAccountCreateV1InstructionDataCodec() {
     SubAccountCreateV1InstructionData
   > = combineCodec(encoder, decoder);
 
-  return { encoder, decoder, codec };
+  return { encoder, decoder, codec, payloadEncoder };
 }
+

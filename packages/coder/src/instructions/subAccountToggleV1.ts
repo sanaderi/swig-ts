@@ -53,6 +53,22 @@ export function getSubAccountToggleV1InstructionDataCodec() {
       }),
     );
 
+  let payloadEncoder: Encoder<
+    Omit<SubAccountToggleV1InstructionDataArgs, 'authorityPayload'>
+  > = transformEncoder(
+    getStructEncoder([
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 1)],
+      ['enabled', getBooleanEncoder()],
+      ['roleId', getU32Encoder()],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.SubAccountToggleV1,
+      _padding: new Uint8Array(1),
+    }),
+  );
+
   let decoder: Decoder<SubAccountToggleV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['_padding', fixDecoderSize(getBytesDecoder(), 1)],
@@ -66,5 +82,5 @@ export function getSubAccountToggleV1InstructionDataCodec() {
     SubAccountToggleV1InstructionData
   > = combineCodec(encoder, decoder);
 
-  return { encoder, decoder, codec };
+  return { encoder, decoder, codec, payloadEncoder };
 }

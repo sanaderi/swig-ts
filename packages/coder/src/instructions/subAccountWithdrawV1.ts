@@ -36,7 +36,7 @@ export type SubAccountWithdrawV1InstructionDataArgs = {
   authorityPayload: ReadonlyUint8Array;
 };
 
-export function getWithdrawFromSubAccountV1InstructionDataCodec() {
+export function getSubAccountWithdrawV1InstructionDataCodec() {
   let encoder: Encoder<SubAccountWithdrawV1InstructionDataArgs> =
     transformEncoder(
       getStructEncoder([
@@ -53,6 +53,22 @@ export function getWithdrawFromSubAccountV1InstructionDataCodec() {
       }),
     );
 
+  let payloadEncoder: Encoder<
+    Omit<SubAccountWithdrawV1InstructionDataArgs, 'authorityPayload'>
+  > = transformEncoder(
+    getStructEncoder([
+      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 2)],
+      ['roleId', getU32Encoder()],
+      ['amount', getU64Encoder()],
+    ]),
+    (value) => ({
+      ...value,
+      discriminator: Discriminator.SubAccountWithdrawV1,
+      _padding: new Uint8Array(2),
+    }),
+  );
+
   let decoder: Decoder<SubAccountWithdrawV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['_padding', fixDecoderSize(getBytesDecoder(), 2)],
@@ -66,5 +82,5 @@ export function getWithdrawFromSubAccountV1InstructionDataCodec() {
     SubAccountWithdrawV1InstructionData
   > = combineCodec(encoder, decoder);
 
-  return { encoder, decoder, codec };
+  return { encoder, decoder, codec, payloadEncoder };
 }

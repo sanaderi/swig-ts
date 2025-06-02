@@ -8,6 +8,9 @@ import {
   getCompactInstructionEncoder,
   getCreateSessionV1AuthorityPayloadCodec,
   getRemoveAuthorityV1AuthorityPayloadEncoder,
+  getSubAccountCreateV1InstructionDataCodec,
+  getSubAccountToggleV1InstructionDataCodec,
+  getSubAccountWithdrawV1InstructionDataCodec,
 } from '@swig-wallet/coder';
 import {
   SwigInstructionV1,
@@ -15,6 +18,11 @@ import {
   getAddAuthorityV1BaseAccountMetas,
   getRemoveAuthorityV1BaseAccountMetas,
   getSignV1BaseAccountMetas,
+  getSubAccountCreateV1BaseAccountMetas,
+  getSubAccountSignV1BaseAccountMetas,
+  getSubAccountToggleV1BaseAccountMetas,
+  getSubAccountWithdrawV1SolAccountMetas,
+  getSubAccountWithdrawV1TokenAccountMetas,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
 import type { AuthorityInstruction, InstructionDataOptions } from './interface';
@@ -131,6 +139,137 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     return SwigInstructionV1.createSession(createSessionIxAccountMetas, {
       ...data,
       payloadSize: 1,
+      authorityPayload,
+    });
+  },
+
+  async subAccountCreateV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
+
+    let { payloadEncoder } = getSubAccountCreateV1InstructionDataCodec();
+
+    let message = payloadEncoder.encode(data);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(message),
+      accountMetas,
+      options,
+    );
+
+    return SwigInstructionV1.subAccountCreate(accountMetas, {
+      ...data,
+      authorityPayload,
+    });
+  },
+
+  async subAccountSignV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let signInstructionsAccount = getSubAccountSignV1BaseAccountMetas(accounts);
+
+    let { accounts: metas, compactIxs } = compactInstructions(
+      accounts.swig,
+      signInstructionsAccount,
+      data.innerInstructions,
+      accounts.subAccount,
+    );
+
+    let encodedCompactInstructions = getArrayEncoder(
+      getCompactInstructionEncoder(),
+      {
+        size: getU8Encoder(),
+      },
+    ).encode(compactIxs);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(encodedCompactInstructions),
+      metas,
+      options,
+    );
+
+    return SwigInstructionV1.sign(metas, {
+      roleId: data.roleId,
+      authorityPayload,
+      compactInstructions: compactIxs,
+    });
+  },
+
+  async subAccountWithdrawV1SolInstruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
+
+    let { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
+
+    let message = payloadEncoder.encode(data);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(message),
+      accountMetas,
+      options,
+    );
+
+    return SwigInstructionV1.subAccountWithdraw(accountMetas, {
+      ...data,
+      authorityPayload,
+    });
+  },
+
+  async subAccountWithdrawV1TokenInstruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
+
+    let { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
+
+    let message = payloadEncoder.encode(data);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(message),
+      accountMetas,
+      options,
+    );
+
+    return SwigInstructionV1.subAccountWithdraw(accountMetas, {
+      ...data,
+      authorityPayload,
+    });
+  },
+
+  async subAccountToggleV1Instruction(accounts, data, options) {
+    if (!options)
+      throw new Error(
+        'instruction data options not provided for Secp256k1 based authority',
+      );
+
+    let accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
+
+    let { payloadEncoder } = getSubAccountToggleV1InstructionDataCodec();
+
+    let message = payloadEncoder.encode(data);
+
+    let authorityPayload = await prepareSecpPayload(
+      Uint8Array.from(message),
+      accountMetas,
+      options,
+    );
+
+    return SwigInstructionV1.subAccountToggle(accountMetas, {
+      ...data,
       authorityPayload,
     });
   },

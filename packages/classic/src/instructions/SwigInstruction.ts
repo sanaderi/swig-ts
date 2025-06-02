@@ -9,11 +9,19 @@ import {
   getCreateV1InstructionDataCodec,
   getRemoveAuthorityV1InstructionCodec,
   getSignV1InstructionCodec,
+  getSubAccountCreateV1InstructionDataCodec,
+  getSubAccountSignV1InstructionDataCodec,
+  getSubAccountToggleV1InstructionDataCodec,
+  getSubAccountWithdrawV1InstructionDataCodec,
   type AddAuthorityV1InstructionDataArgs,
   type CreateSessionV1InstructionDataArgs,
   type CreateV1InstructionDataArgs,
   type RemoveAuthorityV1InstructionDataArgs,
   type SignV1InstructionDataArgs,
+  type SubAccountCreateV1InstructionDataArgs,
+  type SubAccountSignV1InstructionDataArgs,
+  type SubAccountToggleV1InstructionDataArgs,
+  type SubAccountWithdrawV1InstructionDataArgs,
 } from '@swig-wallet/coder';
 import { findSwigPda, swigInstruction } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
@@ -24,6 +32,10 @@ import {
 } from './createV1';
 import { type RemoveAuthorityV1BaseAccountMetas } from './removeAuthorityV1';
 import { type SignV1BaseAccountMetas } from './signV1';
+import type { SubAccountCreateV1BaseAccountMetas } from './subAccountCreateV1';
+import type { SubAccountSignV1BaseAccountMetas } from './subAccountSignV1';
+import type { SubAccountToggleV1BaseAccountMetas } from './subAccountToggleV1';
+import type { SubAccountWithdrawV1BaseAccountMetas } from './subAccountWithdrawV1';
 
 /**
  *
@@ -157,5 +169,62 @@ export class SwigInstructionV1 {
       accounts,
       new Uint8Array(createSessionV1InstructionData),
     );
+  }
+
+  static subAccountCreate<
+    T extends [...SubAccountCreateV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: SubAccountCreateV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let subAccountCreateV1InstructionDataEncoder =
+      getSubAccountCreateV1InstructionDataCodec().encoder;
+
+    let subAccountCreateV1InstructionData =
+      subAccountCreateV1InstructionDataEncoder.encode(data);
+
+    return swigInstruction(
+      accounts,
+      new Uint8Array(subAccountCreateV1InstructionData),
+    );
+  }
+
+  static subAccountSign<
+    T extends [...SubAccountSignV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: SubAccountSignV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let encoder = getSubAccountSignV1InstructionDataCodec().encoder;
+
+    let instructionData = encoder.encode(data);
+
+    return swigInstruction(accounts, new Uint8Array(instructionData));
+  }
+
+  static subAccountWithdraw<
+    T extends [...SubAccountWithdrawV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: SubAccountWithdrawV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let encoder = getSubAccountWithdrawV1InstructionDataCodec().encoder;
+
+    let instructionData = encoder.encode(data);
+
+    return swigInstruction(accounts, new Uint8Array(instructionData));
+  }
+
+  static subAccountToggle<
+    T extends [...SubAccountToggleV1BaseAccountMetas, ...AccountMeta[]],
+  >(
+    accounts: T,
+    data: SubAccountToggleV1InstructionDataArgs,
+  ): TransactionInstruction {
+    let encoder = getSubAccountToggleV1InstructionDataCodec().encoder;
+
+    let instructionData = encoder.encode(data);
+
+    return swigInstruction(accounts, new Uint8Array(instructionData));
   }
 }

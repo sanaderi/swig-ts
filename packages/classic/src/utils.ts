@@ -59,6 +59,26 @@ export function findSwigPda(id: Uint8Array): [PublicKey, number] {
   );
 }
 
+/**
+ * Utility for deriving a Swig PDA
+ * @param id Swig ID
+ * @returns [PublicKey, number]
+ */
+export function findSwigSubAccountPda(
+  swigId: Uint8Array,
+  roleId: number,
+): [PublicKey, number] {
+  let roleIdU32 = new Uint8Array(4);
+
+  let view = new DataView(roleIdU32.buffer);
+  view.setUint32(0, roleId, true);
+
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('sub-account'), Buffer.from(swigId), Buffer.from(roleIdU32)],
+    SWIG_PROGRAM_ADDRESS,
+  );
+}
+
 export function compressedPubkeyToAddress(
   compressed: Uint8Array | string,
 ): Uint8Array {
