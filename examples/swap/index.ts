@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction, TransactionInstruction, TransactionMessage, VersionedTransaction, ComputeBudgetProgram } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, sendAndConfirmTransaction, TransactionInstruction, TransactionMessage, VersionedTransaction, ComputeBudgetProgram, SendTransactionError } from '@solana/web3.js';
 import {
   Actions,
   createSwig,
@@ -189,7 +189,7 @@ async function main() {
     outputMint: usdcMint.toBase58(), // USDC
     amount: Math.floor(transferAmount), // 0.01 SOL in lamports
     slippageBps: 50, // 0.5%
-    maxAccounts: 62,
+    maxAccounts: 64,
   });
 
   if (!quoteResponse) {
@@ -226,16 +226,16 @@ async function main() {
     }
     const outerInstructions: TransactionInstruction[] = [
       ComputeBudgetProgram.setComputeUnitLimit({
-        units: 1_400_000,
+        units: 150_000,
       }),
       ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: 50_000_000,
+        microLamports: 50,
       }),
-      ...(swapInstructions.setupInstructions || []).map(toTransactionInstruction),
     ];
 
     // Convert instructions to TransactionInstructions
     const swigInstructions: TransactionInstruction[] = [
+      ...(swapInstructions.setupInstructions || []).map(toTransactionInstruction),
       toTransactionInstruction(swapInstructions.swapInstruction),
     ];
 
@@ -253,45 +253,59 @@ async function main() {
 
     // Get latest blockhash
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    const signIx = await signInstruction(
-      rootRole,
-      rootUser.publicKey,
-      swigInstructions
+    const signIxs = await Promise.all(
+      swigInstructions.map(async (instruction) => {
+        return await signInstruction(
+          rootRole,
+          rootUser.publicKey,
+          [instruction]
+        );
+      })
     );
+
     // Create versioned transaction
     const messageV0 = new TransactionMessage({
       payerKey: rootUser.publicKey,
       recentBlockhash: blockhash,
-      instructions: [...outerInstructions, signIx],
+      instructions: [...outerInstructions, ...signIxs],
     }).compileToV0Message(addressLookupTableAccounts);
 
     const transaction = new VersionedTransaction(messageV0);
     // Sign the instructions with root user
-    transaction.sign([rootUser]);
+    try {
+      transaction.sign([rootUser]);
+    } catch (error) {
+      console.error(chalk.red('Error signing transaction:'), error);
+      process.exit(1);
+    }
     console.log(chalk.green('✅ Swap transaction signed'));
 
-    // Send the transaction
-    const signature = await connection.sendTransaction(transaction, {
-      skipPreflight: false,
-      preflightCommitment: 'confirmed'
-    });
+    try {
+      // Send the transaction
+      const signature = await connection.sendTransaction(transaction, {
+        skipPreflight: true,
+        preflightCommitment: 'confirmed'
+      });
+      const tx = await connection.confirmTransaction({
+        signature,
+        blockhash,
+        lastValidBlockHeight
+      });
+      if (tx.value.err) {
+        throw new Error(`Transaction failed: ${JSON.stringify(tx.value.err)}`);
+      }
 
-    const tx = await connection.confirmTransaction({
-      signature,
-      blockhash,
-      lastValidBlockHeight
-    });
+      // Check token balance after swap
+      const postSwapBalance = await connection.getTokenAccountBalance(swigUsdcAta);
+      console.log(chalk.green('🎉 Swap transaction sent and confirmed!'));
+      console.log(chalk.gray(`   Transaction signature: ${signature}`));
+      console.log(chalk.blue(`💰 New USDC balance: ${postSwapBalance.value.uiAmount} USDC`));
+    } catch (error) {
 
-    if (tx.value.err) {
-      throw new Error(`Transaction failed: ${JSON.stringify(tx.value.err)}`);
+      console.error(chalk.red('Error sending transaction:'), error);
+      process.exit(1);
     }
 
-    // Check token balance after swap
-    const postSwapBalance = await connection.getTokenAccountBalance(swigUsdcAta);
-
-    console.log(chalk.green('🎉 Swap transaction sent and confirmed!'));
-    console.log(chalk.gray(`   Transaction signature: ${signature}`));
-    console.log(chalk.blue(`💰 New USDC balance: ${postSwapBalance.value.uiAmount} USDC`));
 
   } catch (error) {
     console.error(chalk.red('Error executing swap:'), error);
