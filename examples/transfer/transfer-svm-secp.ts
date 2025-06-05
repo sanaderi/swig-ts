@@ -50,12 +50,13 @@ function sendSVMTransaction(
   }
 }
 
-function fetchSwig(svm: LiteSVM, swigAddress: PublicKey): Swig {
+function fetchSwig(svm: LiteSVM, swigAddress: PublicKey): ReturnType<typeof Swig.fromRawAccountData> {
   let swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
-  return Swig.fromRawAccountData(swigAddress, swigAccount.data);
+  // Ensure we have a proper Uint8Array for the account data
+  const accountData = Uint8Array.from(swigAccount.data);
+  return Swig.fromRawAccountData(swigAddress, accountData);
 }
-
 console.log('starting...');
 //
 // Start program
