@@ -45,7 +45,6 @@ export async function createSwig(
     id,
     actions,
   });
-
   let transaction = await createLegacyTransaction(
     connection,
     [createInstruction],
@@ -251,7 +250,7 @@ export async function removeAllAuthorityRoles(
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature[]> {
   let sigs: TransactionSignature[] = [];
-  
+
   let swig = await fetchSwig(connection, swigAddress, options);
 
   while (swig.findRoleByAuthority(authorityToRemove)) {
