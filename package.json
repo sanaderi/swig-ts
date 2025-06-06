@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nx run-many -t build",
     "build:examples": "bun --filter 'secp-ui' build",
+    "build:classic:watch": "nx build '@swig-wallet/classic' --watch",
     "build:classic": "nx build '@swig-wallet/classic'",
     "build:coder": "nx build '@swig-wallet/coder'",
     "build:docs": "typedoc",

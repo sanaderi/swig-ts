@@ -36,6 +36,7 @@
     "@ethereumjs/wallet": "^2.0.4",
     "@noble/secp256k1": "^2.2.3",
     "@solana/web3.js": "^1.98.0",
+    "chalk": "5",
     "ethers": "^6.13.5",
     "viem": "^2.30.0"
   }
