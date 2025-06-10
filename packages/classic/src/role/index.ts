@@ -13,6 +13,7 @@ import {
   type CreateAuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
+import { findSwigSubAccountPda } from '../utils';
 
 export class Role {
   private constructor(
@@ -20,15 +21,17 @@ export class Role {
     private readonly position: Position,
     public readonly authority: Authority,
     private readonly actions: Actions,
+    public readonly swigId: Uint8Array,
   ) {}
 
   static from(
     swigAddress: PublicKey,
     position: Position,
     roleData: Uint8Array,
+    swigId: Uint8Array,
   ) {
     let { actions, authority } = deserializeRoleData(position, roleData);
-    return new Role(swigAddress, position, authority, actions);
+    return new Role(swigAddress, position, authority, actions, swigId);
   }
 
   get authorityType() {
@@ -166,14 +169,24 @@ export function signInstruction(
   payer: PublicKey,
   innerInstructions: TransactionInstruction[],
   options?: InstructionDataOptions,
+  withSubAccount?: boolean,
 ) {
-  return role.authority.sign({
-    swigAddress: role.swigAddress,
-    payer,
-    innerInstructions,
-    roleId: role.id,
-    options,
-  });
+  return withSubAccount
+    ? role.authority.subAccountSign({
+        swigAddress: role.swigAddress,
+        subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+        payer,
+        innerInstructions,
+        roleId: role.id,
+        options,
+      })
+    : role.authority.sign({
+        swigAddress: role.swigAddress,
+        payer,
+        innerInstructions,
+        roleId: role.id,
+        options,
+      });
 }
 
 /**
@@ -249,10 +262,70 @@ export function createSessionInstruction(
   });
 }
 
+export function createSubAccountInstruction(
+  role: Role,
+  payer: PublicKey,
+  options?: InstructionDataOptions,
+) {
+  return role.authority.subAccountCreate({
+    swigAddress: role.swigAddress,
+    swigId: role.swigId,
+    payer,
+    roleId: role.id,
+    options,
+  });
+}
+
+export function toggleSubAccountInstruction(
+  role: Role,
+  payer: PublicKey,
+  enabled: boolean,
+  options?: InstructionDataOptions,
+) {
+  return role.authority.subAccountToggle({
+    swigAddress: role.swigAddress,
+    subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+    payer,
+    roleId: role.id,
+    options,
+    enabled,
+  });
+}
+
+export function withdrawFromSubAccountInstruction(
+  role: Role,
+  payer: PublicKey,
+  args:
+    | { amount: bigint } // SOL
+    | { amount: bigint; mint: PublicKey; tokenProgram?: PublicKey }, // SPL Token
+  options?: InstructionDataOptions,
+) {
+  return 'mint' in args
+    ? role.authority.subAccountWithdrawToken({
+        swigAddress: role.swigAddress,
+        subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+        payer,
+        roleId: role.id,
+        options,
+        amount: args.amount,
+        mint: args.mint,
+        tokenProgram: args.tokenProgram,
+      })
+    : role.authority.subAccountWithdrawSol({
+        swigAddress: role.swigAddress,
+        subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+        payer,
+        roleId: role.id,
+        options,
+        amount: args.amount,
+      });
+}
+
 export function deserializeRoles(
   swigAddress: PublicKey,
   rolesBuffer: Uint8Array,
   count: number,
+  swigId: Uint8Array,
 ): Role[] {
   let cursor = 0;
   let roles: Role[] = [];
@@ -265,7 +338,7 @@ export function deserializeRoles(
 
     let roleData = rolesBuffer.slice(cursor, position.boundary);
 
-    roles.push(Role.from(swigAddress, position, roleData));
+    roles.push(Role.from(swigAddress, position, roleData, swigId));
 
     cursor = position.boundary;
   }

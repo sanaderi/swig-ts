@@ -33,6 +33,7 @@ export class Swig {
       this.address,
       Uint8Array.from(this.account.roles_buffer),
       this.account.roles,
+      this.account.id,
     );
   }
 

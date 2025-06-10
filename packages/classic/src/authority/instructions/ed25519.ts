@@ -12,6 +12,7 @@ import {
   getSubAccountWithdrawV1TokenAccountMetasWithAuthority,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
+import { findSwigSubAccountPda } from '../../utils';
 import type { AuthorityInstruction } from './interface';
 
 /**
@@ -72,7 +73,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
       authorityPayload: Uint8Array.from([authorityPayload]),
     });
   },
-  
+
   async subAccountCreateV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
@@ -84,7 +85,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
       authorityPayload: Uint8Array.from([authorityPayload]),
     });
   },
-  
+
   async subAccountWithdrawV1SolInstruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
@@ -96,19 +97,22 @@ export const Ed25519Instruction: AuthorityInstruction = {
       authorityPayload: Uint8Array.from([authorityPayload]),
     });
   },
-  
+
   async subAccountWithdrawV1TokenInstruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
     let [metas, authorityPayload] =
-      getSubAccountWithdrawV1TokenAccountMetasWithAuthority(accounts, authority);
+      getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
+        accounts,
+        authority,
+      );
 
     return SwigInstructionV1.subAccountWithdraw(metas, {
       ...data,
       authorityPayload: Uint8Array.from([authorityPayload]),
     });
   },
- 
+
   async subAccountToggleV1Instruction(accounts, data) {
     let authority = new PublicKey(data.authorityData);
 
@@ -131,7 +135,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
       accounts.swig,
       signAccounts,
       data.innerInstructions,
-      accounts.subAccount
+      accounts.subAccount,
     );
 
     return SwigInstructionV1.sign(metas, {

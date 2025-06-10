@@ -10,6 +10,8 @@ import { Authority, SessionBasedAuthority } from '../abstract';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
 import type { CreateAuthorityInfo } from '../createAuthority';
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { findSwigSubAccountPda } from '../../utils';
 
 export class Ed25519SessionAuthority
   extends SessionBasedAuthority
@@ -184,6 +186,128 @@ export class Ed25519SessionAuthority
       },
     );
   }
+
+  subAccountCreate(args: {
+      payer: PublicKey;
+      swigAddress: PublicKey;
+      swigId: Uint8Array;
+      roleId: number;
+    }) {
+      const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
+      return Ed25519Instruction.subAccountCreateV1Instruction(
+        {
+          payer: args.payer,
+          swig: args.swigAddress,
+          subAccount,
+        },
+        {
+          roleId: args.roleId,
+          authorityData: this.data,
+          bump,
+        },
+      );
+    }
+  
+    subAccountSign(args: {
+      payer: PublicKey;
+      swigAddress: PublicKey;
+      subAccount: PublicKey;
+      roleId: number;
+      innerInstructions: TransactionInstruction[];
+    }) {
+      return Ed25519Instruction.subAccountSignV1Instruction(
+        {
+          payer: args.payer,
+          swig: args.swigAddress,
+          subAccount: args.subAccount,
+        },
+        {
+          roleId: args.roleId,
+          authorityData: this.sessionKey.toBytes(),
+          innerInstructions: args.innerInstructions,
+        },
+      );
+    }
+  
+    subAccountToggle(args: {
+      payer: PublicKey;
+      swigAddress: PublicKey;
+      subAccount: PublicKey;
+      roleId: number;
+      enabled: boolean;
+    }) {
+      return Ed25519Instruction.subAccountToggleV1Instruction(
+        {
+          payer: args.payer,
+          swig: args.swigAddress,
+          subAccount: args.subAccount,
+        },
+        {
+          roleId: args.roleId,
+          authorityData: this.data,
+          enabled: args.enabled
+        },
+      );
+    }
+  
+    subAccountWithdrawSol(args: {
+      payer: PublicKey;
+      swigAddress: PublicKey;
+      subAccount: PublicKey;
+      roleId: number;
+      amount: bigint;
+    }) {
+      return Ed25519Instruction.subAccountWithdrawV1SolInstruction(
+        {
+          payer: args.payer,
+          swig: args.swigAddress,
+          subAccount: args.subAccount,
+        },
+        {
+          roleId: args.roleId,
+          authorityData: this.data,
+          amount: args.amount,
+        },
+      );
+    }
+  
+    subAccountWithdrawToken(args: {
+      payer: PublicKey;
+      swigAddress: PublicKey;
+      subAccount: PublicKey;
+      roleId: number;
+      mint: PublicKey;
+      amount: bigint;
+      tokenProgram?: PublicKey;
+    }) {
+      let swigToken = getAssociatedTokenAddressSync(
+        args.mint,
+        args.swigAddress,
+        true,
+        args.tokenProgram,
+      );
+      let subAccountToken = getAssociatedTokenAddressSync(
+        args.mint,
+        args.subAccount,
+        true,
+        args.tokenProgram,
+      );
+      return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
+        {
+          payer: args.payer,
+          swig: args.swigAddress,
+          subAccount: args.subAccount,
+          subAccountToken,
+          swigToken,
+          tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
+        },
+        {
+          roleId: args.roleId,
+          authorityData: this.data,
+          amount: args.amount,
+        },
+      );
+    }
 }
 
 export function isEd25519SessionAuthority(
