@@ -12,6 +12,7 @@
       "cache": true
     },
     "lint": {},
-    "lint:fix": {}
+    "lint:fix": {},
+    "test": { "dependsOn": ["^build"] }
   }
 }

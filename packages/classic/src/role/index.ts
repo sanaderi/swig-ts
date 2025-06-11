@@ -20,7 +20,7 @@ export class Role {
     public readonly swigAddress: PublicKey,
     private readonly position: Position,
     public readonly authority: Authority,
-    private readonly actions: Actions,
+    public readonly actions: Actions,
     public readonly swigId: Uint8Array,
   ) {}
 
@@ -300,10 +300,11 @@ export function withdrawFromSubAccountInstruction(
     | { amount: bigint; mint: PublicKey; tokenProgram?: PublicKey }, // SPL Token
   options?: InstructionDataOptions,
 ) {
+  const subAccount = findSwigSubAccountPda(role.swigId, role.id)[0];
   return 'mint' in args
     ? role.authority.subAccountWithdrawToken({
         swigAddress: role.swigAddress,
-        subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+        subAccount,
         payer,
         roleId: role.id,
         options,
@@ -313,7 +314,7 @@ export function withdrawFromSubAccountInstruction(
       })
     : role.authority.subAccountWithdrawSol({
         swigAddress: role.swigAddress,
-        subAccount: findSwigSubAccountPda(role.swigId, role.id)[0],
+        subAccount,
         payer,
         roleId: role.id,
         options,

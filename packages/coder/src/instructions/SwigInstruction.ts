@@ -11,12 +11,11 @@ export enum SwigInstructionDiscriminator {
   CreateV1,
   AddAuthorityV1,
   RemoveAuthorityV1,
-  // ReplaceAuthorityV1,
   SignV1 = 4,
   CreateSessionV1,
   SubAccountCreateV1,
   SubAccountWithdrawV1,
-  SubAccountSignV1,
+  SubAccountSignV1 = 9,
   SubAccountToggleV1,
 }
 
@@ -42,9 +41,6 @@ export function identifySwigInstruction(
   if (containsBytes(data, discriminatorEncoder.encode(2), 0)) {
     return SwigInstructionDiscriminator.RemoveAuthorityV1;
   }
-  // if (containsBytes(data, discriminatorEncoder.encode(3), 0)) {
-  //   return SwigInstructionDiscriminator.ReplaceAuthorityV1;
-  // }
   if (containsBytes(data, discriminatorEncoder.encode(4), 0)) {
     return SwigInstructionDiscriminator.SignV1;
   }
@@ -57,10 +53,10 @@ export function identifySwigInstruction(
   if (containsBytes(data, discriminatorEncoder.encode(7), 0)) {
     return SwigInstructionDiscriminator.SubAccountWithdrawV1;
   }
-  if (containsBytes(data, discriminatorEncoder.encode(8), 0)) {
+  if (containsBytes(data, discriminatorEncoder.encode(9), 0)) {
     return SwigInstructionDiscriminator.SubAccountSignV1;
   }
-  if (containsBytes(data, discriminatorEncoder.encode(9), 0)) {
+  if (containsBytes(data, discriminatorEncoder.encode(10), 0)) {
     return SwigInstructionDiscriminator.SubAccountToggleV1;
   }
   throw new Error(

@@ -58,7 +58,7 @@ export function getSubAccountSignV1InstructionDataCodec() {
       instructionPayloadLen: getCompactInstructionsEncoder().encode(
         value.compactInstructions,
       ).length,
-      _padding: new Uint8Array(2),
+      _padding: new Uint8Array(8),
     }),
   );
 
@@ -78,7 +78,7 @@ export function getSubAccountSignV1InstructionDataCodec() {
       instructionPayloadLen: getCompactInstructionsEncoder().encode(
         value.compactInstructions,
       ).length,
-      _padding: new Uint8Array(2),
+      _padding: new Uint8Array(8),
     }),
   );
 

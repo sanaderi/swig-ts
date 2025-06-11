@@ -138,7 +138,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
       accounts.subAccount,
     );
 
-    return SwigInstructionV1.sign(metas, {
+    return SwigInstructionV1.subAccountSign(metas, {
       roleId: data.roleId,
       authorityPayload: new Uint8Array([authorityPayload]),
       compactInstructions: compactIxs,

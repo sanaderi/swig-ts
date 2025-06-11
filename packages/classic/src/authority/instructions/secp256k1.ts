@@ -195,7 +195,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
       options,
     );
 
-    return SwigInstructionV1.sign(metas, {
+    return SwigInstructionV1.subAccountSign(metas, {
       roleId: data.roleId,
       authorityPayload,
       compactInstructions: compactIxs,

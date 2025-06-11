@@ -190,11 +190,10 @@ export class ActionsBuilder {
 
   /**
    * controls a subaccount
-   * @param payload.subAccount Sub-account publickey
    */
-  subAccount(payload: { subAccount: PublicKey }): this {
+  subAccount(): this {
     this._actionConfigs.push(
-      new SubAccountConfig({ subAccount: payload.subAccount.toBytes() }),
+      new SubAccountConfig({ subAccount: new Uint8Array(32) }),
     );
     return this;
   }
