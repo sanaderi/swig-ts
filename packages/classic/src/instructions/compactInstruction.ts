@@ -19,6 +19,7 @@ export function compactInstructions<
   swigAccount: PublicKey,
   accounts: T,
   innerInstructions: TransactionInstruction[],
+  subAccount?: PublicKey,
 ): { accounts: T; compactIxs: CompactInstruction[] } {
   const compactIxs: CompactInstruction[] = [];
   const hashmap = new Map<string, number>(
@@ -31,7 +32,10 @@ export function compactInstructions<
 
     const accts: number[] = [];
     for (const ixAccount of ix.keys) {
-      if (ixAccount.pubkey.toString() === swigAccount.toString()) {
+      if (
+        ixAccount.pubkey.toString() === swigAccount.toString() ||
+        ixAccount.pubkey.toString() === subAccount?.toString()
+      ) {
         ixAccount.isSigner = false;
       }
 

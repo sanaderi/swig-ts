@@ -21,7 +21,8 @@
     "format:fix": "prettier --write packages/",
     "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder'",
     "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder'",
-    "release": "bun run build && changeset publish"
+    "release": "bun run build && changeset publish",
+    "test": "nx run-many --target=lint:fix --projects='@swig-wallet/classic'"
   },
   "workspaces": [
     "packages/*",

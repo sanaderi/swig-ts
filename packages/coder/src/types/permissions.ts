@@ -67,6 +67,9 @@ export enum Permission {
    * without giving it access to the main wallet. Common in automated portfolio management.
    */
   SubAccount,
+  StakeLimit,
+  StakeRecurringLimit,
+  StakeAll,
 }
 
 /**

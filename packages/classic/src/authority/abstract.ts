@@ -122,6 +122,52 @@ export abstract class Authority implements CreateAuthorityInfo {
     options?: InstructionDataOptions;
   }): Promise<TransactionInstruction>;
 
+  abstract subAccountCreate(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    swigId: Uint8Array;
+    roleId: number;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
+
+  abstract subAccountSign(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    innerInstructions: TransactionInstruction[];
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
+
+  abstract subAccountToggle(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    enabled: boolean;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
+
+  abstract subAccountWithdrawSol(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    amount: bigint;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
+
+  abstract subAccountWithdrawToken(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    mint: PublicKey;
+    amount: bigint;
+    tokenProgram?: PublicKey;
+    options?: InstructionDataOptions;
+  }): Promise<TransactionInstruction>;
+
   /**
    * Data required to create a new authority.
    *
