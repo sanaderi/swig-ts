@@ -44,10 +44,10 @@ export function getSubAccountSignV1BaseAccountMetasWithAuthority(
   accounts: SubAccountSignV1InstructionAccounts,
   authority: PublicKey,
 ): [SubAccountSignV1BaseAccountMetasWithAuthority, number] {
-  let accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SubAccountSignV1BaseAccountMetasWithAuthority = [
+  const metas: SubAccountSignV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,
@@ -66,7 +66,7 @@ export type SubAccountSignV1BaseAccountMetasWithSystemProgram = [
 export function getSubAccountSignV1BaseAccountMetasWithSystemProgram(
   accounts: SubAccountSignV1InstructionAccounts,
 ): SubAccountSignV1BaseAccountMetasWithSystemProgram {
-  let accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
+  const accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
 
   return [
     ...accountMetas,

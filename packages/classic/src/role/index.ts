@@ -30,7 +30,7 @@ export class Role {
     roleData: Uint8Array,
     swigId: Uint8Array,
   ) {
-    let { actions, authority } = deserializeRoleData(position, roleData);
+    const { actions, authority } = deserializeRoleData(position, roleData);
     return new Role(swigAddress, position, authority, actions, swigId);
   }
 
@@ -329,15 +329,15 @@ export function deserializeRoles(
   swigId: Uint8Array,
 ): Role[] {
   let cursor = 0;
-  let roles: Role[] = [];
+  const roles: Role[] = [];
 
   for (let i = 0; i < count; i++) {
-    let positionRaw = rolesBuffer.slice(cursor, cursor + POSITION_LENGTH);
-    let position = getPositionDecoder().decode(positionRaw);
+    const positionRaw = rolesBuffer.slice(cursor, cursor + POSITION_LENGTH);
+    const position = getPositionDecoder().decode(positionRaw);
 
     cursor += POSITION_LENGTH;
 
-    let roleData = rolesBuffer.slice(cursor, position.boundary);
+    const roleData = rolesBuffer.slice(cursor, position.boundary);
 
     roles.push(Role.from(swigAddress, position, roleData, swigId));
 
@@ -348,15 +348,15 @@ export function deserializeRoles(
 }
 
 export function deserializeRoleData(position: Position, roleData: Uint8Array) {
-  let authorityData = roleData.slice(0, position.authorityLen);
-  let rawActions = roleData.slice(position.authorityLen);
+  const authorityData = roleData.slice(0, position.authorityLen);
+  const rawActions = roleData.slice(position.authorityLen);
 
-  let authority = getRoleAuthority(
+  const authority = getRoleAuthority(
     position.authorityType,
     authorityData,
     position.id,
   );
-  let actions = Actions.from(rawActions, position.numActions);
+  const actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };
 }

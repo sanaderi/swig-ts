@@ -33,10 +33,10 @@ export function getSignV1BaseAccountMetasWithAuthority(
   accounts: SignV1InstructionAccounts,
   authority: PublicKey,
 ): [SignV1BaseAccountMetasWithAuthority, number] {
-  let accountMetas = getSignV1BaseAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSignV1BaseAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SignV1BaseAccountMetasWithAuthority = [
+  const metas: SignV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,

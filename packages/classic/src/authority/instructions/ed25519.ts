@@ -12,7 +12,6 @@ import {
   getSubAccountWithdrawV1TokenAccountMetasWithAuthority,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
-import { findSwigSubAccountPda } from '../../utils';
 import type { AuthorityInstruction } from './interface';
 
 /**
@@ -20,9 +19,9 @@ import type { AuthorityInstruction } from './interface';
  */
 export const Ed25519Instruction: AuthorityInstruction = {
   async addAuthorityV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [addAuthorityIxAccountMetas, authorityPayload] =
+    const [addAuthorityIxAccountMetas, authorityPayload] =
       getAddV1BaseAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.addAuthority(addAuthorityIxAccountMetas, {
@@ -32,9 +31,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async removeAuthorityV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [removeIxAccountMetas, authorityPayload] =
+    const [removeIxAccountMetas, authorityPayload] =
       getRemoveV1BaseAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.removeAuthority(removeIxAccountMetas, {
@@ -44,12 +43,12 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async signV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [signInstructionsAccount, authorityPayload] =
+    const [signInstructionsAccount, authorityPayload] =
       getSignV1BaseAccountMetasWithAuthority(accounts, authority);
 
-    let { accounts: metas, compactIxs } = compactInstructions(
+    const { accounts: metas, compactIxs } = compactInstructions(
       accounts.swig,
       signInstructionsAccount,
       data.innerInstructions,
@@ -63,9 +62,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async createSessionV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [createSessionAccount, authorityPayload] =
+    const [createSessionAccount, authorityPayload] =
       getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.createSession(createSessionAccount, {
@@ -75,9 +74,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountCreateV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [metas, authorityPayload] =
+    const [metas, authorityPayload] =
       getSubAccountCreateV1BaseAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.subAccountCreate(metas, {
@@ -87,9 +86,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1SolInstruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [metas, authorityPayload] =
+    const [metas, authorityPayload] =
       getSubAccountWithdrawV1SolAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.subAccountWithdraw(metas, {
@@ -99,9 +98,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1TokenInstruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [metas, authorityPayload] =
+    const [metas, authorityPayload] =
       getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
         accounts,
         authority,
@@ -114,9 +113,9 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountToggleV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [metas, authorityPayload] =
+    const [metas, authorityPayload] =
       getSubAccountToggleV1BaseAccountMetasWithAuthority(accounts, authority);
 
     return SwigInstructionV1.subAccountToggle(metas, {
@@ -126,12 +125,12 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountSignV1Instruction(accounts, data) {
-    let authority = new PublicKey(data.authorityData);
+    const authority = new PublicKey(data.authorityData);
 
-    let [signAccounts, authorityPayload] =
+    const [signAccounts, authorityPayload] =
       getSubAccountSignV1BaseAccountMetasWithAuthority(accounts, authority);
 
-    let { accounts: metas, compactIxs } = compactInstructions(
+    const { accounts: metas, compactIxs } = compactInstructions(
       accounts.swig,
       signAccounts,
       data.innerInstructions,

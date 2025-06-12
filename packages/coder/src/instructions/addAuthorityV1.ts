@@ -41,7 +41,7 @@ export function getAddAuthorityV1InstructionCodec(
   payloadSize: number,
   newAuthorityDataSize: number,
 ): Encoder<AddAuthorityV1InstructionDataArgs> {
-  let encoder: Encoder<AddAuthorityV1InstructionDataArgs> = transformEncoder(
+  const encoder: Encoder<AddAuthorityV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['newAuthorityDataLen', getU16Encoder()],
@@ -91,7 +91,7 @@ export type AddAuthorityV1AuthorityPayloadArgs = {
 
 
 export function getAddAuthorityV1AuthorityPayloadEncoder(): Encoder<AddAuthorityV1AuthorityPayloadArgs> {
-  let encoder: Encoder<AddAuthorityV1AuthorityPayloadArgs> = transformEncoder(
+  const encoder: Encoder<AddAuthorityV1AuthorityPayloadArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['newAuthorityDataLen', getU16Encoder()],

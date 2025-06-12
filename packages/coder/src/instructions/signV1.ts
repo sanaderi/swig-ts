@@ -46,7 +46,7 @@ export function getSignV1InstructionCodec(payloadSize: number): {
   decoder: Decoder<SignV1InstructionData>;
   codec: Codec<SignV1InstructionDataArgs, SignV1InstructionData>;
 } {
-  let encoder: Encoder<SignV1InstructionDataArgs> = transformEncoder(
+  const encoder: Encoder<SignV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['instructionPayloadLen', getU16Encoder()],
@@ -64,7 +64,7 @@ export function getSignV1InstructionCodec(payloadSize: number): {
     }),
   );
 
-  let decoder = getStructDecoder([
+  const decoder = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['instructionPayloadLen', getU16Decoder()],
     ['roleId', getU32Decoder()],
@@ -72,7 +72,7 @@ export function getSignV1InstructionCodec(payloadSize: number): {
     ['authorityPayload', fixDecoderSize(getBytesDecoder(), payloadSize)],
   ]);
 
-  let codec = combineCodec(encoder, decoder);
+  const codec = combineCodec(encoder, decoder);
 
   return { encoder, decoder, codec };
 }

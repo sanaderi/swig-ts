@@ -36,7 +36,7 @@ export async function createLegacyTransaction(
   feePayer: PublicKey,
   options?: { commitment?: Commitment },
 ): Promise<Transaction> {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
 
   transaction.instructions = instructions;
   transaction.feePayer = feePayer;
@@ -68,9 +68,9 @@ export function findSwigSubAccountPda(
   swigId: Uint8Array,
   roleId: number,
 ): [PublicKey, number] {
-  let roleIdU32 = new Uint8Array(4);
+  const roleIdU32 = new Uint8Array(4);
 
-  let view = new DataView(roleIdU32.buffer);
+  const view = new DataView(roleIdU32.buffer);
   view.setUint32(0, roleId, true);
 
   return PublicKey.findProgramAddressSync(

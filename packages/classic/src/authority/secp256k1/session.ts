@@ -77,14 +77,14 @@ export class Secp256k1SessionAuthority
   }
 
   private get _uninitPublicKeyBytes() {
-    let bytes = new Uint8Array(65);
+    const bytes = new Uint8Array(65);
     bytes.set([4]);
     bytes.set(this.info.publicKey, 1);
     return bytes;
   }
 
   private get info(): SessionData {
-    let data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
+    const data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
       ? getSecp256k1SessionDecoder().decode(this.data)
       : {
           ...getCreateSecp256k1SessionDecoder().decode(this.data),
@@ -102,7 +102,7 @@ export class Secp256k1SessionAuthority
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
-    let bytes = hexToBytes(publicKey);
+    const bytes = hexToBytes(publicKey);
     return Secp256k1SessionAuthority.uninitialized(
       bytes,
       maxSessionDuration,
@@ -115,7 +115,7 @@ export class Secp256k1SessionAuthority
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
-    let sessionData = getCreateSecp256k1SessionEncoder().encode({
+    const sessionData = getCreateSecp256k1SessionEncoder().encode({
       publicKey: getUnprefixedSecpBytes(publicKey, 64),
       sessionKey: sessionKey
         ? sessionKey.toBytes()
@@ -331,13 +331,13 @@ export class Secp256k1SessionAuthority
       tokenProgram?: PublicKey;
       options: InstructionDataOptions;
     }) {
-      let swigToken = getAssociatedTokenAddressSync(
+      const swigToken = getAssociatedTokenAddressSync(
         args.mint,
         args.swigAddress,
         true,
         args.tokenProgram,
       );
-      let subAccountToken = getAssociatedTokenAddressSync(
+      const subAccountToken = getAssociatedTokenAddressSync(
         args.mint,
         args.subAccount,
         true,

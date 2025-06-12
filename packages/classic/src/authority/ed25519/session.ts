@@ -35,7 +35,7 @@ export class Ed25519SessionAuthority
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Ed25519SessionAuthority {
-    let sessionData = getEd25519SessionEncoder().encode({
+    const sessionData = getEd25519SessionEncoder().encode({
       publicKey: publicKey.toBytes(),
       sessionKey: sessionKey
         ? sessionKey.toBytes()
@@ -84,7 +84,7 @@ export class Ed25519SessionAuthority
   }
 
   private get info(): Ed25519SessionData {
-    let data = getEd25519SessionDecoder().decode(this.data);
+    const data = getEd25519SessionDecoder().decode(this.data);
     return {
       ...data,
       publicKey: new PublicKey(data.publicKey),
@@ -280,13 +280,13 @@ export class Ed25519SessionAuthority
       amount: bigint;
       tokenProgram?: PublicKey;
     }) {
-      let swigToken = getAssociatedTokenAddressSync(
+      const swigToken = getAssociatedTokenAddressSync(
         args.mint,
         args.swigAddress,
         true,
         args.tokenProgram,
       );
-      let subAccountToken = getAssociatedTokenAddressSync(
+      const subAccountToken = getAssociatedTokenAddressSync(
         args.mint,
         args.subAccount,
         true,

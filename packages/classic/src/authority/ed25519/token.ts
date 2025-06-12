@@ -1,3 +1,7 @@
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
@@ -7,7 +11,6 @@ import { Authority, TokenBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
-import { getAssociatedTokenAddressSync, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export class Ed25519Authority
   extends TokenBasedAuthority
@@ -183,7 +186,7 @@ export class Ed25519Authority
       {
         roleId: args.roleId,
         authorityData: this.data,
-        enabled: args.enabled
+        enabled: args.enabled,
       },
     );
   }
@@ -218,13 +221,13 @@ export class Ed25519Authority
     amount: bigint;
     tokenProgram?: PublicKey;
   }) {
-    let swigToken = getAssociatedTokenAddressSync(
+    const swigToken = getAssociatedTokenAddressSync(
       args.mint,
       args.swigAddress,
       true,
       args.tokenProgram,
     );
-    let subAccountToken = getAssociatedTokenAddressSync(
+    const subAccountToken = getAssociatedTokenAddressSync(
       args.mint,
       args.subAccount,
       true,

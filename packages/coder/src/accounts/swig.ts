@@ -2,8 +2,6 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getArrayDecoder,
-  getArrayEncoder,
   getBytesDecoder,
   getBytesEncoder,
   getStructDecoder,
@@ -29,7 +27,7 @@ export type SwigAccount = {
   roles: number;
   role_counter: number;
   reserved_lamports: bigint;
-  roles_buffer: ReadonlyUint8Array
+  roles_buffer: ReadonlyUint8Array;
 };
 
 function getSwigEncoder(): Encoder<SwigAccount> {

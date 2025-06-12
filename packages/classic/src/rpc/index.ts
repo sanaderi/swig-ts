@@ -39,13 +39,13 @@ export async function createSwig(
   signers: Array<Signer>,
   options?: { commitment?: Commitment },
 ): Promise<TransactionSignature> {
-  let createInstruction = Swig.create({
+  const createInstruction = Swig.create({
     authorityInfo,
     payer,
     id,
     actions,
   });
-  let transaction = await createLegacyTransaction(
+  const transaction = await createLegacyTransaction(
     connection,
     [createInstruction],
     payer,
@@ -80,15 +80,15 @@ export async function getSignInstruction(
   signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionInstruction> {
-  let swig = await fetchSwig(connection, swigAddress, options);
+  const swig = await fetchSwig(connection, swigAddress, options);
 
-  let role = swig.findRoleByAuthority(authority);
+  const role = swig.findRoleByAuthority(authority);
 
   if (!role) {
     throw new Error("Authority doesn't have a role on the swig");
   }
 
-  let instOptions = signingFn && {
+  const instOptions = signingFn && {
     signingFn,
     currentSlot: BigInt(await connection.getSlot(options)),
   };
@@ -106,7 +106,7 @@ export async function signAndSend(
   signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
-  let signInstruction = await getSignInstruction(
+  const signInstruction = await getSignInstruction(
     connection,
     instructons,
     swigAddress,
@@ -117,7 +117,7 @@ export async function signAndSend(
   );
 
   // todo: option for sending versioned
-  let transaction = await createLegacyTransaction(
+  const transaction = await createLegacyTransaction(
     connection,
     [signInstruction],
     payer,
@@ -150,9 +150,9 @@ export async function addAuthority(
   signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
-  let swig = await fetchSwig(connection, swigAddress, options);
+  const swig = await fetchSwig(connection, swigAddress, options);
 
-  let role = swig.findRoleByAuthority(authority);
+  const role = swig.findRoleByAuthority(authority);
 
   if (!role) {
     throw new Error("Authority doesn't have a role on the swig");
@@ -161,12 +161,12 @@ export async function addAuthority(
   if (!role.canManageAuthority())
     throw new Error('Role cannot manage authorities on the swig');
 
-  let instOptions = signingFn && {
+  const instOptions = signingFn && {
     signingFn,
     currentSlot: BigInt(await connection.getSlot(options)),
   };
 
-  let addAuthorityIx = await addAuthorityInstruction(
+  const addAuthorityIx = await addAuthorityInstruction(
     role,
     payer.publicKey,
     newAuthority,
@@ -175,7 +175,7 @@ export async function addAuthority(
   );
 
   // todo: option for sending versioned
-  let transaction = await createLegacyTransaction(
+  const transaction = await createLegacyTransaction(
     connection,
     [addAuthorityIx],
     payer.publicKey,
@@ -197,9 +197,9 @@ export async function removeAuthority(
   signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature> {
-  let swig = await fetchSwig(connection, swigAddress, options);
+  const swig = await fetchSwig(connection, swigAddress, options);
 
-  let role = swig.findRoleByAuthority(authority);
+  const role = swig.findRoleByAuthority(authority);
 
   if (!role) {
     throw new Error("Authority doesn't have a role on the swig");
@@ -208,18 +208,18 @@ export async function removeAuthority(
   if (!role.canManageAuthority())
     throw new Error('Role cannot manage authorities on the swig');
 
-  let roleToRemove = swig.findRoleByAuthority(authorityToRemove);
+  const roleToRemove = swig.findRoleByAuthority(authorityToRemove);
 
   if (!roleToRemove) {
     throw new Error('Authority role does not exist on the swig');
   }
 
-  let instOptions = signingFn && {
+  const instOptions = signingFn && {
     signingFn,
     currentSlot: BigInt(await connection.getSlot(options)),
   };
 
-  let removeAuthorityIx = await removeAuthorityInstruction(
+  const removeAuthorityIx = await removeAuthorityInstruction(
     role,
     payer.publicKey,
     roleToRemove,
@@ -227,7 +227,7 @@ export async function removeAuthority(
   );
 
   // todo: option for sending versioned
-  let transaction = await createLegacyTransaction(
+  const transaction = await createLegacyTransaction(
     connection,
     [removeAuthorityIx],
     payer.publicKey,
@@ -249,12 +249,12 @@ export async function removeAllAuthorityRoles(
   signingFn?: SigningFn,
   options?: { commitment: Commitment },
 ): Promise<TransactionSignature[]> {
-  let sigs: TransactionSignature[] = [];
+  const sigs: TransactionSignature[] = [];
 
-  let swig = await fetchSwig(connection, swigAddress, options);
+  const swig = await fetchSwig(connection, swigAddress, options);
 
   while (swig.findRoleByAuthority(authorityToRemove)) {
-    let sig = await removeAuthority(
+    const sig = await removeAuthority(
       connection,
       swigAddress,
       authority,

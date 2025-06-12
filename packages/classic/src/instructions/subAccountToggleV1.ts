@@ -39,10 +39,10 @@ export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   accounts: SubAccountToggleV1InstructionAccounts,
   authority: PublicKey,
 ): [SubAccountToggleV1BaseAccountMetasWithAuthority, number] {
-  let accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SubAccountToggleV1BaseAccountMetasWithAuthority = [
+  const metas: SubAccountToggleV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,
@@ -61,7 +61,7 @@ export type SubAccountToggleV1BaseAccountMetasWithSystemProgram = [
 export function getSubAccountToggleV1BaseAccountMetasWithSystemProgram(
   accounts: SubAccountToggleV1InstructionAccounts,
 ): SubAccountToggleV1BaseAccountMetasWithSystemProgram {
-  let accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
+  const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
 
   return [
     ...accountMetas,

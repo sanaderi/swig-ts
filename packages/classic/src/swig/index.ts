@@ -9,7 +9,7 @@ import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
 import { Authority, type CreateAuthorityInfo } from '../authority';
 import { createSwigInstruction } from '../instructions';
-import { deserializeRoles, type Role, type SessionBasedRole } from '../role';
+import { deserializeRoles, type SessionBasedRole } from '../role';
 import { getUnprefixedSecpBytes } from '../utils';
 
 export class Swig {
@@ -43,7 +43,7 @@ export class Swig {
    * @returns Session-based Role
    */
   findRoleBySessionKey(sessionKey: PublicKey): SessionBasedRole | null {
-    let role = this.roles.find(
+    const role = this.roles.find(
       (r) =>
         r.isSessionBased() &&
         r.authority.sessionKey.toBase58() === sessionKey.toBase58(),
@@ -64,7 +64,7 @@ export class Swig {
     swigAddress: PublicKey,
     config?: Commitment | GetAccountInfoConfig,
   ): Promise<Swig | null> {
-    let maybeSwig = await fetchMaybeSwigAccount(
+    const maybeSwig = await fetchMaybeSwigAccount(
       connection,
       swigAddress,
       config,
@@ -87,7 +87,7 @@ export class Swig {
     swigAddress: PublicKey,
     config?: Commitment | GetAccountInfoConfig,
   ): Promise<Swig> {
-    let swig = await fetchSwigAccount(connection, swigAddress, config);
+    const swig = await fetchSwigAccount(connection, swigAddress, config);
 
     return new Swig(swigAddress, swig);
   }
@@ -102,7 +102,7 @@ export class Swig {
     connection: Connection,
     config?: Commitment | GetAccountInfoConfig,
   ) {
-    let swig = await fetchSwigAccount(connection, this.address, config);
+    const swig = await fetchSwigAccount(connection, this.address, config);
     this.account = swig;
   }
 
@@ -113,7 +113,7 @@ export class Swig {
    * @returns Swig
    */
   static fromRawAccountData(swigAddress: PublicKey, accountData: Uint8Array) {
-    let swigAccount = getSwigCodec().decode(accountData);
+    const swigAccount = getSwigCodec().decode(accountData);
     return new Swig(swigAddress, swigAccount);
   }
 

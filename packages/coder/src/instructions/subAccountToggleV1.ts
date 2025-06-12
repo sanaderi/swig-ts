@@ -37,7 +37,7 @@ export type SubAccountToggleV1InstructionDataArgs = {
 };
 
 export function getSubAccountToggleV1InstructionDataCodec() {
-  let encoder: Encoder<SubAccountToggleV1InstructionDataArgs> =
+  const encoder: Encoder<SubAccountToggleV1InstructionDataArgs> =
     transformEncoder(
       getStructEncoder([
         ['discriminator', getSwigInstructionDiscriminatorEncoder()],
@@ -53,7 +53,7 @@ export function getSubAccountToggleV1InstructionDataCodec() {
       }),
     );
 
-  let payloadEncoder: Encoder<
+  const payloadEncoder: Encoder<
     Omit<SubAccountToggleV1InstructionDataArgs, 'authorityPayload'>
   > = transformEncoder(
     getStructEncoder([
@@ -69,7 +69,7 @@ export function getSubAccountToggleV1InstructionDataCodec() {
     }),
   );
 
-  let decoder: Decoder<SubAccountToggleV1InstructionData> = getStructDecoder([
+  const decoder: Decoder<SubAccountToggleV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['_padding', fixDecoderSize(getBytesDecoder(), 1)],
     ['enabled', getBooleanDecoder()],
@@ -77,7 +77,7 @@ export function getSubAccountToggleV1InstructionDataCodec() {
     ['authorityPayload', getBytesDecoder()],
   ]);
 
-  let codec: Codec<
+  const codec: Codec<
     SubAccountToggleV1InstructionDataArgs,
     SubAccountToggleV1InstructionData
   > = combineCodec(encoder, decoder);

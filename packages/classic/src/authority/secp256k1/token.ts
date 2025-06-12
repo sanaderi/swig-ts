@@ -1,16 +1,23 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
-import { Authority, TokenBasedAuthority } from '../abstract';
+import {
+  compressedPubkeyToAddress,
+  findSwigSubAccountPda,
+  getUnprefixedSecpBytes,
+} from '../../utils';
+import { TokenBasedAuthority } from '../abstract';
+import type { CreateAuthorityInfo } from '../createAuthority';
 import { Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 import type { Secp256k1BasedAuthority } from './based';
-import type { CreateAuthorityInfo } from '../createAuthority';
-import { compressedPubkeyToAddress, findSwigSubAccountPda, getUnprefixedSecpBytes } from '../../utils';
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export class Secp256k1Authority
   extends TokenBasedAuthority
@@ -23,7 +30,7 @@ export class Secp256k1Authority
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
-    let data = hexToBytes(pkString);
+    const data = hexToBytes(pkString);
     return Secp256k1Authority.fromPublicKeyBytes(data);
   }
 
@@ -32,7 +39,7 @@ export class Secp256k1Authority
   }
 
   static fromPublicKey(pk: string | Uint8Array): Secp256k1Authority {
-    let data = getUnprefixedSecpBytes(pk, 64);
+    const data = getUnprefixedSecpBytes(pk, 64);
     return new Secp256k1Authority(data);
   }
 
@@ -73,7 +80,7 @@ export class Secp256k1Authority
   }
 
   private get _uninitPublicKeyBytes() {
-    let bytes = new Uint8Array(65);
+    const bytes = new Uint8Array(65);
     bytes.set([4]);
     bytes.set(this.data, 1);
     return bytes;
@@ -269,13 +276,13 @@ export class Secp256k1Authority
     tokenProgram?: PublicKey;
     options: InstructionDataOptions;
   }) {
-    let swigToken = getAssociatedTokenAddressSync(
+    const swigToken = getAssociatedTokenAddressSync(
       args.mint,
       args.swigAddress,
       true,
       args.tokenProgram,
     );
-    let subAccountToken = getAssociatedTokenAddressSync(
+    const subAccountToken = getAssociatedTokenAddressSync(
       args.mint,
       args.subAccount,
       true,
@@ -295,7 +302,7 @@ export class Secp256k1Authority
         authorityData: this.data,
         amount: args.amount,
       },
-      args.options
+      args.options,
     );
   }
 }

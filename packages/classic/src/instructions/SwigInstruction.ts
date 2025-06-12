@@ -47,8 +47,8 @@ export function createSwigInstruction(
   accounts: { payer: PublicKey },
   data: Omit<CreateV1InstructionDataArgs, 'bump'>,
 ): TransactionInstruction {
-  let [swigAddress, bump] = findSwigPda(Uint8Array.from(data.id));
-  let createIxAccountMetas = getCreateV1BaseAccountMetas({
+  const [swigAddress, bump] = findSwigPda(Uint8Array.from(data.id));
+  const createIxAccountMetas = getCreateV1BaseAccountMetas({
     ...accounts,
     swig: swigAddress,
   });
@@ -71,10 +71,10 @@ export class SwigInstructionV1 {
     accounts: T,
     data: CreateV1InstructionDataArgs,
   ): TransactionInstruction {
-    let createV1InstructionDataEncoder =
+    const createV1InstructionDataEncoder =
       getCreateV1InstructionDataCodec().encoder;
 
-    let createV1InstructionData = createV1InstructionDataEncoder.encode(data);
+    const createV1InstructionData = createV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(accounts, new Uint8Array(createV1InstructionData));
   }
@@ -91,12 +91,12 @@ export class SwigInstructionV1 {
     accounts: T,
     data: AddAuthorityV1InstructionDataArgs,
   ): TransactionInstruction {
-    let addV1InstructionDataEncoder = getAddAuthorityV1InstructionCodec(
+    const addV1InstructionDataEncoder = getAddAuthorityV1InstructionCodec(
       data.authorityPayload.length,
       data.newAuthorityData.length,
     );
 
-    let addAuthorityV1InstructionData =
+    const addAuthorityV1InstructionData =
       addV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(
@@ -117,11 +117,11 @@ export class SwigInstructionV1 {
     accounts: T,
     data: RemoveAuthorityV1InstructionDataArgs,
   ): TransactionInstruction {
-    let removeV1InstructionDataEncoder = getRemoveAuthorityV1InstructionCodec(
+    const removeV1InstructionDataEncoder = getRemoveAuthorityV1InstructionCodec(
       data.authorityPayload.length,
     ).encoder;
 
-    let removeAuthorityV1InstructionData =
+    const removeAuthorityV1InstructionData =
       removeV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(
@@ -142,11 +142,11 @@ export class SwigInstructionV1 {
     accounts: T,
     data: SignV1InstructionDataArgs,
   ): TransactionInstruction {
-    let signV1InstructionDataEncoder = getSignV1InstructionCodec(
+    const signV1InstructionDataEncoder = getSignV1InstructionCodec(
       data.authorityPayload.length,
     ).encoder;
 
-    let signV1InstructionData = signV1InstructionDataEncoder.encode(data);
+    const signV1InstructionData = signV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(accounts, new Uint8Array(signV1InstructionData));
   }
@@ -157,12 +157,12 @@ export class SwigInstructionV1 {
     accounts: T,
     data: CreateSessionV1InstructionDataArgs & { payloadSize?: number },
   ): TransactionInstruction {
-    let createSessionV1InstructionDataEncoder =
+    const createSessionV1InstructionDataEncoder =
       getCreateSessionV1InstructionCodec(
         data.payloadSize ?? data.authorityPayload.length,
       ).encoder;
 
-    let createSessionV1InstructionData =
+    const createSessionV1InstructionData =
       createSessionV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(
@@ -177,10 +177,10 @@ export class SwigInstructionV1 {
     accounts: T,
     data: SubAccountCreateV1InstructionDataArgs,
   ): TransactionInstruction {
-    let subAccountCreateV1InstructionDataEncoder =
+    const subAccountCreateV1InstructionDataEncoder =
       getSubAccountCreateV1InstructionDataCodec().encoder;
 
-    let subAccountCreateV1InstructionData =
+    const subAccountCreateV1InstructionData =
       subAccountCreateV1InstructionDataEncoder.encode(data);
 
     return swigInstruction(
@@ -195,9 +195,9 @@ export class SwigInstructionV1 {
     accounts: T,
     data: SubAccountSignV1InstructionDataArgs,
   ): TransactionInstruction {
-    let encoder = getSubAccountSignV1InstructionDataCodec().encoder;
+    const encoder = getSubAccountSignV1InstructionDataCodec().encoder;
 
-    let instructionData = encoder.encode(data);
+    const instructionData = encoder.encode(data);
 
     return swigInstruction(accounts, new Uint8Array(instructionData));
   }
@@ -208,9 +208,9 @@ export class SwigInstructionV1 {
     accounts: T,
     data: SubAccountWithdrawV1InstructionDataArgs,
   ): TransactionInstruction {
-    let encoder = getSubAccountWithdrawV1InstructionDataCodec().encoder;
+    const encoder = getSubAccountWithdrawV1InstructionDataCodec().encoder;
 
-    let instructionData = encoder.encode(data);
+    const instructionData = encoder.encode(data);
 
     return swigInstruction(accounts, new Uint8Array(instructionData));
   }
@@ -221,9 +221,9 @@ export class SwigInstructionV1 {
     accounts: T,
     data: SubAccountToggleV1InstructionDataArgs,
   ): TransactionInstruction {
-    let encoder = getSubAccountToggleV1InstructionDataCodec().encoder;
+    const encoder = getSubAccountToggleV1InstructionDataCodec().encoder;
 
-    let instructionData = encoder.encode(data);
+    const instructionData = encoder.encode(data);
 
     return swigInstruction(accounts, new Uint8Array(instructionData));
   }

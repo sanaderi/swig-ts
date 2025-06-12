@@ -33,10 +33,10 @@ export function getCreateSessionV1BaseAccountMetasWithAuthority(
   accounts: CreateSessionV1InstructionAccounts,
   authority: PublicKey,
 ): [CreateSessionV1BaseAccountMetasWithAuthority, number] {
-  let accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: CreateSessionV1BaseAccountMetasWithAuthority = [
+  const metas: CreateSessionV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,
@@ -55,7 +55,7 @@ export type CreateSessionV1BaseAccountMetasWithSystemProgram = [
 export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
   accounts: CreateSessionV1InstructionAccounts,
 ): CreateSessionV1BaseAccountMetasWithSystemProgram {
-  let accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
+  const accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
 
   return [
     ...accountMetas,
