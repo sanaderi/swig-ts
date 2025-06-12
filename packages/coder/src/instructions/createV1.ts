@@ -51,7 +51,7 @@ export type CreateV1InstructionDataArgs = {
 };
 
 export function getCreateV1InstructionDataCodec() {
-  let encoder: Encoder<CreateV1InstructionDataArgs> = transformEncoder(
+  const encoder: Encoder<CreateV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['authorityType', getAuthorityTypeEncoder()],
@@ -69,7 +69,7 @@ export function getCreateV1InstructionDataCodec() {
     }),
   );
 
-  let decoder: Decoder<CreateV1InstructionData> = getStructDecoder([
+  const decoder: Decoder<CreateV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['authorityType', getAuthorityTypeDecoder()],
     ['authorityDataLen', getU16Decoder()],
@@ -80,7 +80,7 @@ export function getCreateV1InstructionDataCodec() {
     ['actions', getBytesDecoder()],
   ]);
 
-  let codec: Codec<CreateV1InstructionDataArgs, CreateV1InstructionData> =
+  const codec: Codec<CreateV1InstructionDataArgs, CreateV1InstructionData> =
     combineCodec(encoder, decoder);
 
   return { encoder, decoder, codec };

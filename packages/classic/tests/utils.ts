@@ -37,7 +37,7 @@ export function sendSVMTransaction(
   svm: LiteSVM,
   instruction: TransactionInstruction,
   payer: Keypair,
-  signers: Keypair[] = []
+  signers: Keypair[] = [],
 ) {
   let transaction = new Transaction();
   transaction.instructions = [instruction];

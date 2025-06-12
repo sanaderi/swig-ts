@@ -1,5 +1,9 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
+import {
+  getAssociatedTokenAddressSync,
+  TOKEN_PROGRAM_ID,
+} from '@solana/spl-token';
 import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import {
   AuthorityType,
@@ -10,13 +14,16 @@ import {
 } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
-import { compressedPubkeyToAddress, findSwigSubAccountPda, getUnprefixedSecpBytes } from '../../utils';
+import {
+  compressedPubkeyToAddress,
+  findSwigSubAccountPda,
+  getUnprefixedSecpBytes,
+} from '../../utils';
 import { SessionBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
 import type { InstructionDataOptions } from '../instructions/interface';
 import type { Secp256k1BasedAuthority } from './based';
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 export class Secp256k1SessionAuthority
   extends SessionBasedAuthority
@@ -77,14 +84,14 @@ export class Secp256k1SessionAuthority
   }
 
   private get _uninitPublicKeyBytes() {
-    let bytes = new Uint8Array(65);
+    const bytes = new Uint8Array(65);
     bytes.set([4]);
     bytes.set(this.info.publicKey, 1);
     return bytes;
   }
 
   private get info(): SessionData {
-    let data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
+    const data: Secp256k1SessionAuthorityDataArgs = this.isInitialized()
       ? getSecp256k1SessionDecoder().decode(this.data)
       : {
           ...getCreateSecp256k1SessionDecoder().decode(this.data),
@@ -102,7 +109,7 @@ export class Secp256k1SessionAuthority
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
-    let bytes = hexToBytes(publicKey);
+    const bytes = hexToBytes(publicKey);
     return Secp256k1SessionAuthority.uninitialized(
       bytes,
       maxSessionDuration,
@@ -115,7 +122,7 @@ export class Secp256k1SessionAuthority
     maxSessionDuration: bigint,
     sessionKey?: PublicKey,
   ): Secp256k1SessionAuthority {
-    let sessionData = getCreateSecp256k1SessionEncoder().encode({
+    const sessionData = getCreateSecp256k1SessionEncoder().encode({
       publicKey: getUnprefixedSecpBytes(publicKey, 64),
       sessionKey: sessionKey
         ? sessionKey.toBytes()
@@ -232,134 +239,134 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountCreate(args: {
-      payer: PublicKey;
-      swigAddress: PublicKey;
-      swigId: Uint8Array;
-      roleId: number;
-      options: InstructionDataOptions;
-    }) {
-      const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
-      return Secp256k1Instruction.subAccountCreateV1Instruction(
-        {
-          payer: args.payer,
-          swig: args.swigAddress,
-          subAccount,
-        },
-        {
-          roleId: args.roleId,
-          authorityData: this.data,
-          bump,
-        },
-        args.options,
-      );
-    }
-  
-    subAccountSign(args: {
-      payer: PublicKey;
-      swigAddress: PublicKey;
-      subAccount: PublicKey;
-      roleId: number;
-      innerInstructions: TransactionInstruction[];
-    }) {
-      return Ed25519Instruction.subAccountSignV1Instruction(
-        {
-          payer: args.payer,
-          swig: args.swigAddress,
-          subAccount: args.subAccount,
-        },
-        {
-          roleId: args.roleId,
-          authorityData: this.sessionKey.toBytes(),
-          innerInstructions: args.innerInstructions,
-        },
-      );
-    }
-  
-    subAccountToggle(args: {
-      payer: PublicKey;
-      swigAddress: PublicKey;
-      subAccount: PublicKey;
-      roleId: number;
-      enabled: boolean;
-      options: InstructionDataOptions;
-    }) {
-      return Secp256k1Instruction.subAccountToggleV1Instruction(
-        {
-          payer: args.payer,
-          swig: args.swigAddress,
-          subAccount: args.subAccount,
-        },
-        {
-          roleId: args.roleId,
-          authorityData: this.data,
-          enabled: args.enabled,
-        },
-        args.options,
-      );
-    }
-  
-    subAccountWithdrawSol(args: {
-      payer: PublicKey;
-      swigAddress: PublicKey;
-      subAccount: PublicKey;
-      roleId: number;
-      amount: bigint;
-      options: InstructionDataOptions;
-    }) {
-      return Secp256k1Instruction.subAccountWithdrawV1SolInstruction(
-        {
-          payer: args.payer,
-          swig: args.swigAddress,
-          subAccount: args.subAccount,
-        },
-        {
-          roleId: args.roleId,
-          authorityData: this.data,
-          amount: args.amount,
-        },
-        args.options,
-      );
-    }
-  
-    subAccountWithdrawToken(args: {
-      payer: PublicKey;
-      swigAddress: PublicKey;
-      subAccount: PublicKey;
-      roleId: number;
-      mint: PublicKey;
-      amount: bigint;
-      tokenProgram?: PublicKey;
-      options: InstructionDataOptions;
-    }) {
-      let swigToken = getAssociatedTokenAddressSync(
-        args.mint,
-        args.swigAddress,
-        true,
-        args.tokenProgram,
-      );
-      let subAccountToken = getAssociatedTokenAddressSync(
-        args.mint,
-        args.subAccount,
-        true,
-        args.tokenProgram,
-      );
-      return Secp256k1Instruction.subAccountWithdrawV1TokenInstruction(
-        {
-          payer: args.payer,
-          swig: args.swigAddress,
-          subAccount: args.subAccount,
-          subAccountToken,
-          swigToken,
-          tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
-        },
-        {
-          roleId: args.roleId,
-          authorityData: this.data,
-          amount: args.amount,
-        },
-        args.options
-      );
-    }
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    swigId: Uint8Array;
+    roleId: number;
+    options: InstructionDataOptions;
+  }) {
+    const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
+    return Secp256k1Instruction.subAccountCreateV1Instruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+        subAccount,
+      },
+      {
+        roleId: args.roleId,
+        authorityData: this.data,
+        bump,
+      },
+      args.options,
+    );
+  }
+
+  subAccountSign(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    innerInstructions: TransactionInstruction[];
+  }) {
+    return Ed25519Instruction.subAccountSignV1Instruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+        subAccount: args.subAccount,
+      },
+      {
+        roleId: args.roleId,
+        authorityData: this.sessionKey.toBytes(),
+        innerInstructions: args.innerInstructions,
+      },
+    );
+  }
+
+  subAccountToggle(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    enabled: boolean;
+    options: InstructionDataOptions;
+  }) {
+    return Secp256k1Instruction.subAccountToggleV1Instruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+        subAccount: args.subAccount,
+      },
+      {
+        roleId: args.roleId,
+        authorityData: this.data,
+        enabled: args.enabled,
+      },
+      args.options,
+    );
+  }
+
+  subAccountWithdrawSol(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    amount: bigint;
+    options: InstructionDataOptions;
+  }) {
+    return Secp256k1Instruction.subAccountWithdrawV1SolInstruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+        subAccount: args.subAccount,
+      },
+      {
+        roleId: args.roleId,
+        authorityData: this.data,
+        amount: args.amount,
+      },
+      args.options,
+    );
+  }
+
+  subAccountWithdrawToken(args: {
+    payer: PublicKey;
+    swigAddress: PublicKey;
+    subAccount: PublicKey;
+    roleId: number;
+    mint: PublicKey;
+    amount: bigint;
+    tokenProgram?: PublicKey;
+    options: InstructionDataOptions;
+  }) {
+    const swigToken = getAssociatedTokenAddressSync(
+      args.mint,
+      args.swigAddress,
+      true,
+      args.tokenProgram,
+    );
+    const subAccountToken = getAssociatedTokenAddressSync(
+      args.mint,
+      args.subAccount,
+      true,
+      args.tokenProgram,
+    );
+    return Secp256k1Instruction.subAccountWithdrawV1TokenInstruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+        subAccount: args.subAccount,
+        subAccountToken,
+        swigToken,
+        tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
+      },
+      {
+        roleId: args.roleId,
+        authorityData: this.data,
+        amount: args.amount,
+      },
+      args.options,
+    );
+  }
 }
 
 export type SessionData = {

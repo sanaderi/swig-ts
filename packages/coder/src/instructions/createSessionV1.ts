@@ -63,7 +63,7 @@ export function getCreateSessionV1AuthorityPayloadCodec(payloadSize: number): {
     CreateSessionV1InstructionAuthorityPayload
   >;
 } {
-  let encoder: Encoder<CreateSessionV1InstructionAuthorityPayloadArgs> =
+  const encoder: Encoder<CreateSessionV1InstructionAuthorityPayloadArgs> =
     transformEncoder(
       getStructEncoder([
         ['discriminator', getSwigInstructionDiscriminatorEncoder()],
@@ -79,7 +79,7 @@ export function getCreateSessionV1AuthorityPayloadCodec(payloadSize: number): {
       }),
     );
 
-  let decoder: Decoder<CreateSessionV1InstructionAuthorityPayload> =
+  const decoder: Decoder<CreateSessionV1InstructionAuthorityPayload> =
     getStructDecoder([
       ['discriminator', getSwigInstructionDiscriminatorDecoder()],
       ['roleId', getU32Decoder()],
@@ -88,7 +88,7 @@ export function getCreateSessionV1AuthorityPayloadCodec(payloadSize: number): {
       ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
     ]);
 
-  let codec: Codec<
+  const codec: Codec<
     CreateSessionV1InstructionAuthorityPayloadArgs,
     CreateSessionV1InstructionAuthorityPayload
   > = combineCodec(encoder, decoder);
@@ -104,7 +104,7 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
     CreateSessionV1InstructionData
   >;
 } {
-  let encoder: Encoder<CreateSessionV1InstructionDataArgs> = transformEncoder(
+  const encoder: Encoder<CreateSessionV1InstructionDataArgs> = transformEncoder(
     getStructEncoder([
       ['discriminator', getSwigInstructionDiscriminatorEncoder()],
       ['authorityPayloadLen', getU16Encoder()],
@@ -120,7 +120,7 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
     }),
   );
 
-  let decoder: Decoder<CreateSessionV1InstructionData> = getStructDecoder([
+  const decoder: Decoder<CreateSessionV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['roleId', getU32Decoder()],
     ['authorityPayloadLen', getU16Decoder()],
@@ -129,7 +129,7 @@ export function getCreateSessionV1InstructionCodec(payloadSize: number): {
     ['authorityPayload', getBytesDecoder()],
   ]);
 
-  let codec: Codec<
+  const codec: Codec<
     CreateSessionV1InstructionDataArgs,
     CreateSessionV1InstructionData
   > = combineCodec(encoder, decoder);

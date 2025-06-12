@@ -12,8 +12,6 @@ export function isEd25519BasedAuthority(
 }
 
 export function getEd25519BasedAuthority(authority: Authority) {
-  if (!isEd25519BasedAuthority(authority)) return null
-  return authority
+  if (!isEd25519BasedAuthority(authority)) return null;
+  return authority;
 }
-
-

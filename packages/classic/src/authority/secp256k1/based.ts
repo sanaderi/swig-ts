@@ -25,8 +25,7 @@ export function isSecp256k1BasedAuthority(
   authority: Authority,
 ): authority is Authority & Ed25519BasedAuthority {
   return (
-    'secp256k1PublicKey' in authority &&
-    'secp256k1PublicKeyString' in authority
+    'secp256k1PublicKey' in authority && 'secp256k1PublicKeyString' in authority
   );
 }
 

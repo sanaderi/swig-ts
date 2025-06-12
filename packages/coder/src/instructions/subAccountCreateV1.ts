@@ -38,7 +38,7 @@ export type SubAccountCreateV1InstructionDataArgs = {
 };
 
 export function getSubAccountCreateV1InstructionDataCodec() {
-  let encoder: Encoder<SubAccountCreateV1InstructionDataArgs> =
+  const encoder: Encoder<SubAccountCreateV1InstructionDataArgs> =
     transformEncoder(
       getStructEncoder([
         ['discriminator', getSwigInstructionDiscriminatorEncoder()],
@@ -56,7 +56,7 @@ export function getSubAccountCreateV1InstructionDataCodec() {
       }),
     );
 
-  let payloadEncoder: Encoder<
+  const payloadEncoder: Encoder<
     Omit<SubAccountCreateV1InstructionDataArgs, 'authorityPayload'>
   > = transformEncoder(
     getStructEncoder([
@@ -74,7 +74,7 @@ export function getSubAccountCreateV1InstructionDataCodec() {
     }),
   );
 
-  let decoder: Decoder<SubAccountCreateV1InstructionData> = getStructDecoder([
+  const decoder: Decoder<SubAccountCreateV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['_padding1', fixDecoderSize(getBytesDecoder(), 2)],
     ['roleId', getU32Decoder()],
@@ -83,11 +83,10 @@ export function getSubAccountCreateV1InstructionDataCodec() {
     ['authorityPayload', getBytesDecoder()],
   ]);
 
-  let codec: Codec<
+  const codec: Codec<
     SubAccountCreateV1InstructionDataArgs,
     SubAccountCreateV1InstructionData
   > = combineCodec(encoder, decoder);
 
   return { encoder, decoder, codec, payloadEncoder };
 }
-

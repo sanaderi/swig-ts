@@ -100,10 +100,10 @@ export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1SolInstructionAccounts,
   authority: PublicKey,
 ): [SubAccountWithdrawV1SolAccountMetasWithAuthority, number] {
-  let accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SubAccountWithdrawV1SolAccountMetasWithAuthority = [
+  const metas: SubAccountWithdrawV1SolAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,
@@ -123,10 +123,10 @@ export function getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1TokenInstructionAccounts,
   authority: PublicKey,
 ): [SubAccountWithdrawV1TokenAccountMetasWithAuthority, number] {
-  let accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SubAccountWithdrawV1TokenAccountMetasWithAuthority = [
+  const metas: SubAccountWithdrawV1TokenAccountMetasWithAuthority = [
     accountMetas[0], // swig
     accountMetas[1], // payer
     accountMetas[2], // sub-account

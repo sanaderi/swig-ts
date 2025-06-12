@@ -15,8 +15,8 @@ export interface CreateAuthorityInfo {
 export function createEd25519AuthorityInfo(
   publicKey: PublicKey,
 ): CreateAuthorityInfo {
-  let data = publicKey.toBytes();
-  let type = AuthorityType.Ed25519;
+  const data = publicKey.toBytes();
+  const type = AuthorityType.Ed25519;
   return { createAuthorityInfo: { data, type } };
 }
 
@@ -25,14 +25,14 @@ export function createEd25519SessionAuthorityInfo(
   maxSessionDuration: bigint,
   sessionKey?: PublicKey,
 ): CreateAuthorityInfo {
-  let sessionData = getEd25519SessionEncoder().encode({
+  const sessionData = getEd25519SessionEncoder().encode({
     publicKey: publicKey.toBytes(),
     sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
     currentSessionExpiration: 0n,
     maxSessionLength: maxSessionDuration,
   });
-  let data = Uint8Array.from(sessionData.slice(0, 72));
-  let type = AuthorityType.Ed25519Session;
+  const data = Uint8Array.from(sessionData.slice(0, 72));
+  const type = AuthorityType.Ed25519Session;
 
   return { createAuthorityInfo: { data, type } };
 }
@@ -45,8 +45,8 @@ export function createEd25519SessionAuthorityInfo(
 export function createSecp256k1AuthorityInfo(
   publicKey: string | Uint8Array,
 ): CreateAuthorityInfo {
-  let data = getUnprefixedSecpBytes(publicKey, 64);
-  let type = AuthorityType.Secp256k1;
+  const data = getUnprefixedSecpBytes(publicKey, 64);
+  const type = AuthorityType.Secp256k1;
 
   return { createAuthorityInfo: { data, type } };
 }
@@ -61,16 +61,16 @@ export function createSecp256k1SessionAuthorityInfo(
   maxSessionDuration: bigint,
   sessionKey?: PublicKey,
 ): CreateAuthorityInfo {
-  let publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
+  const publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
-  let sessionData = getCreateSecp256k1SessionEncoder().encode({
+  const sessionData = getCreateSecp256k1SessionEncoder().encode({
     publicKey: publicKeyBytes,
     sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
     maxSessionLength: maxSessionDuration,
   });
 
-  let data = Uint8Array.from(sessionData);
-  let type = AuthorityType.Secp256k1Session;
+  const data = Uint8Array.from(sessionData);
+  const type = AuthorityType.Secp256k1Session;
 
   return { createAuthorityInfo: { data, type } };
 }

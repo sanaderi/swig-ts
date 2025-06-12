@@ -43,26 +43,27 @@ export type SubAccountSignV1InstructionDataArgs = {
 };
 
 export function getSubAccountSignV1InstructionDataCodec() {
-  let encoder: Encoder<SubAccountSignV1InstructionDataArgs> = transformEncoder(
-    getStructEncoder([
-      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
-      ['instructionPayloadLen', getU16Encoder()],
-      ['roleId', getU32Encoder()],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 8)],
-      ['compactInstructions', getCompactInstructionsEncoder()],
-      ['authorityPayload', getBytesEncoder()],
-    ]),
-    (value) => ({
-      ...value,
-      discriminator: Discriminator.SubAccountSignV1,
-      instructionPayloadLen: getCompactInstructionsEncoder().encode(
-        value.compactInstructions,
-      ).length,
-      _padding: new Uint8Array(8),
-    }),
-  );
+  const encoder: Encoder<SubAccountSignV1InstructionDataArgs> =
+    transformEncoder(
+      getStructEncoder([
+        ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+        ['instructionPayloadLen', getU16Encoder()],
+        ['roleId', getU32Encoder()],
+        ['_padding', fixEncoderSize(getBytesEncoder(), 8)],
+        ['compactInstructions', getCompactInstructionsEncoder()],
+        ['authorityPayload', getBytesEncoder()],
+      ]),
+      (value) => ({
+        ...value,
+        discriminator: Discriminator.SubAccountSignV1,
+        instructionPayloadLen: getCompactInstructionsEncoder().encode(
+          value.compactInstructions,
+        ).length,
+        _padding: new Uint8Array(8),
+      }),
+    );
 
-  let payloadEncoder: Encoder<
+  const payloadEncoder: Encoder<
     Omit<SubAccountSignV1InstructionDataArgs, 'authorityPayload'>
   > = transformEncoder(
     getStructEncoder([
@@ -82,7 +83,7 @@ export function getSubAccountSignV1InstructionDataCodec() {
     }),
   );
 
-  let decoder: Decoder<SubAccountSignV1InstructionData> = getStructDecoder([
+  const decoder: Decoder<SubAccountSignV1InstructionData> = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
     ['instructionPayloadLen', getU16Decoder()],
     ['roleId', getU32Decoder()],
@@ -91,7 +92,7 @@ export function getSubAccountSignV1InstructionDataCodec() {
     ['authorityPayload', getBytesDecoder()],
   ]);
 
-  let codec: Codec<
+  const codec: Codec<
     SubAccountSignV1InstructionDataArgs,
     SubAccountSignV1InstructionData
   > = combineCodec(encoder, decoder);

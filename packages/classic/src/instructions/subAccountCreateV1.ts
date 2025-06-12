@@ -1,4 +1,8 @@
-import { SystemProgram, type AccountMeta, type PublicKey } from '@solana/web3.js';
+import {
+  SystemProgram,
+  type AccountMeta,
+  type PublicKey,
+} from '@solana/web3.js';
 
 export type SubAccountCreateV1InstructionAccounts = {
   swig: PublicKey;
@@ -6,7 +10,12 @@ export type SubAccountCreateV1InstructionAccounts = {
   subAccount: PublicKey;
 };
 
-export type SubAccountCreateV1BaseAccountMetas = [AccountMeta, AccountMeta, AccountMeta, AccountMeta];
+export type SubAccountCreateV1BaseAccountMetas = [
+  AccountMeta,
+  AccountMeta,
+  AccountMeta,
+  AccountMeta,
+];
 
 export function getSubAccountCreateV1BaseAccountMetas(
   accounts: SubAccountCreateV1InstructionAccounts,
@@ -44,10 +53,10 @@ export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
   accounts: SubAccountCreateV1InstructionAccounts,
   authority: PublicKey,
 ): [SubAccountCreateV1BaseAccountMetasWithAuthority, number] {
-  let accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
-  let authorityIndex = accountMetas.length;
+  const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
+  const authorityIndex = accountMetas.length;
 
-  let metas: SubAccountCreateV1BaseAccountMetasWithAuthority = [
+  const metas: SubAccountCreateV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
       pubkey: authority,
@@ -66,7 +75,7 @@ export type SubAccountCreateV1BaseAccountMetasWithSystemProgram = [
 export function getSubAccountCreateV1BaseAccountMetasWithSystemProgram(
   accounts: SubAccountCreateV1InstructionAccounts,
 ): SubAccountCreateV1BaseAccountMetasWithSystemProgram {
-  let accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
+  const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
 
   return [
     ...accountMetas,

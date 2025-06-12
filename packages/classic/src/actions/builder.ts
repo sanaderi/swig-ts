@@ -43,10 +43,10 @@ export class ActionsBuilder {
 
   private data(): ActionsData {
     let cursor = 0;
-    let bytes = new Uint8Array(this.bufferLength());
+    const bytes = new Uint8Array(this.bufferLength());
 
     this._actionConfigs.forEach((config) => {
-      let boundary = cursor + config.lengthWithHeader;
+      const boundary = cursor + config.lengthWithHeader;
       bytes.set(config.encodeWithHeader(boundary), cursor);
       cursor = boundary;
     });
@@ -59,7 +59,7 @@ export class ActionsBuilder {
    * @returns Actions
    */
   get() {
-    let { bytes, noOfActions } = this.data();
+    const { bytes, noOfActions } = this.data();
     return Actions.from(bytes, noOfActions);
   }
 
@@ -279,10 +279,10 @@ abstract class ActionConfig {
   }
 
   encodeWithHeader(boundary: number): Readonly<Uint8Array> {
-    let data = this.encode();
-    let header = getActionHeaderEncoder().encode(this.header(boundary));
+    const data = this.encode();
+    const header = getActionHeaderEncoder().encode(this.header(boundary));
 
-    let bytes = new Uint8Array(this.lengthWithHeader);
+    const bytes = new Uint8Array(this.lengthWithHeader);
 
     bytes.set(header);
 

@@ -31,7 +31,7 @@ export function identifySwigInstruction(
   instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): SwigInstructionDiscriminator {
   const data = 'data' in instruction ? instruction.data : instruction;
-  let discriminatorEncoder = getSwigInstructionDiscriminatorEncoder();
+  const discriminatorEncoder = getSwigInstructionDiscriminatorEncoder();
   if (containsBytes(data, discriminatorEncoder.encode(0), 0)) {
     return SwigInstructionDiscriminator.CreateV1;
   }

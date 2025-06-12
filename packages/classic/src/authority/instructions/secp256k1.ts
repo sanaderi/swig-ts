@@ -37,14 +37,14 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let addAuthorityIxAccountMetas =
+    const addAuthorityIxAccountMetas =
       getAddAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayloadCodec = getAddAuthorityV1AuthorityPayloadEncoder();
+    const authorityPayloadCodec = getAddAuthorityV1AuthorityPayloadEncoder();
 
-    let message = authorityPayloadCodec.encode(data);
+    const message = authorityPayloadCodec.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       addAuthorityIxAccountMetas,
       options,
@@ -62,15 +62,15 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
+    const removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
 
-    let authorityPayloadCodec = getRemoveAuthorityV1AuthorityPayloadEncoder(
+    const authorityPayloadCodec = getRemoveAuthorityV1AuthorityPayloadEncoder(
       SECP_AUTHORITY_PAYLOAD_SIZE,
     );
 
-    let message = authorityPayloadCodec.encode(data);
+    const message = authorityPayloadCodec.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       removeIxAccountMetas,
       options,
@@ -88,22 +88,22 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let signInstructionsAccount = getSignV1BaseAccountMetas(accounts);
+    const signInstructionsAccount = getSignV1BaseAccountMetas(accounts);
 
-    let { accounts: metas, compactIxs } = compactInstructions(
+    const { accounts: metas, compactIxs } = compactInstructions(
       accounts.swig,
       signInstructionsAccount,
       data.innerInstructions,
     );
 
-    let encodedCompactInstructions = getArrayEncoder(
+    const encodedCompactInstructions = getArrayEncoder(
       getCompactInstructionEncoder(),
       {
         size: getU8Encoder(),
       },
     ).encode(compactIxs);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(encodedCompactInstructions),
       metas,
       options,
@@ -122,15 +122,15 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let createSessionIxAccountMetas =
+    const createSessionIxAccountMetas =
       getCreateSessionV1BaseAccountMetasWithSystemProgram(accounts);
 
-    let authorityPayloadCodec =
+    const authorityPayloadCodec =
       getCreateSessionV1AuthorityPayloadCodec(1).codec;
 
-    let message = authorityPayloadCodec.encode(data);
+    const message = authorityPayloadCodec.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       createSessionIxAccountMetas,
       options,
@@ -149,13 +149,13 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
+    const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
 
-    let { payloadEncoder } = getSubAccountCreateV1InstructionDataCodec();
+    const { payloadEncoder } = getSubAccountCreateV1InstructionDataCodec();
 
-    let message = payloadEncoder.encode(data);
+    const message = payloadEncoder.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
       options,
@@ -173,23 +173,24 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let signInstructionsAccount = getSubAccountSignV1BaseAccountMetas(accounts);
+    const signInstructionsAccount =
+      getSubAccountSignV1BaseAccountMetas(accounts);
 
-    let { accounts: metas, compactIxs } = compactInstructions(
+    const { accounts: metas, compactIxs } = compactInstructions(
       accounts.swig,
       signInstructionsAccount,
       data.innerInstructions,
       accounts.subAccount,
     );
 
-    let encodedCompactInstructions = getArrayEncoder(
+    const encodedCompactInstructions = getArrayEncoder(
       getCompactInstructionEncoder(),
       {
         size: getU8Encoder(),
       },
     ).encode(compactIxs);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(encodedCompactInstructions),
       metas,
       options,
@@ -208,13 +209,13 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
+    const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
 
-    let { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
+    const { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
 
-    let message = payloadEncoder.encode(data);
+    const message = payloadEncoder.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
       options,
@@ -232,13 +233,13 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
+    const accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
 
-    let { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
+    const { payloadEncoder } = getSubAccountWithdrawV1InstructionDataCodec();
 
-    let message = payloadEncoder.encode(data);
+    const message = payloadEncoder.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
       options,
@@ -256,13 +257,13 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    let accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
+    const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
 
-    let { payloadEncoder } = getSubAccountToggleV1InstructionDataCodec();
+    const { payloadEncoder } = getSubAccountToggleV1InstructionDataCodec();
 
-    let message = payloadEncoder.encode(data);
+    const message = payloadEncoder.encode(data);
 
-    let authorityPayload = await prepareSecpPayload(
+    const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
       options,
@@ -287,14 +288,14 @@ export async function prepareSecpPayload(
   accountMetas: AccountMeta[],
   options: InstructionDataOptions,
 ): Promise<Uint8Array> {
-  let u64Len = 8;
+  const u64Len = 8;
 
-  let slot = new Uint8Array(u64Len);
+  const slot = new Uint8Array(u64Len);
 
-  let view = new DataView(slot.buffer);
+  const view = new DataView(slot.buffer);
   view.setBigUint64(0, options.currentSlot, true);
 
-  let accountsPayloadBytes = getAccountsPayloadEncoder(
+  const accountsPayloadBytes = getAccountsPayloadEncoder(
     accountMetas.length,
   ).encode(
     accountMetas.map((metas) => ({ ...metas, pubkey: metas.pubkey.toBytes() })),
@@ -307,12 +308,14 @@ export async function prepareSecpPayload(
   message.set(accountsPayloadBytes, dataPayload.length);
   message.set(slot, dataPayload.length + accountsPayloadBytes.length);
 
-  let messageShaHash = sha256(message);
-  let messageHashHex = bytesToHex(messageShaHash);
+  const messageShaHash = sha256(message);
+  const messageHashHex = bytesToHex(messageShaHash);
 
-  let { signature, prefix } = await options.signingFn(toBytes(messageHashHex));
+  const { signature, prefix } = await options.signingFn(
+    toBytes(messageHashHex),
+  );
 
-  let prefixPayload = prefix ?? new Uint8Array(0);
+  const prefixPayload = prefix ?? new Uint8Array(0);
 
   const authorityPayload = new Uint8Array(
     signature.length + u64Len + prefixPayload.length,

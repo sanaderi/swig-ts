@@ -32,7 +32,7 @@ export class Actions {
    * @returns Actions
    */
   static from(raw: Uint8Array, count: number) {
-    let actions = deserializeActions(raw, count);
+    const actions = deserializeActions(raw, count);
     return new Actions(raw, actions);
   }
 
@@ -134,7 +134,7 @@ export class Actions {
       }
     }
     // get max spend limit, becasue no unlimited action
-    let action = this.actions.find(
+    const action = this.actions.find(
       (action) => action.solControl().spendLimit != null,
     );
 
@@ -200,7 +200,7 @@ export class Actions {
       }
     }
     // get max spend limit, becasue no unlimited action
-    let action = this.actions.find(
+    const action = this.actions.find(
       (action) => action.tokenControl(mint).spendLimit != null,
     );
 
@@ -213,17 +213,20 @@ function deserializeActions(
   count: number, // todo: remove count, we are not onchain
 ): Action[] {
   let cursor = 0;
-  let actions: Action[] = [];
+  const actions: Action[] = [];
 
   for (let i = 0; i < count; i++) {
-    let headerRaw = actionsBuffer.slice(cursor, cursor + ACTION_HEADER_LENGTH);
-    let header = getActionHeaderDecoder().decode(headerRaw);
+    const headerRaw = actionsBuffer.slice(
+      cursor,
+      cursor + ACTION_HEADER_LENGTH,
+    );
+    const header = getActionHeaderDecoder().decode(headerRaw);
 
     cursor += ACTION_HEADER_LENGTH;
 
-    let payloadRaw = actionsBuffer.slice(cursor, header.boundary);
+    const payloadRaw = actionsBuffer.slice(cursor, header.boundary);
 
-    let payload = decodeActionPayload(header.permission, payloadRaw);
+    const payload = decodeActionPayload(header.permission, payloadRaw);
 
     cursor = header.boundary;
 
