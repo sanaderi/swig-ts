@@ -1,4 +1,5 @@
 import { AccountRole, Address, IAccountMeta } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type AddAuthorityV1InstructionAccounts = {
   swig: Address;
@@ -24,7 +25,7 @@ export function getAddAuthorityV1BaseAccountMetas(
       role: AccountRole.WRITABLE_SIGNER, // isSigner: true, isWritable: true
     },
     {
-      address: '11111111111111111111111111111111' as Address,
+      address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY, // isSigner: false, isWritable: false
     },
   ];
