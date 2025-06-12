@@ -13,6 +13,7 @@
     "build:coder": "nx build '@swig-wallet/coder'",
     "build:docs": "typedoc",
     "build:packages": "nx run-many --target=build --projects='@swig-wallet/classic','@swig-wallet/coder'",
+    "program:update": "./update-program-latest.sh",
     "changeset": "changeset",
     "dev": "bun --filter '*' dev",
     "dev:classic": "bun --filter '@swig-wallet/classic' dev",

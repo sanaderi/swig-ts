@@ -146,6 +146,7 @@ test-ledger
 
 docs
 
+swig-program
 
 .nx/cache
 .nx/workspace-data
