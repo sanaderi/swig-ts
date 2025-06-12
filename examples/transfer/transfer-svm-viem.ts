@@ -101,6 +101,7 @@ sendSVMTransaction(svm, createSwigInstruction, transactionPayer);
 //
 let swig = fetchSwig(svm, swigAddress);
 
+svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 // * find role by authority
 //
 let rootRole = swig.findRolesBySecp256k1SignerAddress(
@@ -109,38 +110,15 @@ let rootRole = swig.findRolesBySecp256k1SignerAddress(
 
 if (!rootRole) throw new Error('Role not found for authority');
 
+swig = fetchSwig(svm, swigAddress);
+
+console.log('balance before transfers:', svm.getBalance(swigAddress));
+
 let viemSign: SigningFn = async (message: Uint8Array) => {
   let sig = await privateKeyAccount.sign({ hash: keccak256(message) }); // eth_sign
 
   return { signature: hexToBytes(sig) };
 };
-
-let viemSignWithPrefix: SigningFn = async (message: Uint8Array) => {
-  let prefix = getEvmPersonalSignPrefix(message.length);
-  let prefixedMessage = new Uint8Array(prefix.length + message.length);
-
-  prefixedMessage.set(prefix);
-  prefixedMessage.set(message, prefix.length);
-
-  let sig = await privateKeyAccount.sign({ hash: keccak256(prefixedMessage) }); // eth_sign with personal_sign prefix
-
-  return { signature: hexToBytes(sig), prefix };
-};
-
-let viemSignMessage: SigningFn = async (message: Uint8Array) => {
-  let sig = await privateKeyAccount.signMessage({ message: { raw: message } }); // personal_sign
-
-  return {
-    signature: hexToBytes(sig),
-    prefix: getEvmPersonalSignPrefix(message.length),
-  };
-};
-
-svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
-
-swig = fetchSwig(svm, swigAddress);
-
-console.log('balance before transfers:', svm.getBalance(swigAddress));
 
 //
 // * transfer with viem sign
@@ -170,6 +148,27 @@ console.log(
 
 svm.warpToSlot(100n);
 
+swig = fetchSwig(svm, swigAddress);
+
+rootRole = swig.findRolesBySecp256k1SignerAddress(
+  privateKeyAccount.address,
+)[0];
+
+if (!rootRole) throw new Error('Role not found for authority');
+
+let viemSignWithPrefix: SigningFn = async (message: Uint8Array) => {
+  let prefix = getEvmPersonalSignPrefix(message.length);
+  let prefixedMessage = new Uint8Array(prefix.length + message.length);
+
+  prefixedMessage.set(prefix);
+  prefixedMessage.set(message, prefix.length);
+
+  let sig = await privateKeyAccount.sign({ hash: keccak256(prefixedMessage) }); // eth_sign with personal_sign prefix
+
+  return { signature: hexToBytes(sig), prefix };
+};
+
+
 signTransfer = await signInstruction(
   rootRole,
   transactionPayer.publicKey,
@@ -183,6 +182,21 @@ signTransfer = await signInstruction(
 sendSVMTransaction(svm, signTransfer, transactionPayer);
 
 svm.warpToSlot(200n);
+
+swig = fetchSwig(svm, swigAddress);
+
+rootRole = swig.findRolesBySecp256k1SignerAddress(privateKeyAccount.address)[0];
+
+if (!rootRole) throw new Error('Role not found for authority');
+
+let viemSignMessage: SigningFn = async (message: Uint8Array) => {
+  let sig = await privateKeyAccount.signMessage({ message: { raw: message } }); // personal_sign
+
+  return {
+    signature: hexToBytes(sig),
+    prefix: getEvmPersonalSignPrefix(message.length),
+  };
+};
 
 console.log(
   'balance after transfer with viem Sign with personal-sign prefix:',

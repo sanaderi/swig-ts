@@ -120,4 +120,5 @@ export type SigningResult = { signature: Uint8Array; prefix?: Uint8Array };
 export type InstructionDataOptions = {
   signingFn: SigningFn;
   currentSlot: bigint;
+  odometer?: number;
 };
