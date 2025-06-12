@@ -69,13 +69,14 @@ export function getSubAccountWithdrawV1InstructionDataCodec() {
     }),
   );
 
-  const decoder: Decoder<SubAccountWithdrawV1InstructionData> = getStructDecoder([
-    ['discriminator', getSwigInstructionDiscriminatorDecoder()],
-    ['_padding', fixDecoderSize(getBytesDecoder(), 2)],
-    ['roleId', getU32Decoder()],
-    ['amount', getU64Decoder()],
-    ['authorityPayload', getBytesDecoder()],
-  ]);
+  const decoder: Decoder<SubAccountWithdrawV1InstructionData> =
+    getStructDecoder([
+      ['discriminator', getSwigInstructionDiscriminatorDecoder()],
+      ['_padding', fixDecoderSize(getBytesDecoder(), 2)],
+      ['roleId', getU32Decoder()],
+      ['amount', getU64Decoder()],
+      ['authorityPayload', getBytesDecoder()],
+    ]);
 
   const codec: Codec<
     SubAccountWithdrawV1InstructionDataArgs,

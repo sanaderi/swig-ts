@@ -89,7 +89,6 @@ export type AddAuthorityV1AuthorityPayloadArgs = {
   actions: ReadonlyUint8Array;
 };
 
-
 export function getAddAuthorityV1AuthorityPayloadEncoder(): Encoder<AddAuthorityV1AuthorityPayloadArgs> {
   const encoder: Encoder<AddAuthorityV1AuthorityPayloadArgs> = transformEncoder(
     getStructEncoder([

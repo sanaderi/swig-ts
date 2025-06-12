@@ -216,7 +216,10 @@ function deserializeActions(
   const actions: Action[] = [];
 
   for (let i = 0; i < count; i++) {
-    const headerRaw = actionsBuffer.slice(cursor, cursor + ACTION_HEADER_LENGTH);
+    const headerRaw = actionsBuffer.slice(
+      cursor,
+      cursor + ACTION_HEADER_LENGTH,
+    );
     const header = getActionHeaderDecoder().decode(headerRaw);
 
     cursor += ACTION_HEADER_LENGTH;

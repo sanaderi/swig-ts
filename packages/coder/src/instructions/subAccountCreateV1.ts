@@ -90,4 +90,3 @@ export function getSubAccountCreateV1InstructionDataCodec() {
 
   return { encoder, decoder, codec, payloadEncoder };
 }
-

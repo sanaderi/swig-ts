@@ -10,27 +10,17 @@ import {
 } from '@solana/kit';
 
 export type StakeLimit = {
-  amount: bigint
+  amount: bigint;
 };
 
 export function getStakeLimitEncoder(): Encoder<StakeLimit> {
-  return getStructEncoder([
-    ['amount', getU64Encoder()],
-  ]);
+  return getStructEncoder([['amount', getU64Encoder()]]);
 }
 
 export function getStakeLimitDecoder(): Decoder<StakeLimit> {
-  return getStructDecoder([
-    ['amount', getU64Decoder()],
-  ]);
+  return getStructDecoder([['amount', getU64Decoder()]]);
 }
 
-export function getStakeLimitCodec(): Codec<
-  StakeLimit,
-  StakeLimit
-> {
-  return combineCodec(
-    getStakeLimitEncoder(),
-    getStakeLimitDecoder(),
-  );
+export function getStakeLimitCodec(): Codec<StakeLimit, StakeLimit> {
+  return combineCodec(getStakeLimitEncoder(), getStakeLimitDecoder());
 }

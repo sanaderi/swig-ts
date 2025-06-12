@@ -173,7 +173,8 @@ export const Secp256k1Instruction: AuthorityInstruction = {
         'instruction data options not provided for Secp256k1 based authority',
       );
 
-    const signInstructionsAccount = getSubAccountSignV1BaseAccountMetas(accounts);
+    const signInstructionsAccount =
+      getSubAccountSignV1BaseAccountMetas(accounts);
 
     const { accounts: metas, compactIxs } = compactInstructions(
       accounts.swig,
@@ -310,7 +311,9 @@ export async function prepareSecpPayload(
   const messageShaHash = sha256(message);
   const messageHashHex = bytesToHex(messageShaHash);
 
-  const { signature, prefix } = await options.signingFn(toBytes(messageHashHex));
+  const { signature, prefix } = await options.signingFn(
+    toBytes(messageHashHex),
+  );
 
   const prefixPayload = prefix ?? new Uint8Array(0);
 

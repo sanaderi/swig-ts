@@ -1,4 +1,8 @@
-import { SystemProgram, type AccountMeta, type PublicKey } from '@solana/web3.js';
+import {
+  SystemProgram,
+  type AccountMeta,
+  type PublicKey,
+} from '@solana/web3.js';
 
 export type CreateSessionV1InstructionAccounts = {
   swig: PublicKey;

@@ -2,8 +2,11 @@ import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
 import { uint8ArraysEqual } from '../utils';
+import type {
+  AuthorityCreateInfo,
+  CreateAuthorityInfo,
+} from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
-import type { AuthorityCreateInfo, CreateAuthorityInfo } from './createAuthority';
 
 export abstract class Authority implements CreateAuthorityInfo {
   /**

@@ -43,24 +43,25 @@ export type SubAccountSignV1InstructionDataArgs = {
 };
 
 export function getSubAccountSignV1InstructionDataCodec() {
-  const encoder: Encoder<SubAccountSignV1InstructionDataArgs> = transformEncoder(
-    getStructEncoder([
-      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
-      ['instructionPayloadLen', getU16Encoder()],
-      ['roleId', getU32Encoder()],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 8)],
-      ['compactInstructions', getCompactInstructionsEncoder()],
-      ['authorityPayload', getBytesEncoder()],
-    ]),
-    (value) => ({
-      ...value,
-      discriminator: Discriminator.SubAccountSignV1,
-      instructionPayloadLen: getCompactInstructionsEncoder().encode(
-        value.compactInstructions,
-      ).length,
-      _padding: new Uint8Array(8),
-    }),
-  );
+  const encoder: Encoder<SubAccountSignV1InstructionDataArgs> =
+    transformEncoder(
+      getStructEncoder([
+        ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+        ['instructionPayloadLen', getU16Encoder()],
+        ['roleId', getU32Encoder()],
+        ['_padding', fixEncoderSize(getBytesEncoder(), 8)],
+        ['compactInstructions', getCompactInstructionsEncoder()],
+        ['authorityPayload', getBytesEncoder()],
+      ]),
+      (value) => ({
+        ...value,
+        discriminator: Discriminator.SubAccountSignV1,
+        instructionPayloadLen: getCompactInstructionsEncoder().encode(
+          value.compactInstructions,
+        ).length,
+        _padding: new Uint8Array(8),
+      }),
+    );
 
   const payloadEncoder: Encoder<
     Omit<SubAccountSignV1InstructionDataArgs, 'authorityPayload'>

@@ -270,5 +270,5 @@ export async function removeAllAuthorityRoles(
     await swig.refetch(connection, options);
   }
 
-  return sigs
+  return sigs;
 }

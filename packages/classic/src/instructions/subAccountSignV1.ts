@@ -1,4 +1,8 @@
-import { SystemProgram, type AccountMeta, type PublicKey } from '@solana/web3.js';
+import {
+  SystemProgram,
+  type AccountMeta,
+  type PublicKey,
+} from '@solana/web3.js';
 
 export type SubAccountSignV1InstructionAccounts = {
   swig: PublicKey;
@@ -6,7 +10,12 @@ export type SubAccountSignV1InstructionAccounts = {
   subAccount: PublicKey;
 };
 
-export type SubAccountSignV1BaseAccountMetas = [AccountMeta, AccountMeta, AccountMeta, AccountMeta];
+export type SubAccountSignV1BaseAccountMetas = [
+  AccountMeta,
+  AccountMeta,
+  AccountMeta,
+  AccountMeta,
+];
 
 export function getSubAccountSignV1BaseAccountMetas(
   accounts: SubAccountSignV1InstructionAccounts,

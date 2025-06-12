@@ -46,22 +46,23 @@ export function getRemoveAuthorityV1InstructionCodec(payloadSize: number): {
     RemoveAuthorityV1InstructionData
   >;
 } {
-  const encoder: Encoder<RemoveAuthorityV1InstructionDataArgs> = transformEncoder(
-    getStructEncoder([
-      ['discriminator', getSwigInstructionDiscriminatorEncoder()],
-      ['authorityPayloadLen', getU16Encoder()],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 4)],
-      ['actingRoleId', getU32Encoder()],
-      ['authorityToRemoveId', getU32Encoder()],
-      ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
-    ]),
-    (value) => ({
-      ...value,
-      discriminator: Discriminator.RemoveAuthorityV1,
-      _padding: Uint8Array.from(Array(2)),
-      authorityPayloadLen: payloadSize,
-    }),
-  );
+  const encoder: Encoder<RemoveAuthorityV1InstructionDataArgs> =
+    transformEncoder(
+      getStructEncoder([
+        ['discriminator', getSwigInstructionDiscriminatorEncoder()],
+        ['authorityPayloadLen', getU16Encoder()],
+        ['_padding', fixEncoderSize(getBytesEncoder(), 4)],
+        ['actingRoleId', getU32Encoder()],
+        ['authorityToRemoveId', getU32Encoder()],
+        ['authorityPayload', fixEncoderSize(getBytesEncoder(), payloadSize)],
+      ]),
+      (value) => ({
+        ...value,
+        discriminator: Discriminator.RemoveAuthorityV1,
+        _padding: Uint8Array.from(Array(2)),
+        authorityPayloadLen: payloadSize,
+      }),
+    );
 
   const decoder = getStructDecoder([
     ['discriminator', getSwigInstructionDiscriminatorDecoder()],
