@@ -1,37 +1,38 @@
-import type { AccountMeta, PublicKey } from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
 
 export type SignV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
+  swig: Address;
+  payer: Address;
 };
 
-export type SignV1BaseAccountMetas = [AccountMeta, AccountMeta];
+export type SignV1BaseAccountMetas = [
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+];
 
 export function getSignV1BaseAccountMetas(
   accounts: SignV1InstructionAccounts,
 ): SignV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE, // isSigner: false, isWritable: true
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER, // isSigner: true, isWritable: true
     },
   ];
 }
 
 export type SignV1BaseAccountMetasWithAuthority = [
   ...SignV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSignV1BaseAccountMetasWithAuthority(
   accounts: SignV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [SignV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSignV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -39,9 +40,8 @@ export function getSignV1BaseAccountMetasWithAuthority(
   const metas: SignV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER, // isSigner: true, isWritable: false
     },
   ];
   return [metas, authorityIndex];

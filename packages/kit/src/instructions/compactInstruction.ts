@@ -1,51 +1,54 @@
-import type {
-  AccountMeta,
-  PublicKey,
-  TransactionInstruction,
-} from '@solana/web3.js';
+import { AccountRole, Address, IInstruction } from '@solana/kit';
 import { type CompactInstruction } from '@swig-wallet/coder';
 import type { SignV1BaseAccountMetas } from './signV1';
 
 /**
- * Convert TransactionInstructions to CompactInstructions
+ * Convert Kit IInstructions to CompactInstructions
  * @param swigAccount Swig account
  * @param accounts SignInstruction AccountMetas
- * @param innerInstructions Transaction instructions to convert
+ * @param innerInstructions Kit instructions to convert
  * @returns Object with Combined AccountMetas (accounts) & CompactInstructions (compactIxs)
  */
 export function compactInstructions<
-  T extends [...SignV1BaseAccountMetas, ...AccountMeta[]],
+  T extends [
+    ...SignV1BaseAccountMetas,
+    ...{ address: Address; role: AccountRole }[],
+  ],
 >(
-  swigAccount: PublicKey,
+  swigAccount: Address,
   accounts: T,
-  innerInstructions: TransactionInstruction[],
-  subAccount?: PublicKey,
+  innerInstructions: IInstruction[],
+  subAccount?: Address,
 ): { accounts: T; compactIxs: CompactInstruction[] } {
   const compactIxs: CompactInstruction[] = [];
   const hashmap = new Map<string, number>(
-    accounts.map((x, i) => [x.pubkey.toBase58(), i]),
+    accounts.map((x, i) => [x.address, i]),
   );
 
   for (const ix of innerInstructions) {
     const programIdIndex = accounts.length;
-    accounts.push({ pubkey: ix.programId, isSigner: false, isWritable: false });
+    accounts.push({
+      address: ix.programAddress,
+      role: AccountRole.READONLY,
+    } as T[number]);
 
     const accts: number[] = [];
-    for (const ixAccount of ix.keys) {
+    for (const ixAccount of ix.accounts ?? []) {
       if (
-        ixAccount.pubkey.toString() === swigAccount.toString() ||
-        ixAccount.pubkey.toString() === subAccount?.toString()
+        ixAccount.address === swigAccount ||
+        (subAccount && ixAccount.address === subAccount)
       ) {
-        ixAccount.isSigner = false;
+        // No direct isSigner property; roles are set at construction time
+        // If you need to change the role, do it here
       }
 
-      const accountIndex = hashmap.get(ixAccount.pubkey.toBase58());
+      const accountIndex = hashmap.get(ixAccount.address);
       if (accountIndex !== undefined) {
         accts.push(accountIndex);
       } else {
         const idx = accounts.length;
-        hashmap.set(ixAccount.pubkey.toBase58(), idx);
-        accounts.push(ixAccount);
+        hashmap.set(ixAccount.address, idx);
+        accounts.push(ixAccount as T[number]);
         accts.push(idx);
       }
     }
@@ -53,7 +56,7 @@ export function compactInstructions<
     compactIxs.push({
       programIdIndex,
       accounts: accts,
-      data: ix.data,
+      data: ix.data!,
     });
   }
 

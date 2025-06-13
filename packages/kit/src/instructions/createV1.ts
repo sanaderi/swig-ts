@@ -1,34 +1,32 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type CreateV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
+  swig: Address;
+  payer: Address;
 };
 
-export type CreateV1BaseAccountMetas = [AccountMeta, AccountMeta, AccountMeta];
+export type CreateV1BaseAccountMetas = [
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+];
 
 export function getCreateV1BaseAccountMetas(
   accounts: CreateV1InstructionAccounts,
 ): CreateV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER,
     },
     {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }
