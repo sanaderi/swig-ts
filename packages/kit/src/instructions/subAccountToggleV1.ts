@@ -1,19 +1,16 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type SubAccountToggleV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
-  subAccount: PublicKey;
+  swig: Address;
+  payer: Address;
+  subAccount: Address;
 };
 
 export type SubAccountToggleV1BaseAccountMetas = [
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountToggleV1BaseAccountMetas(
@@ -21,31 +18,28 @@ export function getSubAccountToggleV1BaseAccountMetas(
 ): SubAccountToggleV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: false,
+      address: accounts.swig,
+      role: AccountRole.READONLY,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: false,
+      address: accounts.payer,
+      role: AccountRole.READONLY_SIGNER,
     },
     {
-      pubkey: accounts.subAccount,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.subAccount,
+      role: AccountRole.WRITABLE,
     },
   ];
 }
 
 export type SubAccountToggleV1BaseAccountMetasWithAuthority = [
   ...SubAccountToggleV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   accounts: SubAccountToggleV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [SubAccountToggleV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -53,9 +47,8 @@ export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   const metas: SubAccountToggleV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];
@@ -63,7 +56,7 @@ export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
 
 export type SubAccountToggleV1BaseAccountMetasWithSystemProgram = [
   ...SubAccountToggleV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountToggleV1BaseAccountMetasWithSystemProgram(
@@ -74,9 +67,8 @@ export function getSubAccountToggleV1BaseAccountMetasWithSystemProgram(
   return [
     ...accountMetas,
     {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }

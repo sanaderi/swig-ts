@@ -1,9 +1,9 @@
-import { type AccountMeta, type PublicKey } from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
 
 export type SubAccountWithdrawV1BaseInstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
-  subAccount: PublicKey;
+  swig: Address;
+  payer: Address;
+  subAccount: Address;
 };
 
 export type SubAccountWithdrawV1SolInstructionAccounts =
@@ -11,15 +11,15 @@ export type SubAccountWithdrawV1SolInstructionAccounts =
 
 export type SubAccountWithdrawV1TokenInstructionAccounts =
   SubAccountWithdrawV1BaseInstructionAccounts & {
-    subAccountToken: PublicKey;
-    swigToken: PublicKey;
-    tokenProgram: PublicKey;
+    subAccountToken: Address;
+    swigToken: Address;
+    tokenProgram: Address;
   };
 
 export type SubAccountWithdrawV1BaseAccountMetas = [
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export type SubAccountWithdrawV1SolAccountMetas =
@@ -27,9 +27,9 @@ export type SubAccountWithdrawV1SolAccountMetas =
 
 export type SubAccountWithdrawV1TokenAccountMetas = [
   ...SubAccountWithdrawV1BaseAccountMetas,
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountWithdrawV1SolAccountMetas(
@@ -37,19 +37,16 @@ export function getSubAccountWithdrawV1SolAccountMetas(
 ): SubAccountWithdrawV1SolAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: false,
+      address: accounts.swig,
+      role: AccountRole.READONLY,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: false,
+      address: accounts.payer,
+      role: AccountRole.READONLY_SIGNER,
     },
     {
-      pubkey: accounts.subAccount,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.subAccount,
+      role: AccountRole.WRITABLE,
     },
   ];
 }
@@ -59,46 +56,40 @@ export function getSubAccountWithdrawV1TokenAccountMetas(
 ): SubAccountWithdrawV1TokenAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: false,
+      address: accounts.swig,
+      role: AccountRole.READONLY,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: false,
+      address: accounts.payer,
+      role: AccountRole.READONLY_SIGNER,
     },
     {
-      pubkey: accounts.subAccount,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.subAccount,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.subAccountToken,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.subAccountToken,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.swigToken,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swigToken,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.tokenProgram,
-      isSigner: false,
-      isWritable: false,
+      address: accounts.tokenProgram,
+      role: AccountRole.READONLY,
     },
   ];
 }
 
 export type SubAccountWithdrawV1SolAccountMetasWithAuthority = [
   ...SubAccountWithdrawV1SolAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1SolInstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [SubAccountWithdrawV1SolAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -106,9 +97,8 @@ export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
   const metas: SubAccountWithdrawV1SolAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];
@@ -116,28 +106,27 @@ export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
 
 export type SubAccountWithdrawV1TokenAccountMetasWithAuthority = [
   ...SubAccountWithdrawV1TokenAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1TokenInstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [SubAccountWithdrawV1TokenAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
-  const authorityIndex = accountMetas.length;
+  const authorityIndex = 3; // authority goes after subAccount
 
   const metas: SubAccountWithdrawV1TokenAccountMetasWithAuthority = [
     accountMetas[0], // swig
     accountMetas[1], // payer
     accountMetas[2], // sub-account
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
-    accountMetas[3], // swig sub-account token
-    accountMetas[4], // swig token
-    accountMetas[5], // token program
+    accountMetas[3], // subAccountToken
+    accountMetas[4], // swigToken
+    accountMetas[5], // tokenProgram
   ];
   return [metas, authorityIndex];
 }

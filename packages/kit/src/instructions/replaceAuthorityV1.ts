@@ -1,18 +1,15 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type ReplaceAuthorityV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
+  swig: Address;
+  payer: Address;
 };
 
 export type ReplaceAuthorityV1BaseAccountMetas = [
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export function getReplaceAuthorityV1BaseAccountMetas(
@@ -20,34 +17,28 @@ export function getReplaceAuthorityV1BaseAccountMetas(
 ): ReplaceAuthorityV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      // role: AccountRole.WRITABLE,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.payer,
-      // role: AccountRole.WRITABLE_SIGNER,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER,
     },
     {
-      pubkey: SystemProgram.programId,
-      // role: AccountRole.READONLY,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }
 
 export type ReplaceAuthorityV1BaseAccountMetasWithAuthority = [
   ...ReplaceAuthorityV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getReplaceV1BaseAccountMetasWithAuthority(
   accounts: ReplaceAuthorityV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [ReplaceAuthorityV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getReplaceAuthorityV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -55,10 +46,8 @@ export function getReplaceV1BaseAccountMetasWithAuthority(
   const metas: ReplaceAuthorityV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      // role: AccountRole.READONLY_SIGNER,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];

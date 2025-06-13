@@ -1,41 +1,39 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type CreateSessionV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
+  swig: Address;
+  payer: Address;
 };
 
-export type CreateSessionV1BaseAccountMetas = [AccountMeta, AccountMeta];
+export type CreateSessionV1BaseAccountMetas = [
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+];
 
 export function getCreateSessionV1BaseAccountMetas(
   accounts: CreateSessionV1InstructionAccounts,
 ): CreateSessionV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER,
     },
   ];
 }
 
 export type CreateSessionV1BaseAccountMetasWithAuthority = [
   ...CreateSessionV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getCreateSessionV1BaseAccountMetasWithAuthority(
   accounts: CreateSessionV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [CreateSessionV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -43,9 +41,8 @@ export function getCreateSessionV1BaseAccountMetasWithAuthority(
   const metas: CreateSessionV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];
@@ -53,7 +50,7 @@ export function getCreateSessionV1BaseAccountMetasWithAuthority(
 
 export type CreateSessionV1BaseAccountMetasWithSystemProgram = [
   ...CreateSessionV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
@@ -64,9 +61,8 @@ export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
   return [
     ...accountMetas,
     {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }

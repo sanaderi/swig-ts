@@ -1,18 +1,15 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type RemoveAuthorityV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
+  swig: Address;
+  payer: Address;
 };
 
 export type RemoveAuthorityV1BaseAccountMetas = [
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export function getRemoveAuthorityV1BaseAccountMetas(
@@ -20,34 +17,28 @@ export function getRemoveAuthorityV1BaseAccountMetas(
 ): RemoveAuthorityV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      // role: AccountRole.WRITABLE,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.payer,
-      // role: AccountRole.WRITABLE_SIGNER,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER,
     },
     {
-      pubkey: SystemProgram.programId,
-      // role: AccountRole.READONLY,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }
 
 export type RemoveAuthorityV1BaseAccountMetasWithAuthority = [
   ...RemoveAuthorityV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getRemoveV1BaseAccountMetasWithAuthority(
   accounts: RemoveAuthorityV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [RemoveAuthorityV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -55,10 +46,8 @@ export function getRemoveV1BaseAccountMetasWithAuthority(
   const metas: RemoveAuthorityV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      // role: AccountRole.READONLY_SIGNER,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];

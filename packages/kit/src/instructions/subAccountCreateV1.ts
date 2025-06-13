@@ -1,20 +1,17 @@
-import {
-  SystemProgram,
-  type AccountMeta,
-  type PublicKey,
-} from '@solana/web3.js';
+import { AccountRole, Address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type SubAccountCreateV1InstructionAccounts = {
-  swig: PublicKey;
-  payer: PublicKey;
-  subAccount: PublicKey;
+  swig: Address;
+  payer: Address;
+  subAccount: Address;
 };
 
 export type SubAccountCreateV1BaseAccountMetas = [
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
-  AccountMeta,
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountCreateV1BaseAccountMetas(
@@ -22,36 +19,32 @@ export function getSubAccountCreateV1BaseAccountMetas(
 ): SubAccountCreateV1BaseAccountMetas {
   return [
     {
-      pubkey: accounts.swig,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.swig,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: accounts.payer,
-      isSigner: true,
-      isWritable: true,
+      address: accounts.payer,
+      role: AccountRole.WRITABLE_SIGNER,
     },
     {
-      pubkey: accounts.subAccount,
-      isSigner: false,
-      isWritable: true,
+      address: accounts.subAccount,
+      role: AccountRole.WRITABLE,
     },
     {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }
 
 export type SubAccountCreateV1BaseAccountMetasWithAuthority = [
   ...SubAccountCreateV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
   accounts: SubAccountCreateV1InstructionAccounts,
-  authority: PublicKey,
+  authority: Address,
 ): [SubAccountCreateV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -59,9 +52,8 @@ export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
   const metas: SubAccountCreateV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     {
-      pubkey: authority,
-      isSigner: true,
-      isWritable: false,
+      address: authority,
+      role: AccountRole.READONLY_SIGNER,
     },
   ];
   return [metas, authorityIndex];
@@ -69,7 +61,7 @@ export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
 
 export type SubAccountCreateV1BaseAccountMetasWithSystemProgram = [
   ...SubAccountCreateV1BaseAccountMetas,
-  AccountMeta,
+  { address: Address; role: AccountRole },
 ];
 
 export function getSubAccountCreateV1BaseAccountMetasWithSystemProgram(
@@ -80,9 +72,8 @@ export function getSubAccountCreateV1BaseAccountMetasWithSystemProgram(
   return [
     ...accountMetas,
     {
-      pubkey: SystemProgram.programId,
-      isSigner: false,
-      isWritable: false,
+      address: SYSTEM_PROGRAM_ADDRESS,
+      role: AccountRole.READONLY,
     },
   ];
 }
