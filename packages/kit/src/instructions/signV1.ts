@@ -1,4 +1,5 @@
-import { AccountRole, Address } from '@solana/kit';
+import type { Address } from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 
 export type SignV1InstructionAccounts = {
   swig: Address;
