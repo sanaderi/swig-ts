@@ -12,7 +12,7 @@
     "build:classic": "nx build '@swig-wallet/classic'",
     "build:coder": "nx build '@swig-wallet/coder'",
     "build:docs": "typedoc",
-    "build:packages": "nx run-many --target=build --projects='@swig-wallet/classic','@swig-wallet/coder'",
+    "build:packages": "nx run-many --target=build --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
     "program:update": "./update-program-latest.sh",
     "changeset": "changeset",
     "dev": "bun --filter '*' dev",
@@ -20,10 +20,10 @@
     "dev:coder": "bun --filter '@swig-wallet/coder' dev",
     "format": "prettier --check packages/",
     "format:fix": "prettier --write packages/",
-    "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder'",
-    "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder'",
+    "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
+    "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
     "release": "bun run build && changeset publish",
-    "test": "nx run-many --target=test --projects='@swig-wallet/classic'"
+    "test": "nx run-many --target=test --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'"
   },
   "workspaces": [
     "packages/*",
