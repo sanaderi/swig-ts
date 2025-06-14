@@ -1,4 +1,5 @@
-import { AccountRole, Address } from '@solana/kit';
+import type { Address } from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type ReplaceAuthorityV1InstructionAccounts = {
