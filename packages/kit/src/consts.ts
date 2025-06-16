@@ -1,5 +1,4 @@
-import type { Address } from '@solana/kit';
-import { address } from '@solana/kit';
+import { address, type Address } from '@solana/kit';
 
 export const SWIG_PROGRAM_ADDRESS: Address = address(
   'swigDk8JezhiAVde8k6NMwxpZfgGm2NNuMe1KYCmUjP',
