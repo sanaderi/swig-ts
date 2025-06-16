@@ -23,7 +23,8 @@
     "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
     "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
     "release": "bun run build && changeset publish",
-    "test": "nx run-many --target=test --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'"
+    "test": "nx run-many --target=test --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
+    "typecheck": "nx run-many --target=typecheck --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'"
   },
   "workspaces": [
     "packages/*",
