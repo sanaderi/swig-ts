@@ -32,25 +32,30 @@ test('Kit fetcher is compatible with SPL Token Mint', async () => {
 
 test('fetchSwigAccount throws for non-existent account', async () => {
   const rpc = createSolanaRpc('https://api.devnet.solana.com');
-  await expect(fetchSwigAccount(rpc, NON_EXISTENT_ADDRESS)).rejects.toThrow();
+  await expect(
+    fetchSwigAccount(rpc, address(NON_EXISTENT_ADDRESS)),
+  ).rejects.toThrow();
 });
 
 test('fetchMaybeSwigAccount resolves for non-Swig account', async () => {
   const rpc = createSolanaRpc('https://api.devnet.solana.com');
   // Use a real address that exists but is NOT a Swig account, e.g. a mint
-  await expect(fetchMaybeSwigAccount(rpc, MINT_ADDRESS)).resolves.toBeDefined();
+  await expect(
+    fetchMaybeSwigAccount(rpc, address(MINT_ADDRESS)),
+  ).resolves.toBeDefined();
 });
 
 test('fetchMaybeSwigAccount throws for invalid address input', async () => {
-  const rpc = createSolanaRpc('https://api.devnet.solana.com');
-  await expect(fetchMaybeSwigAccount(rpc, INVALID_ADDRESS)).rejects.toThrow();
+  // Log the first 8 bytes (characters) of the invalid address
+  console.log('First 8 bytes of INVALID_ADDRESS:', INVALID_ADDRESS.slice(0, 8));
+  expect(() => address(INVALID_ADDRESS)).toThrow();
 });
 
 test('fetchSwigAccount matches fetchMaybeSwigAccount for existing account', async () => {
   const rpc = createSolanaRpc('https://api.devnet.solana.com');
-  const maybe = await fetchMaybeSwigAccount(rpc, REAL_SWIG_ADDRESS);
+  const maybe = await fetchMaybeSwigAccount(rpc, address(REAL_SWIG_ADDRESS));
   if (maybe) {
-    const sure = await fetchSwigAccount(rpc, REAL_SWIG_ADDRESS);
+    const sure = await fetchSwigAccount(rpc, address(REAL_SWIG_ADDRESS));
     expect(sure).toEqual(maybe);
   }
 });
