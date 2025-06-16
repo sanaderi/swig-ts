@@ -10,7 +10,8 @@
     "gen-sanity": "cd tests/sanity && cargo run",
     "lint": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src",
     "lint:fix": "eslint --config ../../eslint.config.mjs --ext js,ts,tsx src --fix",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
   },
   "main": "dist/index.cjs",
   "module": "dist/index.js",
