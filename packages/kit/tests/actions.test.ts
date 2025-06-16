@@ -2,8 +2,21 @@ import { Actions } from '../src/actions/action';
 import { type Address } from '@solana/kit';
 
 const dummyAddress = (): Address => '11111111111111111111111111111111' as Address;
+const dummyAddress2 = (): Address => '4Nd1mYwq3pR9bN9bA5uQK2gqVjQhQhQhQhQhQhQhQhQh' as Address;
 
 describe('Actions', () => {
+
+  it('tracks spend limits separately for different mints', () => {
+    const mint1 = dummyAddress();
+    const mint2 = dummyAddress2();
+    const actions = Actions.set()
+      .tokenLimit({ mint: mint1, amount: 100n })
+      .tokenLimit({ mint: mint2, amount: 200n })
+      .get();
+
+    expect(actions.tokenSpendLimit(mint1)).toBe(100n);
+    expect(actions.tokenSpendLimit(mint2)).toBe(200n);
+  });
 
   it('returns none SpendController when no SOL spend action exists', () => {
     const actions = Actions.set().programLimit({ programId: dummyAddress() }).get();
