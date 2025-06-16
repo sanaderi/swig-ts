@@ -1,11 +1,11 @@
 import { address, type Address } from '@solana/kit';
-import bs58 from 'bs58';
 import {
   ACTION_HEADER_LENGTH,
   getActionHeaderDecoder,
   Permission,
   type ActionHeader,
 } from '@swig-wallet/coder';
+import bs58 from 'bs58';
 import { ActionsBuilder } from './builder';
 import { SpendController } from './control';
 import {
@@ -188,12 +188,18 @@ export class Actions {
   }
 }
 
-function deserializeActions(actionsBuffer: Uint8Array, count: number): Action[] {
+function deserializeActions(
+  actionsBuffer: Uint8Array,
+  count: number,
+): Action[] {
   let cursor = 0;
   const actions: Action[] = [];
 
   for (let i = 0; i < count; i++) {
-    const headerRaw = actionsBuffer.slice(cursor, cursor + ACTION_HEADER_LENGTH);
+    const headerRaw = actionsBuffer.slice(
+      cursor,
+      cursor + ACTION_HEADER_LENGTH,
+    );
     const header = getActionHeaderDecoder().decode(headerRaw);
     cursor += ACTION_HEADER_LENGTH;
 
@@ -243,7 +249,8 @@ class Action {
    * Sol Spend controller
    */
   solControl(): SpendController {
-    if (isActionPayload(Permission.All, this.payload)) return SpendController.max();
+    if (isActionPayload(Permission.All, this.payload))
+      return SpendController.max();
 
     if (
       isActionPayload(Permission.SolLimit, this.payload) ||
@@ -274,7 +281,7 @@ class Action {
       isActionPayload(Permission.TokenLimit, this.payload) ||
       isActionPayload(Permission.TokenRecurringLimit, this.payload)
     ) {
-      const payloadMint = bs58.encode(Uint8Array.from(this.payload.data.mint)); 
+      const payloadMint = bs58.encode(Uint8Array.from(this.payload.data.mint));
       const providedMint = mint.toString();
 
       if (payloadMint === providedMint) {
@@ -291,7 +298,10 @@ class Action {
     if (isActionPayload(Permission.All, this.payload)) return true;
 
     if (isActionPayload(Permission.Program, this.payload)) {
-      return program === address(bs58.encode(Uint8Array.from(this.payload.data.programId)));
+      return (
+        program ===
+        address(bs58.encode(Uint8Array.from(this.payload.data.programId)))
+      );
     }
 
     return false;

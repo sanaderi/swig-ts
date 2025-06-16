@@ -92,7 +92,9 @@ export class ActionsBuilder {
    */
   programLimit(payload: { programId: Address }): this {
     this._actionConfigs.push(
-      new ProgramLimitConfig({ programId: getAddressCodec().encode(payload.programId) }),
+      new ProgramLimitConfig({
+        programId: getAddressCodec().encode(payload.programId),
+      }),
     );
     return this;
   }
@@ -103,10 +105,7 @@ export class ActionsBuilder {
    * @param payload.targetAccount Program Account to target
    * @returns Basic ProgramScope action
    */
-  programScopeBasic(payload: {
-    programId: Address;
-    targetAccount: Address;
-  }) {
+  programScopeBasic(payload: { programId: Address; targetAccount: Address }) {
     this._actionConfigs.push(
       new ProgramScopeConfig({
         currentAmount: 0n,
