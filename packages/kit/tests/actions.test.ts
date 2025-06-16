@@ -1,11 +1,12 @@
-import { Actions } from '../src/actions/action';
 import { type Address } from '@solana/kit';
+import { Actions } from '../src/actions/action';
 
-const dummyAddress = (): Address => '11111111111111111111111111111111' as Address;
-const dummyAddress2 = (): Address => '4Nd1mYwq3pR9bN9bA5uQK2gqVjQhQhQhQhQhQhQhQhQh' as Address;
+const dummyAddress = (): Address =>
+  '11111111111111111111111111111111' as Address;
+const dummyAddress2 = (): Address =>
+  '4Nd1mYwq3pR9bN9bA5uQK2gqVjQhQhQhQhQhQhQhQhQh' as Address;
 
 describe('Actions', () => {
-
   it('tracks spend limits separately for different mints', () => {
     const mint1 = dummyAddress();
     const mint2 = dummyAddress2();
@@ -19,7 +20,9 @@ describe('Actions', () => {
   });
 
   it('returns none SpendController when no SOL spend action exists', () => {
-    const actions = Actions.set().programLimit({ programId: dummyAddress() }).get();
+    const actions = Actions.set()
+      .programLimit({ programId: dummyAddress() })
+      .get();
     const controller = actions.solSpend();
     expect(controller.isAllowed).toBe(false);
     expect(controller.spendLimit).toBe(0n);
@@ -27,7 +30,9 @@ describe('Actions', () => {
 
   it('returns none SpendController when no token spend action exists', () => {
     const mint = dummyAddress();
-    const actions = Actions.set().programLimit({ programId: dummyAddress() }).get();
+    const actions = Actions.set()
+      .programLimit({ programId: dummyAddress() })
+      .get();
     const controller = actions.tokenSpend(mint);
     expect(controller.isAllowed).toBe(false);
     expect(controller.spendLimit).toBe(0n);
