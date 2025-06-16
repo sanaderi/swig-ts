@@ -158,6 +158,7 @@
       "version": "0.2.0-beta.4",
       "dependencies": {
         "@noble/curves": "^1.8.2",
+        "@solana-program/token": "^0.5.1",
         "@solana/kit": "^2.1.0",
         "@solana/spl-token": "^0.4.13",
         "@swig-wallet/coder": "workspace:*",
@@ -645,6 +646,8 @@
     "@solana-mobile/wallet-adapter-mobile": ["@solana-mobile/wallet-adapter-mobile@2.2.0", "", { "dependencies": { "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.2.0", "@solana-mobile/wallet-standard-mobile": "^0.2.0", "@solana/wallet-adapter-base": "^0.9.23", "@solana/wallet-standard-features": "^1.2.0", "js-base64": "^3.7.5" }, "optionalDependencies": { "@react-native-async-storage/async-storage": "^1.17.7" }, "peerDependencies": { "@solana/web3.js": "^1.58.0" } }, "sha512-7xcx+i6D9HlXuVgKrlDVpBYrdhM8JVzrrhuges3ATfZvlZ5zwEnNenEuQCsG5Al8vgTvMBqX6KJ1dUFill0+Nw=="],
 
     "@solana-mobile/wallet-standard-mobile": ["@solana-mobile/wallet-standard-mobile@0.2.0", "", { "dependencies": { "@solana-mobile/mobile-wallet-adapter-protocol-web3js": "^2.2.0", "@solana/wallet-standard-chains": "^1.1.0", "@solana/wallet-standard-features": "^1.2.0", "@wallet-standard/base": "^1.0.1", "@wallet-standard/features": "^1.0.3", "bs58": "^5.0.0", "js-base64": "^3.7.5", "qrcode": "^1.5.4" }, "peerDependencies": { "@solana/web3.js": "^1.58.0" } }, "sha512-vAv95mID0682O8wLMzsbnMzfwL8EBtJVUOQiywjnwuTxMlYhSdjp0jJw05Otm/j9N1lbkZ9tbgANGHHL8wRmjw=="],
+
+    "@solana-program/token": ["@solana-program/token@0.5.1", "", { "peerDependencies": { "@solana/kit": "^2.1.0" } }, "sha512-bJvynW5q9SFuVOZ5vqGVkmaPGA0MCC+m9jgJj1nk5m20I389/ms69ASnhWGoOPNcie7S9OwBX0gTj2fiyWpfag=="],
 
     "@solana/accounts": ["@solana/accounts@2.1.0", "", { "dependencies": { "@solana/addresses": "2.1.0", "@solana/codecs-core": "2.1.0", "@solana/codecs-strings": "2.1.0", "@solana/errors": "2.1.0", "@solana/rpc-spec": "2.1.0", "@solana/rpc-types": "2.1.0" }, "peerDependencies": { "typescript": ">=5" } }, "sha512-1JOBiLFeIeHmGx7k1b23UWF9vM1HAh9GBMCzr5rBPrGSBs+QUgxBJ3+yrRg+UPEOSELubqo7qoOVFUKYsb1nXw=="],
 
