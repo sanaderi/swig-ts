@@ -1,5 +1,5 @@
-/* --- action.ts --- */
 import { address, getAddressCodec, type Address } from '@solana/kit';
+import bs58 from 'bs58';
 import {
   ACTION_HEADER_LENGTH,
   getActionHeaderDecoder,
@@ -160,14 +160,15 @@ export class Actions {
    * @returns `bigint` | `null`
    */
   tokenSpendLimit(mint: Address): bigint | null {
+    let maxLimit: bigint | null = null;
+
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
-      if (limit === null) return null;
+      if (limit === null) return null; // If any action has an uncapped limit, return null
+      if (maxLimit === null || limit > maxLimit) maxLimit = limit; // Track the maximum limit
     }
-    return this.actions.reduce((max, val) => {
-      const limit = val.tokenControl(mint).spendLimit!;
-      return limit > max ? limit : max;
-    }, 0n);
+
+    return maxLimit ?? 0n; // Return 0n if no limits are found
   }
 
   /**
@@ -265,20 +266,21 @@ class Action {
    * Token Spend controller
    */
   tokenControl(mint: Address): SpendController {
-    if (isActionPayload(Permission.All, this.payload)) return SpendController.max();
+    if (isActionPayload(Permission.All, this.payload)) {
+      return SpendController.max();
+    }
 
     if (
       isActionPayload(Permission.TokenLimit, this.payload) ||
       isActionPayload(Permission.TokenRecurringLimit, this.payload)
     ) {
-      const payloadMint = getAddressCodec().encode(
-        address(Buffer.from(this.payload.data.mint).toString('hex')),
-      );
-      if (getAddressCodec().encode(mint) === payloadMint) {
+      const payloadMint = bs58.encode(Uint8Array.from(this.payload.data.mint)); 
+      const providedMint = mint.toString();
+
+      if (payloadMint === providedMint) {
         return SpendController.get(this.payload);
       }
     }
-
     return SpendController.none();
   }
 
@@ -289,7 +291,7 @@ class Action {
     if (isActionPayload(Permission.All, this.payload)) return true;
 
     if (isActionPayload(Permission.Program, this.payload)) {
-      return program === address(Buffer.from(this.payload.data.programId).toString('hex'));
+      return program === address(bs58.encode(Uint8Array.from(this.payload.data.programId)));
     }
 
     return false;
