@@ -6,6 +6,7 @@ import type {
   Commitment,
   IAccountMeta,
   Rpc,
+  SolanaRpcApi,
   TransactionSigner,
 } from '@solana/kit';
 import {
@@ -39,22 +40,24 @@ export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
 }
 
 export async function createLegacyTransaction(
-  // TODO update this to use the new RPC interface instead of <any>
-  rpc: Rpc<any>,
+  rpc: Rpc<SolanaRpcApi>,
   instructions: any[], // your instruction objects
   feePayer: TransactionSigner,
   options?: { commitment?: Commitment },
 ) {
   const {
-    value: { blockhash },
-    // @ts-expect-error: rpc type is generic until Kit RPC is finalized
+    value: { blockhash, lastValidBlockHeight },
   } = await rpc.getLatestBlockhash(options).send();
 
   // Build the transaction message
   const transactionMessage = pipe(
     createTransactionMessage({ version: 0 }),
     (tx) => setTransactionMessageFeePayerSigner(feePayer, tx),
-    (tx) => setTransactionMessageLifetimeUsingBlockhash(blockhash, tx),
+    (tx) =>
+      setTransactionMessageLifetimeUsingBlockhash(
+        { blockhash, lastValidBlockHeight },
+        tx,
+      ),
     (tx) => appendTransactionMessageInstructions(instructions, tx),
   );
 
