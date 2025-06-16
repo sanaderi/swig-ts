@@ -1,5 +1,4 @@
-import type { Address, IInstruction } from '@solana/kit';
-import { AccountRole } from '@solana/kit';
+import { AccountRole, type Address, type IInstruction } from '@solana/kit';
 import { type CompactInstruction } from '@swig-wallet/coder';
 import type { SignV1BaseAccountMetas } from './signV1';
 

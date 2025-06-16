@@ -1,5 +1,4 @@
-import type { Address } from '@solana/kit';
-import { AccountRole } from '@solana/kit';
+import { AccountRole, type Address } from '@solana/kit';
 
 export type SubAccountWithdrawV1BaseInstructionAccounts = {
   swig: Address;

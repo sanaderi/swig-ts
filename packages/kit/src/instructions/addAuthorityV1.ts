@@ -1,5 +1,4 @@
-import type { Address, IAccountMeta } from '@solana/kit';
-import { AccountRole } from '@solana/kit';
+import { AccountRole, type Address, type IAccountMeta } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
 
 export type AddAuthorityV1InstructionAccounts = {
