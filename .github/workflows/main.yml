@@ -79,6 +79,9 @@ jobs:
 
       - name: Install Dependencies
         run: bun install
+
+      - name: Check typecript
+        run: bun typecheck
       
       - name: Check format
         run: bun run format
