@@ -1,4 +1,4 @@
-import { address, getAddressCodec, type Address } from '@solana/kit';
+import { address, type Address } from '@solana/kit';
 import bs58 from 'bs58';
 import {
   ACTION_HEADER_LENGTH,
