@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { type Address } from '@solana/kit';
 import {
   AuthorityType,
   getCreateSecp256k1SessionEncoder,
@@ -12,22 +12,36 @@ export interface CreateAuthorityInfo {
   createAuthorityInfo: AuthorityCreateInfo;
 }
 
+/**
+ * Creates an Ed25519 authority info object.
+ * @param publicKey The Ed25519 public key as a 32-byte Uint8Array.
+ * @returns An object containing the authority creation data and type.
+ */
 export function createEd25519AuthorityInfo(
-  publicKey: PublicKey,
+  publicKey: Address,
 ): CreateAuthorityInfo {
-  const data = publicKey.toBytes();
+  const data = Uint8Array.from(publicKey);
   const type = AuthorityType.Ed25519;
   return { createAuthorityInfo: { data, type } };
 }
 
+/**
+ * Creates an Ed25519 session authority info object.
+ * @param publicKey The Ed25519 public key as a 32-byte Uint8Array.
+ * @param maxSessionDuration The maximum session duration as a bigint.
+ * @param sessionKey Optional session key as a 32-byte Uint8Array.
+ * @returns An object containing the authority creation data and type.
+ */
 export function createEd25519SessionAuthorityInfo(
-  publicKey: PublicKey,
+  publicKey: Address,
   maxSessionDuration: bigint,
-  sessionKey?: PublicKey,
+  sessionKey?: Address,
 ): CreateAuthorityInfo {
   const sessionData = getEd25519SessionEncoder().encode({
-    publicKey: publicKey.toBytes(),
-    sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
+    publicKey: Uint8Array.from(publicKey),
+    sessionKey: sessionKey
+      ? Uint8Array.from(sessionKey)
+      : Uint8Array.from(Array(32)),
     currentSessionExpiration: 0n,
     maxSessionLength: maxSessionDuration,
   });
@@ -38,9 +52,11 @@ export function createEd25519SessionAuthorityInfo(
 }
 
 /**
- *
- * @param publicKey Uncomporesed Publickey bytes or Hex string
- * @returns
+ * Creates a Secp256k1 authority info object.
+ * @param publicKey The uncompressed Secp256k1 public key, as either:
+ *   - a 64-byte Uint8Array (no prefix, just x and y concatenated), or
+ *   - a 128-character hex string (no prefix, just x and y concatenated).
+ * @returns An object containing the authority creation data and type.
  */
 export function createSecp256k1AuthorityInfo(
   publicKey: string | Uint8Array,
@@ -52,20 +68,26 @@ export function createSecp256k1AuthorityInfo(
 }
 
 /**
- *
- * @param publicKey Uncomporesed Publickey bytes or Hex string
- * @returns
+ * Creates a Secp256k1 session authority info object.
+ * @param publicKey The uncompressed Secp256k1 public key, as either:
+ *   - a 64-byte Uint8Array (no prefix, just x and y concatenated), or
+ *   - a 128-character hex string (no prefix, just x and y concatenated).
+ * @param maxSessionDuration The maximum session duration as a bigint.
+ * @param sessionKey Optional session key as a 32-byte Uint8Array.
+ * @returns An object containing the authority creation data and type.
  */
 export function createSecp256k1SessionAuthorityInfo(
   publicKey: string | Uint8Array,
   maxSessionDuration: bigint,
-  sessionKey?: PublicKey,
+  sessionKey?: Address,
 ): CreateAuthorityInfo {
   const publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
   const sessionData = getCreateSecp256k1SessionEncoder().encode({
     publicKey: publicKeyBytes,
-    sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
+    sessionKey: sessionKey
+      ? Uint8Array.from(sessionKey)
+      : Uint8Array.from(Array(32)),
     maxSessionLength: maxSessionDuration,
   });
 
