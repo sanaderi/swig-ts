@@ -5,6 +5,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
   transformEncoder,
@@ -16,6 +18,7 @@ import {
 export type Secp256k1SessionAuthorityData = {
   publicKey: ReadonlyUint8Array;
   _padding: ReadonlyUint8Array;
+  odometer: number;
   sessionKey: ReadonlyUint8Array;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
@@ -23,6 +26,7 @@ export type Secp256k1SessionAuthorityData = {
 
 export type Secp256k1SessionAuthorityDataArgs = {
   publicKey: ReadonlyUint8Array;
+  odometer: number;
   sessionKey: ReadonlyUint8Array;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
@@ -54,15 +58,15 @@ export function getSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityD
   return transformEncoder(
     getStructEncoder([
       ['publicKey', fixEncoderSize(getBytesEncoder(), 33)],
-      ['_padding', fixEncoderSize(getBytesEncoder(), 7)],
+      ['_padding', fixEncoderSize(getBytesEncoder(), 3)],
+      ['odometer', getU32Encoder()],
       ['sessionKey', fixEncoderSize(getBytesEncoder(), 32)],
       ['maxSessionLength', getU64Encoder()],
       ['currentSessionExpiration', getU64Encoder()],
     ]),
     (value) => ({
       ...value,
-      sigFilter: Uint8Array.from(Array(152)),
-      _padding: Uint8Array.from(Array(7)),
+      _padding: Uint8Array.from(Array(3)),
     }),
   );
 }
@@ -70,7 +74,8 @@ export function getSecp256k1SessionEncoder(): Encoder<Secp256k1SessionAuthorityD
 export function getSecp256k1SessionDecoder(): Decoder<Secp256k1SessionAuthorityData> {
   return getStructDecoder([
     ['publicKey', fixDecoderSize(getBytesDecoder(), 33)],
-    ['_padding', fixDecoderSize(getBytesDecoder(), 7)],
+    ['_padding', fixDecoderSize(getBytesDecoder(), 3)],
+    ['odometer', getU32Decoder()],
     ['sessionKey', fixDecoderSize(getBytesDecoder(), 32)],
     ['maxSessionLength', getU64Decoder()],
     ['currentSessionExpiration', getU64Decoder()],
