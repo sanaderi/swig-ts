@@ -1,6 +1,6 @@
 {
   "name": "@swig-wallet/kit",
-  "version": "0.2.0-beta.4",
+  "version": "0.2.0",
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
