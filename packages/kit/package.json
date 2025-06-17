@@ -21,6 +21,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@types/bs58": "4.0.4",
     "@types/bun": "^1.2.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^24.0.1",
