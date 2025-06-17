@@ -91,7 +91,7 @@ jobs:
         run: bun run lint
 
   tests:
-    name: Tests
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -103,8 +103,8 @@ jobs:
       - name: Install Dependencies
         run: bun install
       
-      - name: Check format
+      - name: Build Packages
         run: bun run build:packages
 
-      - name: Check linting
+      - name: Run Tests
         run: bun run test
