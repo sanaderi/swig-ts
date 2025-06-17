@@ -292,8 +292,13 @@ export async function prepareSecpPayload(
 
   const slot = new Uint8Array(u64Len);
 
-  const view = new DataView(slot.buffer);
-  view.setBigUint64(0, options.currentSlot, true);
+  const slotView = new DataView(slot.buffer);
+  slotView.setBigUint64(0, options.currentSlot, true);
+
+  const odometer = new Uint8Array(4);
+
+  const odometerView = new DataView(odometer.buffer);
+  odometerView.setUint32(0, options.odometer ?? 1, true);
 
   const accountsPayloadBytes = getAccountsPayloadEncoder(
     accountMetas.length,
@@ -302,11 +307,15 @@ export async function prepareSecpPayload(
   );
 
   const message = new Uint8Array(
-    dataPayload.length + accountsPayloadBytes.length + u64Len,
+    dataPayload.length + accountsPayloadBytes.length + u64Len + odometer.length,
   );
   message.set(dataPayload);
   message.set(accountsPayloadBytes, dataPayload.length);
   message.set(slot, dataPayload.length + accountsPayloadBytes.length);
+  message.set(
+    odometer,
+    dataPayload.length + accountsPayloadBytes.length + +u64Len,
+  );
 
   const messageShaHash = sha256(message);
   const messageHashHex = bytesToHex(messageShaHash);
@@ -318,11 +327,15 @@ export async function prepareSecpPayload(
   const prefixPayload = prefix ?? new Uint8Array(0);
 
   const authorityPayload = new Uint8Array(
-    signature.length + u64Len + prefixPayload.length,
+    signature.length + u64Len + odometer.length + prefixPayload.length,
   );
   authorityPayload.set(slot);
-  authorityPayload.set(signature, slot.length);
-  authorityPayload.set(prefixPayload, slot.length + signature.length);
+  authorityPayload.set(odometer, slot.length);
+  authorityPayload.set(signature, slot.length + odometer.length);
+  authorityPayload.set(
+    prefixPayload,
+    slot.length + odometer.length + signature.length,
+  );
 
   return authorityPayload;
 }

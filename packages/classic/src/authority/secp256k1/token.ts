@@ -90,15 +90,21 @@ export class Secp256k1Authority
     return bytesToHex(this.publicKeyBytes);
   }
 
+  odometer(): number {
+    // const bytes = this.data.slice(36)
+    const view = new DataView(this.data.buffer);
+    return view.getUint32(36, true) + 1;
+  }
+
   createAuthorityData(): Uint8Array {
-    return this.data;
+    return this.publicKeyBytes;
   }
 
   create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
     return createSwigInstruction(
       { payer: args.payer },
       {
-        authorityData: this.data,
+        authorityData: this.createAuthorityData(),
         id: args.id,
         actions: args.actions.bytes(),
         authorityType: this.type,
@@ -120,11 +126,11 @@ export class Secp256k1Authority
         payer: args.payer,
       },
       {
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         innerInstructions: args.innerInstructions,
         roleId: args.roleId,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -144,12 +150,12 @@ export class Secp256k1Authority
       {
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
         newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -167,10 +173,10 @@ export class Secp256k1Authority
       },
       {
         actingRoleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         authorityToRemoveId: args.roleIdToRemove,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -190,10 +196,10 @@ export class Secp256k1Authority
       },
       {
         roleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         bump,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -213,10 +219,10 @@ export class Secp256k1Authority
       },
       {
         roleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         innerInstructions: args.innerInstructions,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -236,10 +242,10 @@ export class Secp256k1Authority
       },
       {
         roleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         enabled: args.enabled,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -259,10 +265,10 @@ export class Secp256k1Authority
       },
       {
         roleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         amount: args.amount,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -299,10 +305,10 @@ export class Secp256k1Authority
       },
       {
         roleId: args.roleId,
-        authorityData: this.data,
+        authorityData: this.publicKeyBytes,
         amount: args.amount,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 }

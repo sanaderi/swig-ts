@@ -319,7 +319,7 @@ export function isEd25519SessionAuthority(
   return authority instanceof Ed25519SessionAuthority;
 }
 
-export type Ed25519SessionData = {
+type Ed25519SessionData = {
   publicKey: PublicKey;
   sessionKey: PublicKey;
   maxSessionLength: bigint;

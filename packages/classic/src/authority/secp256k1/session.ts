@@ -83,6 +83,10 @@ export class Secp256k1SessionAuthority
     return this.info.maxSessionLength;
   }
 
+  odometer() {
+    return this.info.odometer + 1;
+  }
+
   private get _uninitPublicKeyBytes() {
     const bytes = new Uint8Array(65);
     bytes.set([4]);
@@ -95,6 +99,7 @@ export class Secp256k1SessionAuthority
       ? getSecp256k1SessionDecoder().decode(this.data)
       : {
           ...getCreateSecp256k1SessionDecoder().decode(this.data),
+          odometer: 0,
           currentSessionExpiration: 0n,
         };
     return {
@@ -190,7 +195,7 @@ export class Secp256k1SessionAuthority
         newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -211,7 +216,7 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         authorityToRemoveId: args.roleIdToRemove,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -234,7 +239,7 @@ export class Secp256k1SessionAuthority
         sessionDuration: args.sessionDuration ?? this.maxDuration,
         sessionKey: args.newSessionKey.toBytes(),
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -257,7 +262,7 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         bump,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -301,7 +306,7 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         enabled: args.enabled,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -324,7 +329,7 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         amount: args.amount,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 
@@ -364,14 +369,15 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         amount: args.amount,
       },
-      args.options,
+      { ...args.options, odometer: this.odometer() ?? args.options.odometer },
     );
   }
 }
 
-export type SessionData = {
+type SessionData = {
   publicKey: Uint8Array;
   sessionKey: PublicKey;
+  odometer: number;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
 };

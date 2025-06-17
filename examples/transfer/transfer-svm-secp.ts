@@ -153,6 +153,58 @@ let signTransfer = await signInstruction(
   instOptions,
 );
 
+console.log('sign ix:', Uint8Array.from(signTransfer.data));
+
+sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
+
+console.log('balance after first transfer:', svm.getBalance(swigAddress));
+
+svm.warpToSlot(50n)
+
+//
+// * fetch swig
+//
+// * swig.refetch(connection, ...args) method available
+//
+swig = fetchSwig(svm, swigAddress);
+// swig.refetch(connection)
+
+// * find role by authority
+//
+rootRole = swig.findRolesBySecp256k1SignerAddress(
+  userWallet.getAddress(),
+)[0];
+
+if (!rootRole) throw new Error('Role not found for authority');
+
+currentSlot = svm.getClock().slot;
+
+signingFn = getSigningFnForSecp256k1PrivateKey(userWallet.getPrivateKey());
+
+instOptions = { currentSlot, signingFn };
+
+svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
+
+swig = fetchSwig(svm, swigAddress);
+
+console.log('balance before first transfer:', svm.getBalance(swigAddress));
+
+//
+// * spend max sol permitted
+//
+transfer = SystemProgram.transfer({
+  fromPubkey: swigAddress,
+  toPubkey: dappTreasury,
+  lamports: 0.1 * LAMPORTS_PER_SOL,
+});
+
+signTransfer = await signInstruction(
+  rootRole,
+  userAuthorityManagerKeypair.publicKey,
+  [transfer],
+  instOptions,
+);
+
 sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
 
 console.log('balance after first transfer:', svm.getBalance(swigAddress));
