@@ -1,8 +1,8 @@
-import type { PublicKey } from '@solana/web3.js';
+import { type Address } from '@solana/kit';
 import type { Authority } from '../abstract';
 
 export interface Ed25519BasedAuthority {
-  ed25519PublicKey: PublicKey;
+  ed25519PublicKey: Address;
 }
 
 export function isEd25519BasedAuthority(

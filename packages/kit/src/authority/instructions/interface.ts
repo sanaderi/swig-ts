@@ -1,5 +1,4 @@
-import type { ReadonlyUint8Array } from '@solana/kit';
-import type { TransactionInstruction } from '@solana/web3.js';
+import type { IInstruction, ReadonlyUint8Array } from '@solana/kit';
 import type {
   AddAuthorityV1InstructionDataArgs,
   CreateSessionV1InstructionDataArgs,
@@ -20,7 +19,7 @@ import {
 } from '../../instructions';
 
 /**
- * Authority Instruction Interface
+ * Authority Instruction Interface (kit-native)
  */
 export interface AuthorityInstruction {
   addAuthorityV1Instruction(
@@ -29,7 +28,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   removeAuthorityV1Instruction(
     accounts: RemoveAuthorityV1InstructionAccounts,
@@ -37,17 +36,17 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   signV1Instruction(
     accounts: SignV1InstructionAccounts,
     data: {
       authorityData: ReadonlyUint8Array;
       roleId: number;
-      innerInstructions: TransactionInstruction[];
+      innerInstructions: IInstruction[];
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   createSessionV1Instruction(
     accounts: SignV1InstructionAccounts,
@@ -55,7 +54,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   subAccountCreateV1Instruction(
     accounts: SubAccountCreateV1InstructionAccounts,
@@ -63,7 +62,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   subAccountWithdrawV1SolInstruction(
     accounts: SubAccountWithdrawV1SolInstructionAccounts,
@@ -71,7 +70,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   subAccountWithdrawV1TokenInstruction(
     accounts: SubAccountWithdrawV1TokenInstructionAccounts,
@@ -79,7 +78,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   subAccountToggleV1Instruction(
     accounts: SubAccountToggleV1InstructionAccounts,
@@ -87,17 +86,17 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 
   subAccountSignV1Instruction(
     accounts: SubAccountSignV1InstructionAccounts,
     data: {
       authorityData: ReadonlyUint8Array;
       roleId: number;
-      innerInstructions: TransactionInstruction[];
+      innerInstructions: IInstruction[];
     },
     options?: InstructionDataOptions,
-  ): Promise<TransactionInstruction>;
+  ): Promise<IInstruction>;
 }
 
 /**

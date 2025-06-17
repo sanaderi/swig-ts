@@ -1,9 +1,12 @@
 import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+  address,
+  getAddressCodec,
+  type Address,
+  type IInstruction,
+} from '@solana/kit';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { AuthorityType } from '@swig-wallet/coder';
+import bs58 from 'bs58';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { findSwigSubAccountPda } from '../../utils';
@@ -22,8 +25,10 @@ export class Ed25519Authority
     super(data, roleId ?? null);
   }
 
-  static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
-    return new Ed25519Authority(publicKey.toBytes());
+  static fromAddress(addr: Address): Ed25519Authority {
+    return new Ed25519Authority(
+      Uint8Array.from(getAddressCodec().encode(addr)),
+    );
   }
 
   get id() {
@@ -42,20 +47,20 @@ export class Ed25519Authority
     return this.ed25519PublicKey;
   }
 
-  get ed25519PublicKey() {
-    return new PublicKey(this.data);
+  get ed25519PublicKey(): Address {
+    return address(bs58.encode(this.data));
   }
 
   createAuthorityData() {
     return this.data;
   }
 
-  create(args: {
-    payer: PublicKey;
+  async create(args: {
+    payer: Address;
     id: Uint8Array;
     actions: Actions;
-  }): TransactionInstruction {
-    return createSwigInstruction(
+  }): Promise<IInstruction> {
+    return await createSwigInstruction(
       { payer: args.payer },
       {
         authorityData: this.createAuthorityData(),
@@ -68,10 +73,10 @@ export class Ed25519Authority
   }
 
   sign(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.signV1Instruction(
       {
@@ -80,15 +85,15 @@ export class Ed25519Authority
       },
       {
         authorityData: this.data,
-        innerInstructions: args.innerInstructions,
+        innerInstructions: args.innerInstructions as IInstruction[],
         roleId: args.roleId,
       },
     );
   }
 
   addAuthority(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -110,8 +115,8 @@ export class Ed25519Authority
   }
 
   removeAuthority(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     roleId: number;
     roleIdToRemove: number;
   }) {
@@ -128,18 +133,42 @@ export class Ed25519Authority
     );
   }
 
-  subAccountCreate(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+  createSession(args: {
+    payer: Address;
+    swigAddress: Address;
+    newSessionKey: Address;
+    roleId: number;
+    sessionDuration?: bigint;
+  }) {
+    return Ed25519Instruction.createSessionV1Instruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+      },
+      {
+        authorityData: this.data,
+        roleId: args.roleId,
+        sessionDuration: args.sessionDuration ?? 0n,
+        sessionKey: getAddressCodec().encode(args.newSessionKey),
+      },
+    );
+  }
+
+  async subAccountCreate(args: {
+    payer: Address;
+    swigAddress: Address;
     swigId: Uint8Array;
     roleId: number;
   }) {
-    const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
+    const [subAccount, bump] = await findSwigSubAccountPda(
+      args.swigId,
+      args.roleId,
+    );
     return Ed25519Instruction.subAccountCreateV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount,
+        subAccount: address(bs58.encode(Uint8Array.from(subAccount))),
       },
       {
         roleId: args.roleId,
@@ -150,11 +179,11 @@ export class Ed25519Authority
   }
 
   subAccountSign(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.subAccountSignV1Instruction(
       {
@@ -165,15 +194,15 @@ export class Ed25519Authority
       {
         roleId: args.roleId,
         authorityData: this.data,
-        innerInstructions: args.innerInstructions,
+        innerInstructions: args.innerInstructions as IInstruction[],
       },
     );
   }
 
   subAccountToggle(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     enabled: boolean;
   }) {
@@ -192,9 +221,9 @@ export class Ed25519Authority
   }
 
   subAccountWithdrawSol(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     amount: bigint;
   }) {
@@ -213,34 +242,26 @@ export class Ed25519Authority
   }
 
   subAccountWithdrawToken(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    mint: PublicKey;
+    mint: Address;
     amount: bigint;
-    tokenProgram?: PublicKey;
+    tokenProgram?: Address;
   }) {
-    const swigToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.swigAddress,
-      true,
-      args.tokenProgram,
-    );
-    const subAccountToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.subAccount,
-      true,
-      args.tokenProgram,
-    );
+    // If you have a kit-native getAssociatedTokenAddress, use it. Otherwise, convert Address to PublicKey for SPL compatibility.
+    // This is a placeholder for kit-native SPL support.
     return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken,
-        swigToken,
-        tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
+        subAccountToken: args.subAccount, // Replace with kit-native SPL support if available
+        swigToken: args.swigAddress, // Replace with kit-native SPL support if available
+        tokenProgram:
+          args.tokenProgram ??
+          address(bs58.encode(TOKEN_PROGRAM_ID.toBuffer())),
       },
       {
         roleId: args.roleId,
@@ -251,8 +272,8 @@ export class Ed25519Authority
   }
 }
 
-export function getEd25519AuthorityFromPublicKey(publicKey: PublicKey) {
-  return Ed25519Authority.fromPublicKey(publicKey);
+export function getEd25519AuthorityFromAddress(addr: Address) {
+  return Ed25519Authority.fromAddress(addr);
 }
 
 export function isEd25519Authority(

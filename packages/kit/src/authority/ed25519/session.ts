@@ -1,13 +1,20 @@
 import {
+  address,
+  getAddressCodec,
+  type Address,
+  type IInstruction,
+} from '@solana/kit';
+import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import {
   AuthorityType,
   getEd25519SessionDecoder,
   getEd25519SessionEncoder,
 } from '@swig-wallet/coder';
+import bs58 from 'bs58';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import { findSwigSubAccountPda } from '../../utils';
@@ -34,14 +41,14 @@ export class Ed25519SessionAuthority
   }
 
   static uninitialized(
-    publicKey: PublicKey,
+    publicKey: Address,
     maxSessionDuration: bigint,
-    sessionKey?: PublicKey,
+    sessionKey?: Address,
   ): Ed25519SessionAuthority {
     const sessionData = getEd25519SessionEncoder().encode({
-      publicKey: publicKey.toBytes(),
+      publicKey: getAddressCodec().encode(publicKey),
       sessionKey: sessionKey
-        ? sessionKey.toBytes()
+        ? getAddressCodec().encode(sessionKey)
         : Uint8Array.from(Array(32)),
       currentSessionExpiration: 0n,
       maxSessionLength: maxSessionDuration,
@@ -51,11 +58,11 @@ export class Ed25519SessionAuthority
   }
 
   get id() {
-    return this.info.publicKey.toBytes();
+    return Uint8Array.from(getAddressCodec().encode(this.info.publicKey));
   }
 
   get signer() {
-    return this.sessionKey.toBytes();
+    return Uint8Array.from(getAddressCodec().encode(this.sessionKeyAddress));
   }
 
   get publicKey() {
@@ -66,12 +73,16 @@ export class Ed25519SessionAuthority
     return this.ed25519PublicKey;
   }
 
-  get ed25519PublicKey() {
+  get ed25519PublicKey(): Address {
     return this.info.publicKey;
   }
 
-  get sessionKey() {
+  get sessionKeyAddress(): Address {
     return this.info.sessionKey;
+  }
+
+  get sessionKey(): Address {
+    return this.sessionKeyAddress;
   }
 
   get expirySlot() {
@@ -90,13 +101,17 @@ export class Ed25519SessionAuthority
     const data = getEd25519SessionDecoder().decode(this.data);
     return {
       ...data,
-      publicKey: new PublicKey(data.publicKey),
-      sessionKey: new PublicKey(data.sessionKey),
+      publicKey: address(bs58.encode(new Uint8Array(data.publicKey))),
+      sessionKey: address(bs58.encode(new Uint8Array(data.sessionKey))),
     };
   }
 
-  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
+  async create(args: {
+    payer: Address;
+    id: Uint8Array;
+    actions: Actions;
+  }): Promise<IInstruction> {
+    return await createSwigInstruction(
       { payer: args.payer },
       {
         authorityData: this.createAuthorityData(),
@@ -109,10 +124,10 @@ export class Ed25519SessionAuthority
   }
 
   sign(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.signV1Instruction(
       {
@@ -120,16 +135,16 @@ export class Ed25519SessionAuthority
         payer: args.payer,
       },
       {
-        authorityData: this.sessionKey.toBytes(),
-        innerInstructions: args.innerInstructions,
+        authorityData: getAddressCodec().encode(this.sessionKey),
+        innerInstructions: args.innerInstructions as IInstruction[],
         roleId: args.roleId,
       },
     );
   }
 
   addAuthority(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -151,8 +166,8 @@ export class Ed25519SessionAuthority
   }
 
   removeAuthority(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     roleId: number;
     roleIdToRemove: number;
   }) {
@@ -170,9 +185,9 @@ export class Ed25519SessionAuthority
   }
 
   createSession(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    newSessionKey: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    newSessionKey: Address;
     roleId: number;
     sessionDuration?: bigint;
   }) {
@@ -182,26 +197,29 @@ export class Ed25519SessionAuthority
         swig: args.swigAddress,
       },
       {
-        authorityData: this.address.toBytes(),
+        authorityData: getAddressCodec().encode(this.address),
         roleId: args.roleId,
         sessionDuration: args.sessionDuration ?? this.maxDuration,
-        sessionKey: args.newSessionKey.toBytes(),
+        sessionKey: getAddressCodec().encode(args.newSessionKey),
       },
     );
   }
 
-  subAccountCreate(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+  async subAccountCreate(args: {
+    payer: Address;
+    swigAddress: Address;
     swigId: Uint8Array;
     roleId: number;
   }) {
-    const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
+    const [subAccount, bump] = await findSwigSubAccountPda(
+      args.swigId,
+      args.roleId,
+    );
     return Ed25519Instruction.subAccountCreateV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount,
+        subAccount: address(subAccount),
       },
       {
         roleId: args.roleId,
@@ -212,11 +230,11 @@ export class Ed25519SessionAuthority
   }
 
   subAccountSign(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.subAccountSignV1Instruction(
       {
@@ -226,16 +244,16 @@ export class Ed25519SessionAuthority
       },
       {
         roleId: args.roleId,
-        authorityData: this.sessionKey.toBytes(),
-        innerInstructions: args.innerInstructions,
+        authorityData: getAddressCodec().encode(this.sessionKeyAddress),
+        innerInstructions: args.innerInstructions as IInstruction[],
       },
     );
   }
 
   subAccountToggle(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     enabled: boolean;
   }) {
@@ -254,9 +272,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountWithdrawSol(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     amount: bigint;
   }) {
@@ -275,34 +293,52 @@ export class Ed25519SessionAuthority
   }
 
   subAccountWithdrawToken(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    mint: PublicKey;
+    mint: Address;
     amount: bigint;
-    tokenProgram?: PublicKey;
+    tokenProgram?: Address;
   }) {
     const swigToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.swigAddress,
+      new PublicKey(getAddressCodec().encode(args.mint)),
+      new PublicKey(getAddressCodec().encode(args.swigAddress)),
       true,
-      args.tokenProgram,
+      args.tokenProgram
+        ? new PublicKey(getAddressCodec().encode(args.tokenProgram))
+        : undefined,
     );
     const subAccountToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.subAccount,
+      new PublicKey(getAddressCodec().encode(args.mint)),
+      new PublicKey(getAddressCodec().encode(args.subAccount)),
       true,
-      args.tokenProgram,
+      args.tokenProgram
+        ? new PublicKey(getAddressCodec().encode(args.tokenProgram))
+        : undefined,
     );
     return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken,
-        swigToken,
-        tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
+        subAccountToken: address(
+          bs58.encode(
+            subAccountToken.toBuffer
+              ? new Uint8Array(subAccountToken.toBuffer())
+              : subAccountToken.toBytes(),
+          ),
+        ),
+        swigToken: address(
+          bs58.encode(
+            swigToken.toBuffer
+              ? new Uint8Array(swigToken.toBuffer())
+              : swigToken.toBytes(),
+          ),
+        ),
+        tokenProgram: args.tokenProgram
+          ? args.tokenProgram
+          : address(bs58.encode(TOKEN_PROGRAM_ID.toBuffer())),
       },
       {
         roleId: args.roleId,
@@ -320,8 +356,8 @@ export function isEd25519SessionAuthority(
 }
 
 export type Ed25519SessionData = {
-  publicKey: PublicKey;
-  sessionKey: PublicKey;
+  publicKey: Address;
+  sessionKey: Address;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
 };
