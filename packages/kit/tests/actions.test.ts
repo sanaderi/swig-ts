@@ -18,7 +18,7 @@ describe('Actions', () => {
     expect(actions.tokenSpendLimit(mint1)).toBe(100n);
     expect(actions.tokenSpendLimit(mint2)).toBe(200n);
   });
-  
+
   it('returns none SpendController when no SOL spend action exists', () => {
     const actions = Actions.set()
       .programLimit({ programId: dummyAddress() })
