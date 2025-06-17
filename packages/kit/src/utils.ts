@@ -1,14 +1,6 @@
 import { hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { keccak_256 } from '@noble/hashes/sha3';
-import type {
-  Address,
-  Commitment,
-  IAccountMeta,
-  Rpc,
-  SolanaRpcApi,
-  TransactionSigner,
-} from '@solana/kit';
 import {
   appendTransactionMessageInstructions,
   createTransactionMessage,
@@ -17,6 +9,12 @@ import {
   setTransactionMessageFeePayerSigner,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
+  type Address,
+  type Commitment,
+  type IAccountMeta,
+  type Rpc,
+  type SolanaRpcApi,
+  type TransactionSigner,
 } from '@solana/kit';
 import { SWIG_PROGRAM_ADDRESS } from './consts';
 
