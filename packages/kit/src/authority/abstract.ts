@@ -1,4 +1,4 @@
-import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
+import { type Address, type IInstruction } from '@solana/kit';
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
 import { uint8ArraysEqual } from '../utils';
@@ -56,40 +56,40 @@ export abstract class Authority implements CreateAuthorityInfo {
   /**
    * Creates a `Swig` instruction for initializing a new entity on-chain.
    * @param args - The parameters required to create the Swig instruction.
-   * @param args.payer - The public key of the account paying for the transaction.
+   * @param args.payer - The address of the account paying for the transaction.
    * @param args.id - 32-bytes Uint8Array.
    * @param args.actions - A container holding the set of actions to include.   * @returns The serialized instruction for creating the Swig.
    */
   abstract create(args: {
-    payer: PublicKey;
+    payer: Address;
     id: Uint8Array;
     actions: Actions;
-  }): TransactionInstruction;
+  }): Promise<IInstruction>;
 
   /**
    * Creates a `Sign` instruction for signing provided instructions with the Swig
    * @param args The parameters required to create the Swig instruction.
-   * @param args.swigAddress The public key of the swig
-   * @param args.payer The public key of the swig payer.
+   * @param args.swigAddress The address of the swig
+   * @param args.payer The address of the swig payer.
    * @param args.roleId The ID of the role signing the instruction.
    * @param args.innerInstructions The instructions the Swig is to sign.
    * @param args.options {@link InstructionDataOptions}
    * @returns `Sign` Instruction.
    */
   abstract sign(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   /**
    * Creates an `AddAuthority` Instructon
    *
    * @param args The parameters required to create the Swig instruction.
-   * @param args.swigAddress The public key of the swig
-   * @param args.payer The public key of the swig payer.
+   * @param args.swigAddress The address of the swig
+   * @param args.payer The address of the swig payer.
    * @param args.actingRoleId The ID of the role signing the instruction.
    * @param args.newAuthorityInfo {@link CreateAuthorityInfo} of new Authority to add
    * @param args.actions Actions of the new authority
@@ -98,78 +98,78 @@ export abstract class Authority implements CreateAuthorityInfo {
    * @returns `AddAuthority` Instruction.
    */
   abstract addAuthority(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   /**
    * Creates an `RemoveAuthority` Instructon
    *
    * @param args The parameters required for `RemoveAuthority` instruction.
-   * @param args.swigAddress The public key of the swig
-   * @param args.payer The public key of the swig payer.
+   * @param args.swigAddress The address of the swig
+   * @param args.payer The address of the swig payer.
    * @param args.roleId The ID of the role signing the instruction.
    * @param args.roleIdToRemove ID of the role to remove
    * @param args.options {@link InstructionDataOptions}
    * @returns `RemoveAuthority` Instruction.
    */
   abstract removeAuthority(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     roleId: number;
     roleIdToRemove: number;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   abstract subAccountCreate(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     swigId: Uint8Array;
     roleId: number;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   abstract subAccountSign(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   abstract subAccountToggle(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     enabled: boolean;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   abstract subAccountWithdrawSol(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     amount: bigint;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   abstract subAccountWithdrawToken(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    mint: PublicKey;
+    mint: Address;
     amount: bigint;
-    tokenProgram?: PublicKey;
+    tokenProgram?: Address;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 
   /**
    * Data required to create a new authority.
@@ -213,9 +213,9 @@ export abstract class SessionBasedAuthority extends Authority {
   session = true;
 
   /**
-   * Ed25519 based Public Key as Session key
+   * Ed25519 based Address as Session key
    */
-  abstract sessionKey: PublicKey;
+  abstract sessionKey: Address;
   /**
    * Slot when the session expires
    */
@@ -229,23 +229,23 @@ export abstract class SessionBasedAuthority extends Authority {
    * Creates an `CreateSession` Instructon
    *
    * @param args The parameters required to create the Swig instruction.
-   * @param args.swigAddress The public key of the swig
-   * @param args.payer The public key of the swig payer.
+   * @param args.swigAddress The address of the swig
+   * @param args.payer The address of the swig payer.
    * @param args.roleId The ID of the role signing the instruction.
-   * @param args.newSessionKey Ed25519 Public key of the Session key
+   * @param args.newSessionKey Ed25519 Address of the Session key
    * @param args.sessionDuration Session duration in slots
    * @param args.options {@link InstructionDataOptions}
    *
    * @returns `AddAuthority` Instruction.
    */
   abstract createSession(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     roleId: number;
-    newSessionKey: PublicKey;
+    newSessionKey: Address;
     sessionDuration?: bigint;
     options?: InstructionDataOptions;
-  }): Promise<TransactionInstruction>;
+  }): Promise<IInstruction>;
 }
 
 /**

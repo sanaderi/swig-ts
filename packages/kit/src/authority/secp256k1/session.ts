@@ -1,10 +1,7 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
+import { address, type Address, type IInstruction } from '@solana/kit';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import {
   AuthorityType,
   getCreateSecp256k1SessionDecoder,
@@ -12,6 +9,7 @@ import {
   getSecp256k1SessionDecoder,
   type Secp256k1SessionAuthorityDataArgs,
 } from '@swig-wallet/coder';
+import bs58 from 'bs58';
 import type { Actions } from '../../actions';
 import { createSwigInstruction } from '../../instructions';
 import {
@@ -39,8 +37,8 @@ export class Secp256k1SessionAuthority
     return this.secp256k1Address;
   }
 
-  get signer() {
-    return this.sessionKey.toBytes();
+  get signer(): Uint8Array {
+    return this.sessionKeyBytes;
   }
 
   get publicKeyBytes(): Uint8Array {
@@ -55,23 +53,27 @@ export class Secp256k1SessionAuthority
     return bytesToHex(this.publicKeyBytes);
   }
 
-  get secp256k1Address() {
+  get secp256k1Address(): Uint8Array {
     return compressedPubkeyToAddress(this.publicKeyBytes);
   }
 
   get secp256k1AddressString(): string {
-    return `Ox${bytesToHex(this.secp256k1Address)}`;
+    return `0x${bytesToHex(this.secp256k1Address)}`;
   }
 
-  get secp256k1PublicKey() {
+  get secp256k1PublicKey(): Uint8Array {
     return this.publicKeyBytes;
   }
 
-  get secp256k1PublicKeyString() {
+  get secp256k1PublicKeyString(): string {
     return this.publicKeyString;
   }
 
-  get sessionKey(): PublicKey {
+  get sessionKey(): Address {
+    return address(bs58.encode(this.sessionKeyBytes));
+  }
+
+  get sessionKeyBytes(): Uint8Array {
     return this.info.sessionKey;
   }
 
@@ -100,14 +102,14 @@ export class Secp256k1SessionAuthority
     return {
       ...data,
       publicKey: Uint8Array.from(data.publicKey),
-      sessionKey: new PublicKey(data.sessionKey),
+      sessionKey: Uint8Array.from(data.sessionKey),
     };
   }
 
   static uninitializedString(
     publicKey: string,
     maxSessionDuration: bigint,
-    sessionKey?: PublicKey,
+    sessionKey?: Address,
   ): Secp256k1SessionAuthority {
     const bytes = hexToBytes(publicKey);
     return Secp256k1SessionAuthority.uninitialized(
@@ -120,13 +122,18 @@ export class Secp256k1SessionAuthority
   static uninitialized(
     publicKey: string | Uint8Array,
     maxSessionDuration: bigint,
-    sessionKey?: PublicKey,
+    sessionKey?: Address,
   ): Secp256k1SessionAuthority {
+    const sessionKeyBytes = sessionKey
+      ? bs58.decode(sessionKey)
+      : new Uint8Array(32);
+
     const sessionData = getCreateSecp256k1SessionEncoder().encode({
-      publicKey: getUnprefixedSecpBytes(publicKey, 64),
-      sessionKey: sessionKey
-        ? sessionKey.toBytes()
-        : Uint8Array.from(Array(32)),
+      publicKey:
+        typeof publicKey === 'string'
+          ? getUnprefixedSecpBytes(publicKey, 64)
+          : publicKey,
+      sessionKey: sessionKeyBytes,
       maxSessionLength: maxSessionDuration,
     });
 
@@ -137,8 +144,12 @@ export class Secp256k1SessionAuthority
     return this.data;
   }
 
-  create(args: { payer: PublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
+  async create(args: {
+    payer: Address;
+    id: Uint8Array;
+    actions: Actions;
+  }): Promise<IInstruction> {
+    return await createSwigInstruction(
       { payer: args.payer },
       {
         authorityData: this.createAuthorityData(),
@@ -151,10 +162,10 @@ export class Secp256k1SessionAuthority
   }
 
   sign(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.signV1Instruction(
       {
@@ -162,16 +173,16 @@ export class Secp256k1SessionAuthority
         payer: args.payer,
       },
       {
-        authorityData: this.sessionKey.toBytes(),
-        innerInstructions: args.innerInstructions,
+        authorityData: this.sessionKeyBytes,
+        innerInstructions: args.innerInstructions as IInstruction[],
         roleId: args.roleId,
       },
     );
   }
 
   addAuthority(args: {
-    swigAddress: PublicKey;
-    payer: PublicKey;
+    swigAddress: Address;
+    payer: Address;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -195,8 +206,8 @@ export class Secp256k1SessionAuthority
   }
 
   removeAuthority(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+    payer: Address;
+    swigAddress: Address;
     roleId: number;
     roleIdToRemove: number;
     options: InstructionDataOptions;
@@ -215,42 +226,27 @@ export class Secp256k1SessionAuthority
     );
   }
 
-  createSession(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    newSessionKey: PublicKey;
-    roleId: number;
-    sessionDuration?: bigint;
-    options: InstructionDataOptions;
-  }) {
-    return Secp256k1Instruction.createSessionV1Instruction(
-      {
-        payer: args.payer,
-        swig: args.swigAddress,
-      },
-      {
-        authorityData: this.data,
-        roleId: args.roleId,
-        sessionDuration: args.sessionDuration ?? this.maxDuration,
-        sessionKey: args.newSessionKey.toBytes(),
-      },
-      args.options,
-    );
-  }
-
-  subAccountCreate(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
+  async subAccountCreate(args: {
+    payer: Address;
+    swigAddress: Address;
     swigId: Uint8Array;
     roleId: number;
     options: InstructionDataOptions;
   }) {
-    const [subAccount, bump] = findSwigSubAccountPda(args.swigId, args.roleId);
+    const [subAccount, bump] = await findSwigSubAccountPda(
+      args.swigId,
+      args.roleId,
+    );
+    const subAccountAddress =
+      typeof subAccount === 'string'
+        ? address(subAccount)
+        : address(bs58.encode(subAccount));
+
     return Secp256k1Instruction.subAccountCreateV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount,
+        subAccount: subAccountAddress,
       },
       {
         roleId: args.roleId,
@@ -262,11 +258,11 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountSign(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    innerInstructions: TransactionInstruction[];
+    innerInstructions: IInstruction[];
   }) {
     return Ed25519Instruction.subAccountSignV1Instruction(
       {
@@ -276,16 +272,16 @@ export class Secp256k1SessionAuthority
       },
       {
         roleId: args.roleId,
-        authorityData: this.sessionKey.toBytes(),
-        innerInstructions: args.innerInstructions,
+        authorityData: this.sessionKeyBytes,
+        innerInstructions: args.innerInstructions as IInstruction[],
       },
     );
   }
 
   subAccountToggle(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     enabled: boolean;
     options: InstructionDataOptions;
@@ -306,9 +302,9 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountWithdrawSol(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
     amount: bigint;
     options: InstructionDataOptions;
@@ -329,35 +325,26 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountWithdrawToken(args: {
-    payer: PublicKey;
-    swigAddress: PublicKey;
-    subAccount: PublicKey;
+    payer: Address;
+    swigAddress: Address;
+    subAccount: Address;
     roleId: number;
-    mint: PublicKey;
+    mint: Address;
     amount: bigint;
-    tokenProgram?: PublicKey;
+    tokenProgram?: Address;
     options: InstructionDataOptions;
   }) {
-    const swigToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.swigAddress,
-      true,
-      args.tokenProgram,
-    );
-    const subAccountToken = getAssociatedTokenAddressSync(
-      args.mint,
-      args.subAccount,
-      true,
-      args.tokenProgram,
-    );
+    const tokenProgramAddress =
+      args.tokenProgram ?? address(bs58.encode(TOKEN_PROGRAM_ID.toBytes()));
+
     return Secp256k1Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken,
-        swigToken,
-        tokenProgram: args.tokenProgram ?? TOKEN_PROGRAM_ID,
+        subAccountToken: args.subAccount,
+        swigToken: args.swigAddress,
+        tokenProgram: tokenProgramAddress,
       },
       {
         roleId: args.roleId,
@@ -367,11 +354,35 @@ export class Secp256k1SessionAuthority
       args.options,
     );
   }
+
+  async createSession(args: {
+    payer: Address;
+    swigAddress: Address;
+    roleId: number;
+    newSessionKey: Address;
+    sessionDuration?: bigint;
+    options: InstructionDataOptions;
+  }): Promise<IInstruction> {
+    const sessionKeyBytes = bs58.decode(args.newSessionKey);
+    return Secp256k1Instruction.createSessionV1Instruction(
+      {
+        payer: args.payer,
+        swig: args.swigAddress,
+      },
+      {
+        authorityData: this.data,
+        roleId: args.roleId,
+        sessionDuration: args.sessionDuration ?? this.maxDuration,
+        sessionKey: sessionKeyBytes,
+      },
+      args.options,
+    );
+  }
 }
 
 export type SessionData = {
   publicKey: Uint8Array;
-  sessionKey: PublicKey;
+  sessionKey: Uint8Array;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
 };
