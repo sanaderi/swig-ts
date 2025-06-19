@@ -1,14 +1,10 @@
 import {
   address,
   getAddressCodec,
+  getProgramDerivedAddress,
   type Address,
   type IInstruction,
 } from '@solana/kit';
-import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { PublicKey } from '@solana/web3.js';
 import {
   AuthorityType,
   getEd25519SessionDecoder,
@@ -16,6 +12,7 @@ import {
 } from '@swig-wallet/coder';
 import bs58 from 'bs58';
 import type { Actions } from '../../actions';
+import { TOKEN_PROGRAM_ADDRESS } from '../../consts';
 import { createSwigInstruction } from '../../instructions';
 import { findSwigSubAccountPda } from '../../utils';
 import { Authority, SessionBasedAuthority } from '../abstract';
@@ -292,7 +289,7 @@ export class Ed25519SessionAuthority
     );
   }
 
-  subAccountWithdrawToken(args: {
+  async subAccountWithdrawToken(args: {
     payer: Address;
     swigAddress: Address;
     subAccount: Address;
@@ -301,44 +298,34 @@ export class Ed25519SessionAuthority
     amount: bigint;
     tokenProgram?: Address;
   }) {
-    const swigToken = getAssociatedTokenAddressSync(
-      new PublicKey(getAddressCodec().encode(args.mint)),
-      new PublicKey(getAddressCodec().encode(args.swigAddress)),
-      true,
-      args.tokenProgram
-        ? new PublicKey(getAddressCodec().encode(args.tokenProgram))
-        : undefined,
-    );
-    const subAccountToken = getAssociatedTokenAddressSync(
-      new PublicKey(getAddressCodec().encode(args.mint)),
-      new PublicKey(getAddressCodec().encode(args.subAccount)),
-      true,
-      args.tokenProgram
-        ? new PublicKey(getAddressCodec().encode(args.tokenProgram))
-        : undefined,
-    );
+    const tokenProgram = args.tokenProgram ?? TOKEN_PROGRAM_ADDRESS;
+
+    const [swigToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.swigAddress),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
+    const [subAccountToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.subAccount),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
     return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken: address(
-          bs58.encode(
-            subAccountToken.toBuffer
-              ? new Uint8Array(subAccountToken.toBuffer())
-              : subAccountToken.toBytes(),
-          ),
-        ),
-        swigToken: address(
-          bs58.encode(
-            swigToken.toBuffer
-              ? new Uint8Array(swigToken.toBuffer())
-              : swigToken.toBytes(),
-          ),
-        ),
-        tokenProgram: args.tokenProgram
-          ? args.tokenProgram
-          : address(bs58.encode(TOKEN_PROGRAM_ID.toBuffer())),
+        subAccountToken,
+        swigToken,
+        tokenProgram,
       },
       {
         roleId: args.roleId,

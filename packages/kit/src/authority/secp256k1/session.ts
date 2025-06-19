@@ -1,7 +1,11 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import { address, type Address, type IInstruction } from '@solana/kit';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import {
+  address,
+  getProgramDerivedAddress,
+  type Address,
+  type IInstruction,
+} from '@solana/kit';
 import {
   AuthorityType,
   getCreateSecp256k1SessionDecoder,
@@ -11,6 +15,7 @@ import {
 } from '@swig-wallet/coder';
 import bs58 from 'bs58';
 import type { Actions } from '../../actions';
+import { TOKEN_PROGRAM_ADDRESS } from '../../consts';
 import { createSwigInstruction } from '../../instructions';
 import {
   compressedPubkeyToAddress,
@@ -329,7 +334,7 @@ export class Secp256k1SessionAuthority
     );
   }
 
-  subAccountWithdrawToken(args: {
+  async subAccountWithdrawToken(args: {
     payer: Address;
     swigAddress: Address;
     subAccount: Address;
@@ -339,17 +344,34 @@ export class Secp256k1SessionAuthority
     tokenProgram?: Address;
     options: InstructionDataOptions;
   }) {
-    const tokenProgramAddress =
-      args.tokenProgram ?? address(bs58.encode(TOKEN_PROGRAM_ID.toBytes()));
+    const tokenProgram = args.tokenProgram ?? TOKEN_PROGRAM_ADDRESS;
+
+    const [swigToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.swigAddress),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
+    const [subAccountToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.subAccount),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
 
     return Secp256k1Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken: args.subAccount,
-        swigToken: args.swigAddress,
-        tokenProgram: tokenProgramAddress,
+        subAccountToken,
+        swigToken,
+        tokenProgram,
       },
       {
         roleId: args.roleId,

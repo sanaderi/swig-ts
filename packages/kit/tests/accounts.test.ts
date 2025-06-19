@@ -5,8 +5,6 @@ import {
   createSolanaRpc,
   fetchEncodedAccount,
 } from '@solana/kit';
-import { getMint } from '@solana/spl-token';
-import { Connection, PublicKey } from '@solana/web3.js';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../src/accounts/swig';
 
 const MINT_ADDRESS = 'So11111111111111111111111111111111111111112'; // Example: Wrapped SOL
@@ -14,20 +12,18 @@ const NON_EXISTENT_ADDRESS = '11111111111111111111111111111112';
 const INVALID_ADDRESS = 'notAValidAddress';
 const REAL_SWIG_ADDRESS = 'APkCV5cLqT5Qf3iEmJv9tBKrKb5aSD1uFAFqvrFV5Dz9';
 
-test('Kit fetcher is compatible with SPL Token Mint', async () => {
-  // Using Kit
+test('Kit can fetch and decode SPL Token Mint', async () => {
   const rpc = createSolanaRpc('https://api.devnet.solana.com');
   const kitAccount = await fetchEncodedAccount(rpc, address(MINT_ADDRESS));
   assertAccountExists(kitAccount);
   const kitMint = getMintCodec().decode(kitAccount.data);
 
-  // Using SPL Token (web3.js)
-  const connection = new Connection('https://api.devnet.solana.com');
-  const splMint = await getMint(connection, new PublicKey(MINT_ADDRESS));
-
-  // Compare relevant fields
-  expect(kitMint.decimals).toBe(splMint.decimals);
-  expect(kitMint.supply.toString()).toBe(splMint.supply.toString());
+  // Verify expected mint properties
+  expect(typeof kitMint.decimals).toBe('number');
+  expect(typeof kitMint.supply).toBe('bigint');
+  expect(kitMint.decimals).toBeGreaterThanOrEqual(0);
+  expect(kitMint.decimals).toBeLessThanOrEqual(9);
+  expect(kitMint.supply).toBeGreaterThanOrEqual(BigInt(0));
 });
 
 test('fetchSwigAccount throws for non-existent account', async () => {
