@@ -247,16 +247,12 @@ export class Secp256k1SessionAuthority
       args.swigId,
       args.roleId,
     );
-    const subAccountAddress =
-      typeof subAccount === 'string'
-        ? address(subAccount)
-        : address(bs58.encode(subAccount));
 
     return Secp256k1Instruction.subAccountCreateV1Instruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount: subAccountAddress,
+        subAccount,
       },
       {
         roleId: args.roleId,
