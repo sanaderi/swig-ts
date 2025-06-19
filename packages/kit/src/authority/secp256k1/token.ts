@@ -1,14 +1,15 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
-import { address, type Address, type IInstruction } from '@solana/kit';
 import {
-  getAssociatedTokenAddressSync,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
-import { PublicKey } from '@solana/web3.js';
+  address,
+  getProgramDerivedAddress,
+  type Address,
+  type IInstruction,
+} from '@solana/kit';
 import { AuthorityType } from '@swig-wallet/coder';
 import bs58 from 'bs58';
 import type { Actions } from '../../actions';
+import { TOKEN_PROGRAM_ADDRESS } from '../../consts';
 import { createSwigInstruction } from '../../instructions';
 import {
   compressedPubkeyToAddress,
@@ -289,7 +290,7 @@ export class Secp256k1Authority
     );
   }
 
-  subAccountWithdrawToken(args: {
+  async subAccountWithdrawToken(args: {
     payer: Address;
     swigAddress: Address;
     subAccount: Address;
@@ -299,28 +300,34 @@ export class Secp256k1Authority
     tokenProgram?: Address;
     options: InstructionDataOptions;
   }) {
-    const swigToken = getAssociatedTokenAddressSync(
-      new PublicKey(args.mint),
-      new PublicKey(args.swigAddress),
-      true,
-      args.tokenProgram ? new PublicKey(args.tokenProgram) : undefined,
-    );
-    const subAccountToken = getAssociatedTokenAddressSync(
-      new PublicKey(args.mint),
-      new PublicKey(args.subAccount),
-      true,
-      args.tokenProgram ? new PublicKey(args.tokenProgram) : undefined,
-    );
+    const tokenProgram = args.tokenProgram ?? TOKEN_PROGRAM_ADDRESS;
+
+    const [swigToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.swigAddress),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
+    const [subAccountToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.subAccount),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
 
     return Secp256k1Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken: address(bs58.encode(subAccountToken.toBytes())),
-        swigToken: address(bs58.encode(swigToken.toBytes())),
-        tokenProgram:
-          args.tokenProgram ?? address(bs58.encode(TOKEN_PROGRAM_ID.toBytes())),
+        subAccountToken,
+        swigToken,
+        tokenProgram,
       },
       {
         roleId: args.roleId,

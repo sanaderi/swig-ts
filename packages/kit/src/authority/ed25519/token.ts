@@ -1,13 +1,14 @@
 import {
   address,
   getAddressCodec,
+  getProgramDerivedAddress,
   type Address,
   type IInstruction,
 } from '@solana/kit';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { AuthorityType } from '@swig-wallet/coder';
 import bs58 from 'bs58';
 import type { Actions } from '../../actions';
+import { TOKEN_PROGRAM_ADDRESS } from '../../consts';
 import { createSwigInstruction } from '../../instructions';
 import { findSwigSubAccountPda } from '../../utils';
 import { Authority, TokenBasedAuthority } from '../abstract';
@@ -241,7 +242,7 @@ export class Ed25519Authority
     );
   }
 
-  subAccountWithdrawToken(args: {
+  async subAccountWithdrawToken(args: {
     payer: Address;
     swigAddress: Address;
     subAccount: Address;
@@ -250,18 +251,34 @@ export class Ed25519Authority
     amount: bigint;
     tokenProgram?: Address;
   }) {
-    // If you have a kit-native getAssociatedTokenAddress, use it. Otherwise, convert Address to PublicKey for SPL compatibility.
-    // This is a placeholder for kit-native SPL support.
+    const tokenProgram = args.tokenProgram ?? TOKEN_PROGRAM_ADDRESS;
+
+    const [swigToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.swigAddress),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
+    const [subAccountToken] = await getProgramDerivedAddress({
+      programAddress: tokenProgram,
+      seeds: [
+        Buffer.from(args.subAccount),
+        Buffer.from(TOKEN_PROGRAM_ADDRESS),
+        Buffer.from(args.mint),
+      ],
+    });
+
     return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken: args.subAccount, // Replace with kit-native SPL support if available
-        swigToken: args.swigAddress, // Replace with kit-native SPL support if available
-        tokenProgram:
-          args.tokenProgram ??
-          address(bs58.encode(TOKEN_PROGRAM_ID.toBuffer())),
+        subAccountToken,
+        swigToken,
+        tokenProgram,
       },
       {
         roleId: args.roleId,
