@@ -1,20 +1,24 @@
 import { address } from '@solana/kit';
-import { 
-  Role, 
-  signInstruction,
-  addAuthorityInstruction,
-  removeAuthorityInstruction,
-  createSessionInstruction,
-  deserializeRoles,
-  deserializeRoleData,
-  type SessionBasedRole, 
-  type TokenBasedRole
-} from '../src/role';
 import { Actions } from '../src/actions/action';
+import {
+  addAuthorityInstruction,
+  createSessionInstruction,
+  deserializeRoleData,
+  deserializeRoles,
+  removeAuthorityInstruction,
+  Role,
+  signInstruction,
+  type SessionBasedRole,
+  type TokenBasedRole,
+} from '../src/role';
 
 // Mock addresses
-const MOCK_SWIG_ADDRESS = address('So11111111111111111111111111111111111111112');
-const MOCK_PROGRAM_ADDRESS = address('So11111111111111111111111111111111111111114');
+const MOCK_SWIG_ADDRESS = address(
+  'So11111111111111111111111111111111111111112',
+);
+const MOCK_PROGRAM_ADDRESS = address(
+  'So11111111111111111111111111111111111111114',
+);
 const MOCK_TOKEN_MINT = address('So11111111111111111111111111111111111111115');
 
 // Mock SWIG ID
@@ -60,7 +64,12 @@ describe('Role Helper Functions', () => {
 
     test('should return empty array for zero count', () => {
       const rolesBuffer = new Uint8Array(0);
-      const roles = deserializeRoles(MOCK_SWIG_ADDRESS, rolesBuffer, 0, MOCK_SWIG_ID);
+      const roles = deserializeRoles(
+        MOCK_SWIG_ADDRESS,
+        rolesBuffer,
+        0,
+        MOCK_SWIG_ID,
+      );
       expect(roles).toEqual([]);
     });
   });
@@ -85,9 +94,13 @@ describe('Role Class with Real Actions', () => {
       const tokenLimit = actions.tokenSpendLimit(MOCK_TOKEN_MINT);
       expect(solLimit === null || typeof solLimit === 'bigint').toBe(true);
       expect(tokenLimit === null || typeof tokenLimit === 'bigint').toBe(true);
-      expect(typeof actions.canUseProgram(MOCK_PROGRAM_ADDRESS)).toBe('boolean');
+      expect(typeof actions.canUseProgram(MOCK_PROGRAM_ADDRESS)).toBe(
+        'boolean',
+      );
       expect(typeof actions.canSpendSol(1000n)).toBe('boolean');
-      expect(typeof actions.canSpendToken(MOCK_TOKEN_MINT, 500n)).toBe('boolean');
+      expect(typeof actions.canSpendToken(MOCK_TOKEN_MINT, 500n)).toBe(
+        'boolean',
+      );
     });
 
     test('Actions should provide SpendController objects', () => {
@@ -106,13 +119,9 @@ describe('Role Class with Real Actions', () => {
     });
 
     test('Actions should handle permission checks correctly', () => {
-      const limitedActions = Actions.set()
-        .solLimit({ amount: 1000n })
-        .get();
+      const limitedActions = Actions.set().solLimit({ amount: 1000n }).get();
 
-      const rootActions = Actions.set()
-        .all()
-        .get();
+      const rootActions = Actions.set().all().get();
 
       expect(limitedActions.isRoot()).toBe(false);
       expect(rootActions.isRoot()).toBe(true);
@@ -124,7 +133,7 @@ describe('Role Type Guards', () => {
   test('SessionBasedRole and TokenBasedRole types should be available', () => {
     const sessionType: SessionBasedRole | null = null;
     const tokenType: TokenBasedRole | null = null;
-    
+
     expect(sessionType).toBe(null);
     expect(tokenType).toBe(null);
   });

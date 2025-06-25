@@ -53,7 +53,9 @@ describe('Swig Class', () => {
 
     test('should have findRolesBySecp256k1SignerAddress method', () => {
       expect(Swig.prototype.findRolesBySecp256k1SignerAddress).toBeDefined();
-      expect(typeof Swig.prototype.findRolesBySecp256k1SignerAddress).toBe('function');
+      expect(typeof Swig.prototype.findRolesBySecp256k1SignerAddress).toBe(
+        'function',
+      );
     });
 
     test('should have refetch method', () => {
@@ -70,7 +72,10 @@ describe('Swig Class', () => {
     });
 
     test('should have roles getter defined', () => {
-      const descriptor = Object.getOwnPropertyDescriptor(Swig.prototype, 'roles');
+      const descriptor = Object.getOwnPropertyDescriptor(
+        Swig.prototype,
+        'roles',
+      );
       expect(descriptor).toBeDefined();
       expect(descriptor?.get).toBeDefined();
     });

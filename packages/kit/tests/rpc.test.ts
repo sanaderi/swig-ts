@@ -1,13 +1,12 @@
-import { address } from '@solana/kit';
 import {
+  addAuthority,
   createSwig,
   fetchNullableSwig,
   fetchSwig,
   getSignInstruction,
-  signAndSend,
-  addAuthority,
-  removeAuthority,
   removeAllAuthorityRoles,
+  removeAuthority,
+  signAndSend,
 } from '../src/rpc';
 import { Swig } from '../src/swig';
 
@@ -162,10 +161,14 @@ describe('RPC Functions', () => {
 
     test('RPC module should provide complete Swig management capabilities', () => {
       const hasStigCreation = typeof createSwig === 'function';
-      const hasFetching = typeof fetchSwig === 'function' && typeof fetchNullableSwig === 'function';
+      const hasFetching =
+        typeof fetchSwig === 'function' &&
+        typeof fetchNullableSwig === 'function';
       const hasInstructionCreation = typeof getSignInstruction === 'function';
       const hasTransactionExecution = typeof signAndSend === 'function';
-      const hasAuthorityManagement = typeof addAuthority === 'function' && typeof removeAuthority === 'function';
+      const hasAuthorityManagement =
+        typeof addAuthority === 'function' &&
+        typeof removeAuthority === 'function';
 
       expect(hasStigCreation).toBe(true);
       expect(hasFetching).toBe(true);
@@ -193,10 +196,7 @@ describe('RPC Functions', () => {
 
     test('wrapper functions should be properly defined', () => {
       // Test the wrapper functions
-      const wrapperFunctions = [
-        fetchNullableSwig,
-        fetchSwig,
-      ];
+      const wrapperFunctions = [fetchNullableSwig, fetchSwig];
 
       wrapperFunctions.forEach((fn) => {
         expect(typeof fn).toBe('function');

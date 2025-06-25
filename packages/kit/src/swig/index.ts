@@ -1,11 +1,11 @@
+import type { Address } from '@solana/kit';
 import {
+  type FetchAccountConfig,
   type Rpc,
   type SolanaRpcApi,
-  type FetchAccountConfig,
 } from '@solana/kit';
-import bs58 from 'bs58';
-import type{ Address } from '@solana/kit';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
+import bs58 from 'bs58';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
 import { Authority, type CreateAuthorityInfo } from '../authority';
@@ -45,9 +45,7 @@ export class Swig {
    */
   findRoleBySessionKey(sessionKey: Address): SessionBasedRole | null {
     const role = this.roles.find(
-      (r) =>
-        r.isSessionBased() &&
-        r.authority.sessionKey === sessionKey,
+      (r) => r.isSessionBased() && r.authority.sessionKey === sessionKey,
     );
     if (!role) return null;
     return role as SessionBasedRole;
@@ -65,11 +63,7 @@ export class Swig {
     swigAddress: Address,
     config?: FetchAccountConfig,
   ): Promise<Swig | null> {
-    const maybeSwig = await fetchMaybeSwigAccount(
-      rpc,
-      swigAddress,
-      config,
-    );
+    const maybeSwig = await fetchMaybeSwigAccount(rpc, swigAddress, config);
     if (!('exists' in maybeSwig) || !(maybeSwig as any).exists) {
       return null;
     }
@@ -99,10 +93,7 @@ export class Swig {
    * @param connection Connection
    * @param config Connection config
    */
-  async refetch(
-    rpc: Rpc<SolanaRpcApi>,
-    config?: FetchAccountConfig,
-  ) {
+  async refetch(rpc: Rpc<SolanaRpcApi>, config?: FetchAccountConfig) {
     const swigAcc = await fetchSwigAccount(rpc, this.address, config);
     this.account = (swigAcc as any).account;
   }
