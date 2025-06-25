@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROGRAM_DIR=$SCRIPT_DIR/swig-program
+WORKSPACE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROGRAM_DIR=$WORKSPACE_DIR/swig-program
 
 if [ ! -d "$PROGRAM_DIR/.git" ]; then
   echo "⚠️ Could not find swig program .git dir. Cloning from source..." 
@@ -20,6 +20,6 @@ cd $PROGRAM_DIR
 echo "Program directory updated!"
 echo "building swig program..."
 cargo build-sbf -- -q > /dev/null 2>&1
-cp target/deploy/swig.so $SCRIPT_DIR 
+cp target/deploy/swig.so $WORKSPACE_DIR 
 
-echo "✅ Program updated: $SCRIPT_DIR/swig.so"
+echo "✅ Program updated: $WORKSPACE_DIR/swig.so"

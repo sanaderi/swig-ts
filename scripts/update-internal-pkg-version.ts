@@ -1,10 +1,7 @@
-
-// update-workspace-deps.js
 import fs from "node:fs"
 import path from "node:path"
 
-const ROOT_DIR = path.resolve(__dirname, ".");
-const PACKAGES_DIR = path.join(ROOT_DIR, "packages"); // adjust if needed
+const PACKAGES_DIR = path.resolve(__dirname, '../packages');
 
 // Step 1: Get versions of all internal packages
 const packageVersions = {};
