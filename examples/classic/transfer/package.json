@@ -5,11 +5,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start-validator": "solana-test-validator --reset --bpf-program swigDk8JezhiAVde8k6NMwxpZfgGm2NNuMe1KYCmUjP ../../swig.so",
+    "start-validator": "solana-test-validator --reset --bpf-program swigDk8JezhiAVde8k6NMwxpZfgGm2NNuMe1KYCmUjP ../../../swig.so",
     "transfer-local": "bun transfer-local.ts",
     "tranfer-local-session": "bun transfer-local-session.ts",
     "transfer-svm": "bun transfer-svm.ts",
-    "transfer-svm-session": "bun transfer-svm-sessioin.ts",
+    "transfer-svm-session": "bun transfer-svm-session.ts",
     "transfer-sponsor": "bun transfer-sponsor.ts",
     "transfer-local-secp": "bun transfer-local-secp.ts",
     "multi-role-local": "bun multi-role-local.ts",

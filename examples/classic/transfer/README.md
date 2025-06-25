@@ -4,11 +4,12 @@ This guide will walk you through setting up and running the Swig SDK transfer ex
 
 ## Prerequisites
 
-- Option 1: Node.js v16+ and Yarn v3+ installed
-- Option 2: Bun installed
-  ```bash
-  curl -fsSL https://bun.sh/install | bash
-  ```
+Bun installed
+
+```bash
+curl -fsSL https://bun.sh/install | bash
+```
+
 - Solana CLI tools installed
 - Rust and Cargo installed
 
@@ -24,16 +25,13 @@ This guide will walk you through setting up and running the Swig SDK transfer ex
 2. Install project dependencies
 
    ```bash
-   yarn install  # For Node.js
-   # OR
-   bun install  # For Bun
+   bun install
    ```
-   
+
 3. Navigate to the transfer example and install its dependencies
 
    ```bash
-   cd examples/transfer
-   yarn install  # For Node.js
+   cd examples/classic/transfer
    # No need for bun install here if already done in the root
    ```
 
@@ -45,9 +43,8 @@ This guide will walk you through setting up and running the Swig SDK transfer ex
    ```
 
 5. In another terminal, run the transfer example e.g
+
    ```bash
-   yarn dlx tsx transfer-local.ts  # For Node.js
-   # OR
-   bun transfer-local.ts  # For Bun
+   bun transfer-local.ts
 
    ```

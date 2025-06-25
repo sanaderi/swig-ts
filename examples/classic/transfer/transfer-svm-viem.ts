@@ -52,7 +52,10 @@ function sendSVMTransaction(
   }
 }
 
-function fetchSwig(svm: LiteSVM, swigAddress: PublicKey): ReturnType<typeof Swig.fromRawAccountData> {
+function fetchSwig(
+  svm: LiteSVM,
+  swigAddress: PublicKey,
+): ReturnType<typeof Swig.fromRawAccountData> {
   let swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
   // Ensure we have a proper Uint8Array for the account data
@@ -64,7 +67,7 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('../../swig.so'));
+let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
 
 let svm = new LiteSVM();
 
@@ -150,9 +153,7 @@ svm.warpToSlot(100n);
 
 swig = fetchSwig(svm, swigAddress);
 
-rootRole = swig.findRolesBySecp256k1SignerAddress(
-  privateKeyAccount.address,
-)[0];
+rootRole = swig.findRolesBySecp256k1SignerAddress(privateKeyAccount.address)[0];
 
 if (!rootRole) throw new Error('Role not found for authority');
 
@@ -167,7 +168,6 @@ let viemSignWithPrefix: SigningFn = async (message: Uint8Array) => {
 
   return { signature: hexToBytes(sig), prefix };
 };
-
 
 signTransfer = await signInstruction(
   rootRole,

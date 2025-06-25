@@ -9,8 +9,7 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  createSecp256k1SessionAuthorityInfo,
-  createSessionInstruction,
+  createSecp256k1AuthorityInfo,
   findSwigPda,
   getSigningFnForSecp256k1PrivateKey,
   signInstruction,
@@ -47,21 +46,25 @@ function sendSVMTransaction(
   }
 
   if (tx instanceof TransactionMetadata) {
-    // console.log('tx:', tx.logs());
+    // console.log("tx:", tx.logs())
   }
 }
 
-function fetchSwig(svm: LiteSVM, swigAddress: PublicKey): Swig {
+function fetchSwig(
+  svm: LiteSVM,
+  swigAddress: PublicKey,
+): ReturnType<typeof Swig.fromRawAccountData> {
   let swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
-  return Swig.fromRawAccountData(swigAddress, swigAccount.data);
+  // Ensure we have a proper Uint8Array for the account data
+  const accountData = Uint8Array.from(swigAccount.data);
+  return Swig.fromRawAccountData(swigAddress, accountData);
 }
-
 console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('../../swig.so'));
+let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
 
 let svm = new LiteSVM();
 
@@ -81,8 +84,8 @@ svm.airdrop(userAuthorityManagerKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // dapp authority
 //
-let dappSessionKeypair = Keypair.generate();
-svm.airdrop(dappSessionKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
+let dappAuthorityKeypair = Keypair.generate();
+svm.airdrop(dappAuthorityKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 let dappTreasury = Keypair.generate().publicKey;
 
@@ -101,10 +104,7 @@ let [swigAddress] = findSwigPda(id);
 let rootActions = Actions.set().all().get();
 
 let createSwigInstruction = Swig.create({
-  authorityInfo: createSecp256k1SessionAuthorityInfo(
-    userWallet.getPublicKey(),
-    100n,
-  ),
+  authorityInfo: createSecp256k1AuthorityInfo(userWallet.getPublicKey()),
   id,
   payer: userRootKeypair.publicKey,
   actions: rootActions,
@@ -120,35 +120,19 @@ sendSVMTransaction(svm, createSwigInstruction, userRootKeypair);
 let swig = fetchSwig(svm, swigAddress);
 // swig.refetch(connection)
 
-let rootRole = swig.findRoleById(0);
+// * find role by authority
+//
+let rootRole = swig.findRolesBySecp256k1SignerAddress(
+  userWallet.getAddress(),
+)[0];
 
 if (!rootRole) throw new Error('Role not found for authority');
 
 let currentSlot = svm.getClock().slot;
 
-let signingFn = getSigningFnForSecp256k1PrivateKey(
-  userWallet.getPrivateKeyString(),
-);
+let signingFn = getSigningFnForSecp256k1PrivateKey(userWallet.getPrivateKey());
 
 let instOptions: InstructionDataOptions = { currentSlot, signingFn };
-
-let newSessionInstruction = await createSessionInstruction(
-  rootRole,
-  userRootKeypair.publicKey,
-  dappSessionKeypair.publicKey,
-  50n,
-  instOptions,
-);
-
-if (!newSessionInstruction) throw new Error('Session is null');
-
-sendSVMTransaction(svm, newSessionInstruction, userRootKeypair);
-
-swig = fetchSwig(svm, swigAddress);
-
-rootRole = swig.findRoleBySessionKey(dappSessionKeypair.publicKey)!;
-
-if (!rootRole) throw new Error('Role not found for authority');
 
 svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 
@@ -167,10 +151,61 @@ let transfer = SystemProgram.transfer({
 
 let signTransfer = await signInstruction(
   rootRole,
-  dappSessionKeypair.publicKey,
+  userAuthorityManagerKeypair.publicKey,
   [transfer],
+  instOptions,
 );
 
-sendSVMTransaction(svm, signTransfer, dappSessionKeypair);
+console.log('sign ix:', Uint8Array.from(signTransfer.data));
+
+sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
+
+console.log('balance after first transfer:', svm.getBalance(swigAddress));
+
+svm.warpToSlot(50n);
+
+//
+// * fetch swig
+//
+// * swig.refetch(connection, ...args) method available
+//
+swig = fetchSwig(svm, swigAddress);
+// swig.refetch(connection)
+
+// * find role by authority
+//
+rootRole = swig.findRolesBySecp256k1SignerAddress(userWallet.getAddress())[0];
+
+if (!rootRole) throw new Error('Role not found for authority');
+
+currentSlot = svm.getClock().slot;
+
+signingFn = getSigningFnForSecp256k1PrivateKey(userWallet.getPrivateKey());
+
+instOptions = { currentSlot, signingFn };
+
+svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
+
+swig = fetchSwig(svm, swigAddress);
+
+console.log('balance before first transfer:', svm.getBalance(swigAddress));
+
+//
+// * spend max sol permitted
+//
+transfer = SystemProgram.transfer({
+  fromPubkey: swigAddress,
+  toPubkey: dappTreasury,
+  lamports: 0.1 * LAMPORTS_PER_SOL,
+});
+
+signTransfer = await signInstruction(
+  rootRole,
+  userAuthorityManagerKeypair.publicKey,
+  [transfer],
+  instOptions,
+);
+
+sendSVMTransaction(svm, signTransfer, userAuthorityManagerKeypair);
 
 console.log('balance after first transfer:', svm.getBalance(swigAddress));
