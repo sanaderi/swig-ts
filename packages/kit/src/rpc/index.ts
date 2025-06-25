@@ -59,8 +59,8 @@ export async function createSwig(
   });
 
   const signature = getSignatureFromTransaction(signedTransaction);
-  await sendAndConfirm(signedTransaction, { 
-    commitment: options?.commitment ?? 'confirmed' 
+  await sendAndConfirm(signedTransaction, {
+    commitment: options?.commitment ?? 'confirmed',
   });
   return signature;
 }
@@ -129,7 +129,9 @@ export async function signAndSend(
   // Create a transaction signer for the payer
   const payerSigner: TransactionSigner = {
     address: payer,
-    signTransactions: async () => { throw new Error('Payer must provide signing capability'); },
+    signTransactions: async () => {
+      throw new Error('Payer must provide signing capability');
+    },
   };
 
   const signedTransaction = await createLegacyTransaction(
@@ -146,8 +148,8 @@ export async function signAndSend(
   });
 
   const signature = getSignatureFromTransaction(signedTransaction);
-  await sendAndConfirm(signedTransaction, { 
-    commitment: options?.commitment ?? 'confirmed' 
+  await sendAndConfirm(signedTransaction, {
+    commitment: options?.commitment ?? 'confirmed',
   });
   return signature;
 }
@@ -214,8 +216,8 @@ export async function addAuthority(
   });
 
   const signature = getSignatureFromTransaction(signedTransaction);
-  await sendAndConfirm(signedTransaction, { 
-    commitment: options?.commitment ?? 'confirmed' 
+  await sendAndConfirm(signedTransaction, {
+    commitment: options?.commitment ?? 'confirmed',
   });
   return signature;
 }
@@ -273,8 +275,8 @@ export async function removeAuthority(
   });
 
   const signature = getSignatureFromTransaction(signedTransaction);
-  await sendAndConfirm(signedTransaction, { 
-    commitment: options?.commitment ?? 'confirmed' 
+  await sendAndConfirm(signedTransaction, {
+    commitment: options?.commitment ?? 'confirmed',
   });
   return signature;
 }
