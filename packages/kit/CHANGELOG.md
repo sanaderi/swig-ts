@@ -1,11 +1,11 @@
 # @swig-wallet/kit
 
-## 0.2.0
+## 0.2.0-beta.6
 
 ### Patch Changes
 
 - 89a9c9c: fix internal 'coder' dependency version
-  - @swig-wallet/coder@0.2.0
+  - @swig-wallet/coder@0.2.0-beta.6
 
 ## 0.2.0-beta.5
 
