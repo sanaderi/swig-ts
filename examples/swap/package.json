@@ -2,6 +2,7 @@
   "name": "swig-jupiter-swap-example",
   "version": "1.0.0",
   "description": "Example of using Jupiter with Swig wallet",
+  "private": true,
   "module": "index.ts",
   "type": "module",
   "scripts": {

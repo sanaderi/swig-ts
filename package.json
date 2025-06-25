@@ -13,8 +13,8 @@
     "build:coder": "nx build '@swig-wallet/coder'",
     "build:docs": "typedoc",
     "build:packages": "nx run-many --target=build --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
-    "program:update": "./update-program-latest.sh",
     "changeset": "changeset",
+    "ci": "bun build:packages && bun lint && bun format && bun test",
     "dev": "bun --filter '*' dev",
     "dev:classic": "bun --filter '@swig-wallet/classic' dev",
     "dev:coder": "bun --filter '@swig-wallet/coder' dev",
@@ -22,9 +22,11 @@
     "format:fix": "prettier --write packages/",
     "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
     "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
-    "release": "bun run build && changeset publish",
+    "release": "bun run build && bun update:package-version && changeset publish",
     "test": "nx run-many --target=test --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
-    "typecheck": "nx run-many --target=typecheck --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'"
+    "typecheck": "nx run-many --target=typecheck --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit'",
+    "update:package-version": "bun scripts/update-internal-pkg-version.ts",
+    "update:program": "./scripts/update-program-latest.sh"
   },
   "workspaces": [
     "packages/*",
