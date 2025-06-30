@@ -1,7 +1,7 @@
 import { address, type Address } from '@solana/kit';
 
 export const SWIG_PROGRAM_ADDRESS: Address = address(
-  'swigDk8JezhiAVde8k6NMwxpZfgGm2NNuMe1KYCmUjP',
+  'swigypWHEksbC64pWKwah1WTeh9JXwx8H1rJHLdbQMB',
 );
 
 export const SYSTEM_PROGRAM_ADDRESS: Address = address(
