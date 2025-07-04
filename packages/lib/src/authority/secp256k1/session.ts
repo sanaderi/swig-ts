@@ -9,7 +9,6 @@ import {
   type Secp256k1SessionAuthorityDataArgs,
 } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
-import { createSwigInstruction } from '../../instructions';
 import { SolanaPublicKey, SolInstruction } from '../../schema';
 import { compressedPubkeyToAddress, findSwigSubAccountPda } from '../../utils';
 import { SessionBasedAuthority } from '../abstract';
@@ -87,23 +86,6 @@ export class Secp256k1SessionAuthority
     };
   }
 
-  createAuthorityData(): Uint8Array {
-    return this.data;
-  }
-
-  create(args: { payer: SolanaPublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
-      { payer: args.payer },
-      {
-        authorityData: this.createAuthorityData(),
-        id: args.id,
-        actions: args.actions.bytes(),
-        authorityType: this.type,
-        noOfActions: args.actions.count,
-      },
-    );
-  }
-
   sign(args: {
     swigAddress: SolanaPublicKey;
     payer: SolanaPublicKey;
@@ -140,8 +122,8 @@ export class Secp256k1SessionAuthority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
-        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
+        newAuthorityData: args.newAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
       { ...args.options, odometer: this.odometer() ?? args.options.odometer },

@@ -1,28 +1,25 @@
-import { AuthorityType } from '@swig-wallet/coder';
-import type { Actions } from '../../actions';
-import { createSwigInstruction } from '../../instructions';
-import { findSwigSubAccountPda } from '../../utils';
-import { Authority, TokenBasedAuthority } from '../abstract';
-import type { CreateAuthorityInfo } from '../createAuthority';
-import { Ed25519Instruction } from '../instructions';
-// import type { Ed25519BasedAuthority } from './based';
 import {
   findAssociatedTokenPda,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
+import { AuthorityType } from '@swig-wallet/coder';
+import type { Actions } from '../../actions';
 import { SolanaPublicKey, SolInstruction } from '../../schema';
+import { findSwigSubAccountPda } from '../../utils';
+import { Authority, TokenBasedAuthority } from '../abstract';
+import type { CreateAuthorityInfo } from '../createAuthority';
+import { Ed25519Instruction } from '../instructions';
+import type { Ed25519BasedAuthority } from './based';
 
-export class Ed25519Authority extends TokenBasedAuthority {
-  // implements Ed25519BasedAuthority
+export class Ed25519Authority
+  extends TokenBasedAuthority
+  implements Ed25519BasedAuthority
+{
   type = AuthorityType.Ed25519;
 
   constructor(data: Uint8Array) {
     super(data);
   }
-
-  // static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
-  //   return new Ed25519Authority(publicKey.toBytes());
-  // }
 
   get id() {
     return this.data;
@@ -32,33 +29,8 @@ export class Ed25519Authority extends TokenBasedAuthority {
     return this.data;
   }
 
-  // get publicKey() {
-  //   return this.ed25519PublicKey;
-  // }
-
-  // get address() {
-  //   return this.ed25519PublicKey;
-  // }
-
-  // get ed25519PublicKey() {
-  //   return new PublicKey(this.data);
-  // }
-
-  createAuthorityData() {
-    return this.data;
-  }
-
-  create(args: { payer: SolanaPublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
-      { payer: args.payer },
-      {
-        authorityData: this.createAuthorityData(),
-        id: args.id,
-        actions: args.actions.bytes(),
-        authorityType: this.type,
-        noOfActions: args.actions.count,
-      },
-    );
+  get ed25519PublicKey() {
+    return new SolanaPublicKey(this.data);
   }
 
   sign(args: {
@@ -96,8 +68,8 @@ export class Ed25519Authority extends TokenBasedAuthority {
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
-        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
+        newAuthorityData: args.newAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );
@@ -248,10 +220,6 @@ export class Ed25519Authority extends TokenBasedAuthority {
     );
   }
 }
-
-// export function getEd25519AuthorityFromPublicKey(publicKey: PublicKey) {
-//   return Ed25519Authority.fromPublicKey(publicKey);
-// }
 
 export function isEd25519Authority(
   authority: Authority,

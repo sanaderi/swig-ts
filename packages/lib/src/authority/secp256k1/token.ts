@@ -1,17 +1,12 @@
-import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
+import { bytesToHex } from '@noble/curves/abstract/utils';
 import {
   findAssociatedTokenPda,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import { AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
-import { createSwigInstruction } from '../../instructions';
 import { SolanaPublicKey, SolInstruction } from '../../schema';
-import {
-  compressedPubkeyToAddress,
-  findSwigSubAccountPda,
-  getUnprefixedSecpBytes,
-} from '../../utils';
+import { compressedPubkeyToAddress, findSwigSubAccountPda } from '../../utils';
 import { TokenBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Secp256k1Instruction } from '../instructions';
@@ -26,20 +21,6 @@ export class Secp256k1Authority
 
   constructor(data: Uint8Array) {
     super(data);
-  }
-
-  static fromPublicKeyString(pkString: string): Secp256k1Authority {
-    const data = hexToBytes(pkString);
-    return Secp256k1Authority.fromPublicKeyBytes(data);
-  }
-
-  static fromPublicKeyBytes(pkBytes: Uint8Array): Secp256k1Authority {
-    return new Secp256k1Authority(pkBytes.slice(1));
-  }
-
-  static fromPublicKey(pk: string | Uint8Array): Secp256k1Authority {
-    const data = getUnprefixedSecpBytes(pk, 64);
-    return new Secp256k1Authority(data);
   }
 
   get id() {
@@ -74,38 +55,13 @@ export class Secp256k1Authority
     return this.data.slice(0, 33);
   }
 
-  private get _uninitPublicKeyBytes() {
-    const bytes = new Uint8Array(65);
-    bytes.set([4]);
-    bytes.set(this.data, 1);
-    return bytes;
-  }
-
   get publicKeyString(): string {
     return bytesToHex(this.publicKeyBytes);
   }
 
   odometer(): number {
-    // const bytes = this.data.slice(36)
     const view = new DataView(this.data.buffer);
     return view.getUint32(36, true) + 1;
-  }
-
-  createAuthorityData(): Uint8Array {
-    return this.publicKeyBytes;
-  }
-
-  create(args: { payer: SolanaPublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
-      { payer: args.payer },
-      {
-        authorityData: this.createAuthorityData(),
-        id: args.id,
-        actions: args.actions.bytes(),
-        authorityType: this.type,
-        noOfActions: args.actions.count,
-      },
-    );
   }
 
   sign(args: {
@@ -146,8 +102,8 @@ export class Secp256k1Authority
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.publicKeyBytes,
-        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
-        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
+        newAuthorityData: args.newAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
       { ...args.options, odometer: this.odometer() ?? args.options.odometer },

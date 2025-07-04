@@ -17,8 +17,7 @@ import {
   type SubAccountWithdrawV1SolInstructionAccounts,
   type SubAccountWithdrawV1TokenInstructionAccounts,
 } from '../../instructions';
-import { type GenericInstruction} from "../../kit"
-import type { SolInstruction } from '../../schema';
+import type { SolInstruction, SwigInstructionContext } from '../../schema';
 
 /**
  * Authority Instruction Interface
@@ -30,7 +29,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   removeAuthorityV1Instruction(
     accounts: RemoveAuthorityV1InstructionAccounts,
@@ -38,7 +37,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   signV1Instruction(
     accounts: SignV1InstructionAccounts,
@@ -48,7 +47,7 @@ export interface AuthorityInstruction {
       innerInstructions: SolInstruction[];
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   createSessionV1Instruction(
     accounts: SignV1InstructionAccounts,
@@ -56,7 +55,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   subAccountCreateV1Instruction(
     accounts: SubAccountCreateV1InstructionAccounts,
@@ -64,7 +63,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   subAccountWithdrawV1SolInstruction(
     accounts: SubAccountWithdrawV1SolInstructionAccounts,
@@ -72,7 +71,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   subAccountWithdrawV1TokenInstruction(
     accounts: SubAccountWithdrawV1TokenInstructionAccounts,
@@ -80,7 +79,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   subAccountToggleV1Instruction(
     accounts: SubAccountToggleV1InstructionAccounts,
@@ -88,7 +87,7 @@ export interface AuthorityInstruction {
       authorityData: ReadonlyUint8Array;
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 
   subAccountSignV1Instruction(
     accounts: SubAccountSignV1InstructionAccounts,
@@ -98,7 +97,7 @@ export interface AuthorityInstruction {
       innerInstructions: SolInstruction[];
     },
     options?: InstructionDataOptions,
-  ): Promise<SolInstruction>;
+  ): Promise<SwigInstructionContext>;
 }
 
 /**

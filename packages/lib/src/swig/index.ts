@@ -24,7 +24,7 @@ export class Swig {
   private constructor(
     public readonly address: SolanaPublicKey,
     private account: SwigAccount,
-    private rpcUrl: string,
+    public rpcUrl: string,
   ) {}
 
   /**
@@ -150,8 +150,8 @@ export class Swig {
       {
         id: args.id,
         actions: args.actions.bytes(),
-        authorityData: args.authorityInfo.createAuthorityInfo.data,
-        authorityType: args.authorityInfo.createAuthorityInfo.type,
+        authorityData: args.authorityInfo.data,
+        authorityType: args.authorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

@@ -3,11 +3,7 @@ import { secp256k1 } from '@noble/curves/secp256k1';
 import { keccak_256 } from '@noble/hashes/sha3';
 import { getProgramDerivedAddress } from '@solana/kit';
 import { SWIG_PROGRAM_ADDRESS } from './consts';
-import {
-  SolanaInstructionContext,
-  SolanaPublicKey,
-  type SolanaAccountMeta,
-} from './schema';
+import { SolanaPublicKey } from './schema';
 
 // /**
 //  * Creates a SWIG Instruction with the swig program addresss
@@ -121,4 +117,3 @@ export function getUnprefixedSecpBytes(
 export function unprefixedHexString(hex: string): string {
   return hex.startsWith('0x') ? hex.slice(2) : hex;
 }
-

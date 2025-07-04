@@ -460,3 +460,35 @@ export function swigInst(accounts: SolAccountMeta[], data: Uint8Array) {
 }
 
 export type SolanaPublicKeyData = Uint8Array | string | Web3PublicKey;
+
+export class SwigInstructionContext {
+  preInstructions: SolInstruction[];
+  postInstructions: SolInstruction[];
+  swigInstruction: SolInstruction;
+
+  constructor(instructions: {
+    swigInstruction: SolInstruction;
+    preInstructions?: SolInstruction[];
+    postInstructions?: SolInstruction[];
+  }) {
+    this.swigInstruction = instructions.swigInstruction ?? [];
+    this.preInstructions = instructions.preInstructions ?? [];
+    this.postInstructions = instructions.preInstructions ?? [];
+  }
+
+  getKitInstructions = () => {
+    [
+      ...this.preInstructions.map((ix) => ix.toKitInstruction()),
+      this.swigInstruction.toKitInstruction(),
+      this.postInstructions.map((ix) => ix.toKitInstruction()),
+    ];
+  };
+
+  getWeb3Instructions = () => {
+    [
+      ...this.preInstructions.map((ix) => ix.toWeb3Instruction()),
+      this.swigInstruction.toWeb3Instruction(),
+      this.postInstructions.map((ix) => ix.toWeb3Instruction()),
+    ];
+  };
+}

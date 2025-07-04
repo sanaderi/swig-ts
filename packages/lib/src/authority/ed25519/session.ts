@@ -5,15 +5,17 @@ import { findSwigSubAccountPda } from '../../utils';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
-// import type { Ed25519BasedAuthority } from './based';
+import type { Ed25519BasedAuthority } from './based';
 import {
   findAssociatedTokenPda,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import { SolanaPublicKey, SolInstruction } from '../../schema';
 
-export class Ed25519SessionAuthority extends SessionBasedAuthority {
-  // implements Ed25519BasedAuthority
+export class Ed25519SessionAuthority
+  extends SessionBasedAuthority
+  implements Ed25519BasedAuthority
+{
   type = AuthorityType.Ed25519Session;
 
   constructor(public data: Uint8Array) {
@@ -41,7 +43,7 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
   }
 
   get ed25519PublicKey() {
-    return this.info.publicKey;
+    return new SolanaPublicKey(this.info.publicKey);
   }
 
   get sessionKey() {
@@ -56,10 +58,6 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
     return this.info.maxSessionLength;
   }
 
-  createAuthorityData(): Uint8Array {
-    return this.data.slice(0, 32 + 32 + 8);
-  }
-
   private get info(): Ed25519SessionData {
     const data = getEd25519SessionDecoder().decode(this.data);
     return {
@@ -67,19 +65,6 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
       publicKey: new Uint8Array(data.publicKey),
       sessionKey: new SolanaPublicKey(new Uint8Array(data.sessionKey)),
     };
-  }
-
-  create(args: { payer: SolanaPublicKey; id: Uint8Array; actions: Actions }) {
-    return createSwigInstruction(
-      { payer: args.payer },
-      {
-        authorityData: this.createAuthorityData(),
-        id: args.id,
-        actions: args.actions.bytes(),
-        authorityType: this.type,
-        noOfActions: args.actions.count,
-      },
-    );
   }
 
   sign(args: {
@@ -117,8 +102,8 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
         actingRoleId: args.actingRoleId,
         actions: args.actions.bytes(),
         authorityData: this.data,
-        newAuthorityData: args.newAuthorityInfo.createAuthorityInfo.data,
-        newAuthorityType: args.newAuthorityInfo.createAuthorityInfo.type,
+        newAuthorityData: args.newAuthorityInfo.data,
+        newAuthorityType: args.newAuthorityInfo.type,
         noOfActions: args.actions.count,
       },
     );

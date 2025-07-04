@@ -3,13 +3,12 @@ import {
   getCreateSecp256k1SessionEncoder,
   getEd25519SessionEncoder,
 } from '@swig-wallet/coder';
-import { getUnprefixedSecpBytes } from '../utils';
 import type { SolanaPublicKey } from '../schema';
-
-export type AuthorityCreateInfo = { data: Uint8Array; type: AuthorityType };
+import { getUnprefixedSecpBytes } from '../utils';
 
 export interface CreateAuthorityInfo {
-  createAuthorityInfo: AuthorityCreateInfo;
+  data: Uint8Array;
+  type: AuthorityType;
 }
 
 export function createEd25519AuthorityInfo(
@@ -17,7 +16,7 @@ export function createEd25519AuthorityInfo(
 ): CreateAuthorityInfo {
   const data = publicKey.toBytes();
   const type = AuthorityType.Ed25519;
-  return { createAuthorityInfo: { data, type } };
+  return { data, type };
 }
 
 export function createEd25519SessionAuthorityInfo(
@@ -34,7 +33,7 @@ export function createEd25519SessionAuthorityInfo(
   const data = Uint8Array.from(sessionData.slice(0, 72));
   const type = AuthorityType.Ed25519Session;
 
-  return { createAuthorityInfo: { data, type } };
+  return { data, type };
 }
 
 /**
@@ -48,7 +47,7 @@ export function createSecp256k1AuthorityInfo(
   const data = getUnprefixedSecpBytes(publicKey, 64);
   const type = AuthorityType.Secp256k1;
 
-  return { createAuthorityInfo: { data, type } };
+  return { data, type };
 }
 
 /**
@@ -72,5 +71,5 @@ export function createSecp256k1SessionAuthorityInfo(
   const data = Uint8Array.from(sessionData);
   const type = AuthorityType.Secp256k1Session;
 
-  return { createAuthorityInfo: { data, type } };
+  return { data, type };
 }

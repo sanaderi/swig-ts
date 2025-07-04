@@ -1,14 +1,11 @@
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
-import type { SolanaPublicKey, SolInstruction } from '../schema';
+import type { SolanaPublicKey, SolInstruction, SwigInstructionContext } from '../schema';
 import { uint8ArraysEqual } from '../utils';
-import type {
-  AuthorityCreateInfo,
-  CreateAuthorityInfo,
-} from './createAuthority';
+import type { CreateAuthorityInfo } from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
 
-export abstract class Authority implements CreateAuthorityInfo {
+export abstract class Authority {
   /**
    * Indicates if {@link Authority} is Session-based or not. `true` if Authority is Session-based
    */
@@ -43,19 +40,6 @@ export abstract class Authority implements CreateAuthorityInfo {
   constructor(public data: Uint8Array) {}
 
   /**
-   * Creates a `Swig` instruction for initializing a new entity on-chain.
-   * @param args - The parameters required to create the Swig instruction.
-   * @param args.payer - The public key of the account paying for the transaction.
-   * @param args.id - 32-bytes Uint8Array.
-   * @param args.actions - A container holding the set of actions to include.   * @returns The serialized instruction for creating the Swig.
-   */
-  abstract create(args: {
-    payer: SolanaPublicKey;
-    id: Uint8Array;
-    actions: Actions;
-  }): Promise<SolInstruction>;
-
-  /**
    * Creates a `Sign` instruction for signing provided instructions with the Swig
    * @param args The parameters required to create the Swig instruction.
    * @param args.swigAddress The public key of the swig
@@ -71,7 +55,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   /**
    * Creates an `AddAuthority` Instructon
@@ -93,7 +77,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   /**
    * Creates an `RemoveAuthority` Instructon
@@ -112,7 +96,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     roleId: number;
     roleIdToRemove: number;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   abstract subAccountCreate(args: {
     payer: SolanaPublicKey;
@@ -120,7 +104,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     swigId: Uint8Array;
     roleId: number;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   abstract subAccountSign(args: {
     payer: SolanaPublicKey;
@@ -129,7 +113,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   abstract subAccountToggle(args: {
     payer: SolanaPublicKey;
@@ -138,7 +122,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     roleId: number;
     enabled: boolean;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawSol(args: {
     payer: SolanaPublicKey;
@@ -147,7 +131,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     roleId: number;
     amount: bigint;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawToken(args: {
     payer: SolanaPublicKey;
@@ -158,26 +142,7 @@ export abstract class Authority implements CreateAuthorityInfo {
     amount: bigint;
     tokenProgram?: SolanaPublicKey;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
-
-  /**
-   * Data required to create a new authority.
-   *
-   * this is usually used when creating a new Role from an unitialized authority, with the AddInstruction
-   */
-  abstract createAuthorityData(): Uint8Array;
-
-  /**
-   * Data required to create a new authority.
-   *
-   * this is usually used when creating a new Role from an unitialized authority, with the AddInstruction
-   */
-  get createAuthorityInfo(): AuthorityCreateInfo {
-    return {
-      type: this.type,
-      data: this.createAuthorityData(),
-    };
-  }
+  }): Promise<SwigInstructionContext>;
 
   /**
    * Check two {@link Authority} are partially equal
@@ -234,7 +199,7 @@ export abstract class SessionBasedAuthority extends Authority {
     newSessionKey: SolanaPublicKey;
     sessionDuration?: bigint;
     options?: InstructionDataOptions;
-  }): Promise<SolInstruction>;
+  }): Promise<SwigInstructionContext>;
 }
 
 /**
