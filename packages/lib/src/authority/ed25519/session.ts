@@ -16,11 +16,8 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
   // implements Ed25519BasedAuthority
   type = AuthorityType.Ed25519Session;
 
-  constructor(
-    public data: Uint8Array,
-    roleId?: number,
-  ) {
-    super(data, roleId ?? null);
+  constructor(public data: Uint8Array) {
+    super(data);
   }
 
   static fromBytes(bytes: Uint8Array): Ed25519SessionAuthority {
@@ -173,7 +170,10 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
     swigId: Uint8Array;
     roleId: number;
   }) {
-    const [subAccount, bump] = await findSwigSubAccountPda(args.swigId, args.roleId);
+    const [subAccount, bump] = await findSwigSubAccountPda(
+      args.swigId,
+      args.roleId,
+    );
     return Ed25519Instruction.subAccountCreateV1Instruction(
       {
         payer: args.payer,
@@ -278,7 +278,8 @@ export class Ed25519SessionAuthority extends SessionBasedAuthority {
         subAccount: args.subAccount,
         subAccountToken: new SolanaPublicKey(subAccountToken),
         swigToken: new SolanaPublicKey(swigToken),
-        tokenProgram: args.tokenProgram ?? new SolanaPublicKey(TOKEN_PROGRAM_ADDRESS),
+        tokenProgram:
+          args.tokenProgram ?? new SolanaPublicKey(TOKEN_PROGRAM_ADDRESS),
       },
       {
         roleId: args.roleId,

@@ -119,7 +119,7 @@ export type SigningResult = { signature: Uint8Array; prefix?: Uint8Array };
  * @property currentSlot - current slot.
  */
 export type InstructionDataOptions = {
-  signingFn: SigningFn;
-  currentSlot: bigint;
+  signingFn?: SigningFn;
+  currentSlot?: bigint;
   odometer?: number;
 };

@@ -213,7 +213,7 @@ export class SolanaPublicKey {
    *
    * @param data 32-byte publickey bytes or Base58-enoded publickey
    */
-  constructor(data: Uint8Array | string | Web3PublicKey) {
+  constructor(data: SolanaPublicKeyData) {
     let bytes =
       typeof data === 'string'
         ? new Uint8Array(getAddressEncoder().encode(address(data)))
@@ -458,3 +458,5 @@ export function swigInst(accounts: SolAccountMeta[], data: Uint8Array) {
     program: new SolanaPublicKey(SWIG_PROGRAM_ADDRESS),
   });
 }
+
+export type SolanaPublicKeyData = Uint8Array | string | Web3PublicKey;

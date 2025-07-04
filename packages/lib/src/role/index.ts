@@ -1,10 +1,10 @@
-// import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
 import {
+  AuthorityType,
   getPositionDecoder,
   POSITION_LENGTH,
   type Position,
 } from '@swig-wallet/coder';
-import { Actions, SpendController } from '../actions';
+import { Actions } from '../actions';
 import {
   getRoleAuthority,
   SessionBasedAuthority,
@@ -13,10 +13,14 @@ import {
   type CreateAuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
-import { SolanaPublicKey, type SolInstruction } from '../schema';
+import {
+  SolanaPublicKey,
+  type SolanaPublicKeyData,
+  type SolInstruction,
+} from '../schema';
 import { findSwigSubAccountPda } from '../utils';
 
-export class Role {
+export class Role implements RoleInfo {
   private constructor(
     public readonly swigAddress: SolanaPublicKey,
     private readonly position: Position,
@@ -46,116 +50,25 @@ export class Role {
     return this.position.id;
   }
 
+  info = (): RoleInfo => {
+    return { ...this };
+  };
+
   /**
    * Check if the role has a session based authority
    * @returns `boolean`
    */
-  isSessionBased(): this is SessionBasedRole {
+  isSessionBased = (): this is SessionBasedRole => {
     return this.authority instanceof SessionBasedAuthority;
-  }
+  };
 
   /**
    * Check if the role has a token based authority
    * @returns `boolean`
    */
-  isTokenBased(): this is TokenBasedRole {
+  isTokenBased = (): this is TokenBasedRole => {
     return this.authority instanceof TokenBasedAuthority;
-  }
-
-  /**
-   * Check if the role has root permission
-   * @returns `boolean`
-   */
-  isRoot() {
-    return this.actions.isRoot();
-  }
-
-  /**
-   * check if the role can manage authorities
-   * @returns `booean`
-   */
-  canManageAuthority() {
-    return this.actions.canManageAuthority();
-  }
-
-  /**
-   * Check if the authority can use a program
-   * @param programId Program Id of the program to check
-   * @returns
-   */
-  canUseProgram(programId: SolanaPublicKey) {
-    return this.actions.canUseProgram(programId);
-  }
-
-  /**
-   * Check if the role can spend any amount of SOL
-   * @returns `boolean`
-   */
-  canSpendSolMax() {
-    return this.actions.canSpendSolMax();
-  }
-
-  /**
-   * Check if the role has the pemission to spend sol at all, or more than the limit if amount is provided
-   * @param amount The amount of role should be able to spend
-   * @returns `boolean`
-   */
-  canSpendSol(amount?: bigint) {
-    return this.actions.canSpendSol(amount);
-  }
-
-  /**
-   * Check if the role has the permission to spend any amount of the given token
-   * @param mint token mint
-   * @returns `boolean`
-   */
-  canSpendTokenMax(mint: SolanaPublicKey) {
-    return this.actions.canSpendTokenMax(mint);
-  }
-
-  /**
-   * Check if the role has the pemission to spend a given token at all, or more than the limit if amount is provided
-   * @param mint token mint
-   * @param amount amount the role should be able to spend
-   * @returns
-   */
-  canSpendToken(mint: SolanaPublicKey, amount?: bigint) {
-    return this.actions.canSpendToken(mint, amount);
-  }
-
-  /**
-   * Gets the spend limit for a SOL. Return null if the spend is uncapped.
-   * @returns `bigint` | `null`
-   */
-  solSpendLimit(): bigint | null {
-    return this.actions.solSpendLimit();
-  }
-
-  /**
-   * Get Sol {@link SpendController} for the actions
-   * @returns SpendController
-   */
-  solSpend(): SpendController {
-    return this.actions.solSpend();
-  }
-
-  /**
-   * Gets the spend limit for a given token mint. Return null if the spend is uncapped.
-   * @param mint Token mint
-   * @returns `bigint` | `null`
-   */
-  tokenSpendLimit(mint: SolanaPublicKey): bigint | null {
-    return this.actions.tokenSpendLimit(mint);
-  }
-
-  /**
-   * Get Token {@link SpendController} for the actions
-   * @param mint Token mint
-   * @returns SpendController
-   */
-  tokenSpend(mint: SolanaPublicKey): SpendController {
-    return this.actions.tokenSpend(mint);
-  }
+  };
 }
 
 /**
@@ -202,13 +115,13 @@ export async function signInstruction(
  */
 export function addAuthorityInstruction(
   role: Role,
-  payer: SolanaPublicKey,
+  payer: SolanaPublicKeyData,
   newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: InstructionDataOptions,
 ) {
   return role.authority.addAuthority({
-    payer,
+    payer: new SolanaPublicKey(payer),
     swigAddress: role.swigAddress,
     actingRoleId: role.id,
     actions,
@@ -358,18 +271,17 @@ export function deserializeRoleData(position: Position, roleData: Uint8Array) {
   const authorityData = roleData.slice(0, position.authorityLen);
   const rawActions = roleData.slice(position.authorityLen);
 
-  const authority = getRoleAuthority(
-    position.authorityType,
-    authorityData,
-    position.id,
-  );
+  const authority = getRoleAuthority(position.authorityType, authorityData);
   const actions = Actions.from(rawActions, position.numActions);
 
   return { position, authority, actions };
 }
 
-// todo: delete roles recursively!
-
 export type SessionBasedRole = Role & { authority: SessionBasedAuthority };
 
 export type TokenBasedRole = Role & { authority: TokenBasedAuthority };
+
+export type RoleInfo = {
+  id: number;
+  authorityType: AuthorityType;
+};

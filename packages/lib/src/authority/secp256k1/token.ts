@@ -1,5 +1,4 @@
 import { bytesToHex, hexToBytes } from '@noble/curves/abstract/utils';
-import { secp256k1 } from '@noble/curves/secp256k1';
 import {
   findAssociatedTokenPda,
   TOKEN_PROGRAM_ADDRESS,
@@ -25,8 +24,8 @@ export class Secp256k1Authority
 {
   type = AuthorityType.Secp256k1;
 
-  constructor(data: Uint8Array, roleId?: number) {
-    super(data, roleId ?? null);
+  constructor(data: Uint8Array) {
+    super(data);
   }
 
   static fromPublicKeyString(pkString: string): Secp256k1Authority {
@@ -68,11 +67,7 @@ export class Secp256k1Authority
   }
 
   get publicKeyBytes(): Uint8Array {
-    return this.isInitialized()
-      ? this._initPublicKeyBytes
-      : secp256k1.ProjectivePoint.fromHex(
-          this._uninitPublicKeyBytes,
-        ).toRawBytes(true);
+    return this._initPublicKeyBytes;
   }
 
   private get _initPublicKeyBytes() {

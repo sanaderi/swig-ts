@@ -24,8 +24,8 @@ export class Secp256k1SessionAuthority
 {
   type = AuthorityType.Secp256k1Session;
 
-  constructor(data: Uint8Array, roleId?: number) {
-    super(data, roleId ?? null);
+  constructor(data: Uint8Array) {
+    super(data);
   }
 
   get id() {

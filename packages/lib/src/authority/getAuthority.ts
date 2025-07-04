@@ -13,22 +13,21 @@ import { Secp256k1Authority, Secp256k1SessionAuthority } from './secp256k1';
 export function getAuthority(
   type: AuthorityType,
   data: Uint8Array,
-  roleId?: number,
 ): Authority {
   if (type === AuthorityType.Ed25519) {
-    return new Ed25519Authority(data, roleId);
+    return new Ed25519Authority(data);
   }
 
   if (type === AuthorityType.Ed25519Session) {
-    return new Ed25519SessionAuthority(data, roleId);
+    return new Ed25519SessionAuthority(data);
   }
 
   if (type === AuthorityType.Secp256k1) {
-    return new Secp256k1Authority(data, roleId);
+    return new Secp256k1Authority(data);
   }
 
   if (type === AuthorityType.Secp256k1Session) {
-    return new Secp256k1SessionAuthority(data, roleId);
+    return new Secp256k1SessionAuthority(data);
   }
 
   throw new Error('Invalid authority');
@@ -44,7 +43,6 @@ export function getAuthority(
 export function getRoleAuthority(
   type: AuthorityType,
   data: Uint8Array,
-  roleId: number,
 ): Authority {
-  return getAuthority(type, data, roleId);
+  return getAuthority(type, data);
 }

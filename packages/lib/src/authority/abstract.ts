@@ -1,12 +1,12 @@
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
+import type { SolanaPublicKey, SolInstruction } from '../schema';
 import { uint8ArraysEqual } from '../utils';
 import type {
   AuthorityCreateInfo,
   CreateAuthorityInfo,
 } from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
-import type { SolanaPublicKey, SolInstruction } from '../schema';
 
 export abstract class Authority implements CreateAuthorityInfo {
   /**
@@ -40,18 +40,7 @@ export abstract class Authority implements CreateAuthorityInfo {
    */
   abstract signer: Uint8Array;
 
-  constructor(
-    public data: Uint8Array,
-    public roleId: number | null,
-  ) {}
-
-  /**
-   * Authority is initilized if a role id is assigned
-   * @returns boolean
-   */
-  isInitialized(): boolean {
-    return this.roleId !== null;
-  }
+  constructor(public data: Uint8Array) {}
 
   /**
    * Creates a `Swig` instruction for initializing a new entity on-chain.

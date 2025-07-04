@@ -1,7 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2';
 import { bytesToHex, toBytes } from '@noble/hashes/utils';
 import { getArrayEncoder, getU8Encoder } from '@solana/kit';
-// import type { AccountMeta } from '@solana/web3.js';
 import {
   getAccountsPayloadEncoder,
   getAddAuthorityV1AuthorityPayloadEncoder,
@@ -12,6 +11,7 @@ import {
   getSubAccountToggleV1InstructionDataCodec,
   getSubAccountWithdrawV1InstructionDataCodec,
 } from '@swig-wallet/coder';
+import type { SigningFn } from '../../../dist';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -33,9 +33,9 @@ import type { AuthorityInstruction, InstructionDataOptions } from './interface';
  */
 export const Secp256k1Instruction: AuthorityInstruction = {
   async addAuthorityV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const addAuthorityIxAccountMetas =
@@ -48,7 +48,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       addAuthorityIxAccountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.addAuthority(addAuthorityIxAccountMetas, {
@@ -58,9 +62,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async removeAuthorityV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const removeIxAccountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
@@ -74,7 +78,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       removeIxAccountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.removeAuthority(removeIxAccountMetas, {
@@ -84,9 +92,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async signV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const signInstructionsAccount = getSignV1BaseAccountMetas(accounts);
@@ -107,7 +115,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(encodedCompactInstructions),
       metas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.sign(metas, {
@@ -118,9 +130,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async createSessionV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const createSessionIxAccountMetas =
@@ -134,7 +146,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       createSessionIxAccountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.createSession(createSessionIxAccountMetas, {
@@ -144,9 +160,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountCreateV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
@@ -158,7 +174,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.subAccountCreate(accountMetas, {
@@ -168,9 +188,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountSignV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const signInstructionsAccount =
@@ -193,7 +213,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(encodedCompactInstructions),
       metas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.subAccountSign(metas, {
@@ -204,10 +228,10 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1SolInstruction(accounts, data, options) {
-    if (!options)
-      throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
-      );
+   if (!options?.signingFn || !options?.currentSlot)
+     throw new Error(
+       'Current slot or Signing function not provided for Secp256k1 based authority',
+     );
 
     const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
 
@@ -218,7 +242,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.subAccountWithdraw(accountMetas, {
@@ -228,9 +256,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1TokenInstruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
@@ -242,7 +270,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.subAccountWithdraw(accountMetas, {
@@ -252,9 +284,9 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountToggleV1Instruction(accounts, data, options) {
-    if (!options)
+    if (!options?.signingFn || !options?.currentSlot)
       throw new Error(
-        'instruction data options not provided for Secp256k1 based authority',
+        'Current slot or Signing function not provided for Secp256k1 based authority',
       );
 
     const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
@@ -266,7 +298,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
     const authorityPayload = await prepareSecpPayload(
       Uint8Array.from(message),
       accountMetas,
-      options,
+      {
+        signingFn: options.signingFn,
+        odometer: options.odometer,
+        currentSlot: options.currentSlot,
+      },
     );
 
     return SwigInstructionV1.subAccountToggle(accountMetas, {
@@ -286,7 +322,11 @@ export const Secp256k1Instruction: AuthorityInstruction = {
 export async function prepareSecpPayload(
   dataPayload: Uint8Array,
   accountMetas: SolAccountMeta[],
-  options: InstructionDataOptions,
+  options: {
+    signingFn: SigningFn;
+    currentSlot: bigint;
+    odometer?: number;
+  },
 ): Promise<Uint8Array> {
   const u64Len = 8;
 

@@ -16,8 +16,8 @@ export class Ed25519Authority extends TokenBasedAuthority {
   // implements Ed25519BasedAuthority
   type = AuthorityType.Ed25519;
 
-  constructor(data: Uint8Array, roleId: number) {
-    super(data, roleId);
+  constructor(data: Uint8Array) {
+    super(data);
   }
 
   // static fromPublicKey(publicKey: PublicKey): Ed25519Authority {
@@ -237,7 +237,8 @@ export class Ed25519Authority extends TokenBasedAuthority {
         subAccount: args.subAccount,
         subAccountToken: new SolanaPublicKey(subAccountToken),
         swigToken: new SolanaPublicKey(swigToken),
-        tokenProgram: args.tokenProgram ?? new SolanaPublicKey(TOKEN_PROGRAM_ADDRESS),
+        tokenProgram:
+          args.tokenProgram ?? new SolanaPublicKey(TOKEN_PROGRAM_ADDRESS),
       },
       {
         roleId: args.roleId,
