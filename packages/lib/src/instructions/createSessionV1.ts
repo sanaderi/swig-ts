@@ -1,64 +1,54 @@
-import {
-  AccountRole,
-  type Address,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type WritableAccount,
-  type WritableSignerAccount,
-} from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
-// import { swigInstruction } from "../utils";
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type CreateSessionV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
 };
 
-export type CreateSessionV1BaseAccountMetas = [
-  WritableAccount,
-  WritableSignerAccount,
-];
+export type CreateSessionV1BaseAccountMetas = [SolAccountMeta, SolAccountMeta];
 
 export function getCreateSessionV1BaseAccountMetas(
   accounts: CreateSessionV1InstructionAccounts,
 ): CreateSessionV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.WRITABLE,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
-    },
+    }),
   ];
 }
 
 export type CreateSessionV1BaseAccountMetasWithAuthority = [
   ...CreateSessionV1BaseAccountMetas,
-  ReadonlySignerAccount,
+  SolAccountMeta,
 ];
 
 export function getCreateSessionV1BaseAccountMetasWithAuthority(
   accounts: CreateSessionV1InstructionAccounts,
-  authority: Address,
+  authority: SolanaPublicKey,
 ): [CreateSessionV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getCreateSessionV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
 
   const metas: CreateSessionV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
-    {
-      address: authority,
+    SolAccountMeta.fromKitAccountMeta({
+      address: authority.toAddress(),
       role: AccountRole.READONLY_SIGNER,
-    },
+    }),
   ];
   return [metas, authorityIndex];
 }
 
 export type CreateSessionV1BaseAccountMetasWithSystemProgram = [
   ...CreateSessionV1BaseAccountMetas,
-  ReadonlyAccount<typeof SYSTEM_PROGRAM_ADDRESS>,
+  SolAccountMeta,
 ];
 
 export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
@@ -68,9 +58,9 @@ export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
 
   return [
     ...accountMetas,
-    {
+    SolAccountMeta.fromKitAccountMeta({
       address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY,
-    },
+    }),
   ];
 }

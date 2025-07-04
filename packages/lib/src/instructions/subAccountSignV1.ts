@@ -1,77 +1,71 @@
-import {
-  AccountRole,
-  type Address,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type WritableAccount,
-  type WritableSignerAccount,
-} from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type SubAccountSignV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
-  subAccount: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
+  subAccount: SolanaPublicKey;
 };
 
 export type SubAccountSignV1BaseAccountMetas = [
-  ReadonlyAccount,
-  ReadonlySignerAccount,
-  WritableAccount,
-  ReadonlyAccount<typeof SYSTEM_PROGRAM_ADDRESS>,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
 ];
 
 export function getSubAccountSignV1BaseAccountMetas(
   accounts: SubAccountSignV1InstructionAccounts,
 ): SubAccountSignV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
-    },
-    {
-      address: accounts.subAccount,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.subAccount.toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
-    },
-    {
+    }),
+    SolAccountMeta.fromKitAccountMeta({
       address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
-    },
+    }),
   ];
 }
 
 export type SubAccountSignV1BaseAccountMetasWithAuthority = [
   ...SubAccountSignV1BaseAccountMetas,
-  ReadonlySignerAccount,
+  SolAccountMeta,
 ];
 
 export function getSubAccountSignV1BaseAccountMetasWithAuthority(
   accounts: SubAccountSignV1InstructionAccounts,
-  authority: Address,
+  authority: SolanaPublicKey,
 ): [SubAccountSignV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
 
   const metas: SubAccountSignV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
-    {
-      address: authority,
+    SolAccountMeta.fromKitAccountMeta({
+      address: authority.toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
-    },
+    }),
   ];
   return [metas, authorityIndex];
 }

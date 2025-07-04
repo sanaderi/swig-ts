@@ -1,11 +1,6 @@
 import { sha256 } from '@noble/hashes/sha2';
 import { bytesToHex, toBytes } from '@noble/hashes/utils';
-import {
-  AccountRole,
-  getArrayEncoder,
-  getU8Encoder,
-  type IAccountMeta,
-} from '@solana/kit';
+import { getArrayEncoder, getU8Encoder } from '@solana/kit';
 // import type { AccountMeta } from '@solana/web3.js';
 import {
   getAccountsPayloadEncoder,
@@ -30,7 +25,7 @@ import {
   getSubAccountWithdrawV1TokenAccountMetas,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
-import { SolanaPublicKey } from '../../schema';
+import { SolAccountMeta } from '../../schema';
 import type { AuthorityInstruction, InstructionDataOptions } from './interface';
 
 /**
@@ -290,7 +285,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
  */
 export async function prepareSecpPayload(
   dataPayload: Uint8Array,
-  accountMetas: IAccountMeta[],
+  accountMetas: SolAccountMeta[],
   options: InstructionDataOptions,
 ): Promise<Uint8Array> {
   const u64Len = 8;
@@ -308,30 +303,10 @@ export async function prepareSecpPayload(
   const accountsPayloadBytes = getAccountsPayloadEncoder(
     accountMetas.length,
   ).encode(
-    accountMetas.map((metas) => {
-      let pubkey = new SolanaPublicKey(metas.address).toBytes();
-      if (metas.role === AccountRole.WRITABLE_SIGNER) {
-        return {
-          pubkey,
-          isSigner: true,
-          isWritable: true,
-        };
-      } else if (metas.role === AccountRole.WRITABLE) {
-        return {
-          pubkey,
-          isSigner: false,
-          isWritable: true,
-        };
-      } else if (metas.role === AccountRole.READONLY_SIGNER) {
-        return {
-          pubkey,
-          isSigner: true,
-          isWritable: false,
-        };
-      } else {
-        return { pubkey, isSigner: false, isWritable: false };
-      }
-    }),
+    accountMetas.map((acct) => ({
+      ...acct.toWeb3AccountMeta(),
+      pubkey: acct.publicKey.toBytes(),
+    })),
   );
 
   const message = new Uint8Array(

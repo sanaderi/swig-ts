@@ -1,63 +1,63 @@
 import {
   AccountRole,
-  type Address,
   type ReadonlyAccount,
   type ReadonlySignerAccount,
   type WritableAccount,
   type WritableSignerAccount,
 } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type RemoveAuthorityV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
 };
 
 export type RemoveAuthorityV1BaseAccountMetas = [
-  WritableAccount,
-  WritableSignerAccount,
-  ReadonlyAccount<typeof SYSTEM_PROGRAM_ADDRESS>,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
 ];
 
 export function getRemoveAuthorityV1BaseAccountMetas(
   accounts: RemoveAuthorityV1InstructionAccounts,
 ): RemoveAuthorityV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.WRITABLE,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
-    },
-    {
+    }),
+    SolAccountMeta.fromKitAccountMeta({
       address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY,
-    },
+    }),
   ];
 }
 
 export type RemoveAuthorityV1BaseAccountMetasWithAuthority = [
   ...RemoveAuthorityV1BaseAccountMetas,
-  ReadonlySignerAccount,
+  SolAccountMeta,
 ];
 
 export function getRemoveV1BaseAccountMetasWithAuthority(
   accounts: RemoveAuthorityV1InstructionAccounts,
-  authority: Address,
+  authority: SolanaPublicKey,
 ): [RemoveAuthorityV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getRemoveAuthorityV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
 
   const metas: RemoveAuthorityV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
-    {
-      address: authority,
+    SolAccountMeta.fromKitAccountMeta({
+      address: authority.toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
-    },
+    }),
   ];
   return [metas, authorityIndex];
 }

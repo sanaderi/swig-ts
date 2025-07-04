@@ -30,7 +30,7 @@ export class Swig {
    */
   get roles() {
     return deserializeRoles(
-      this.address.toAddress(),
+      this.address,
       Uint8Array.from(this.account.roles_buffer),
       this.account.roles,
       Uint8Array.from(this.account.id),
@@ -126,7 +126,7 @@ export class Swig {
    * @returns Instruction for creating a Swig
    */
   static create(args: {
-    payer: Address;
+    payer: SolanaPublicKey;
     id: Uint8Array;
     actions: Actions;
     authorityInfo: CreateAuthorityInfo;

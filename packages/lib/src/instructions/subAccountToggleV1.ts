@@ -1,68 +1,63 @@
-import {
-  AccountRole,
-  type Address,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type WritableAccount,
-} from '@solana/kit';
+import { AccountRole } from '@solana/kit';
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type SubAccountToggleV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
-  subAccount: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
+  subAccount: SolanaPublicKey;
 };
 
 export type SubAccountToggleV1BaseAccountMetas = [
-  ReadonlyAccount,
-  ReadonlySignerAccount,
-  WritableAccount,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
 ];
 
 export function getSubAccountToggleV1BaseAccountMetas(
   accounts: SubAccountToggleV1InstructionAccounts,
 ): SubAccountToggleV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
-    },
-    {
-      address: accounts.subAccount,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.subAccount.toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
-    },
+    }),
   ];
 }
 
 export type SubAccountToggleV1BaseAccountMetasWithAuthority = [
   ...SubAccountToggleV1BaseAccountMetas,
-  ReadonlySignerAccount,
+  SolAccountMeta,
 ];
 
 export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   accounts: SubAccountToggleV1InstructionAccounts,
-  authority: Address,
+  authority: SolanaPublicKey,
 ): [SubAccountToggleV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
 
   const metas: SubAccountToggleV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
-    {
-      address: authority,
+    SolAccountMeta.fromKitAccountMeta({
+      address: authority.toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
-    },
+    }),
   ];
   return [metas, authorityIndex];
 }

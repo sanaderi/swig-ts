@@ -1,5 +1,4 @@
 // import type { PublicKey, TransactionInstruction } from '@solana/web3.js';
-import type { Address } from '@solana/kit';
 import {
   getPositionDecoder,
   POSITION_LENGTH,
@@ -14,13 +13,12 @@ import {
   type CreateAuthorityInfo,
   type InstructionDataOptions,
 } from '../authority';
-import type { SolanaPublicKey } from '../schema';
+import { SolanaPublicKey, type SolInstruction } from '../schema';
 import { findSwigSubAccountPda } from '../utils';
-import type { GenericInstruction } from '../kit';
 
 export class Role {
   private constructor(
-    public readonly swigAddress: Address,
+    public readonly swigAddress: SolanaPublicKey,
     private readonly position: Position,
     public readonly authority: Authority,
     public readonly actions: Actions,
@@ -28,7 +26,7 @@ export class Role {
   ) {}
 
   static from(
-    swigAddress: Address,
+    swigAddress: SolanaPublicKey,
     position: Position,
     roleData: Uint8Array,
     swigId: Uint8Array,
@@ -169,15 +167,17 @@ export class Role {
  */
 export async function signInstruction(
   role: Role,
-  payer: Address,
-  innerInstructions: GenericInstruction[],
+  payer: SolanaPublicKey,
+  innerInstructions: SolInstruction[],
   options?: InstructionDataOptions,
   withSubAccount?: boolean,
 ) {
   return withSubAccount
     ? role.authority.subAccountSign({
         swigAddress: role.swigAddress,
-        subAccount: (await findSwigSubAccountPda(role.swigId, role.id))[0],
+        subAccount: new SolanaPublicKey(
+          (await findSwigSubAccountPda(role.swigId, role.id))[0],
+        ),
         payer,
         innerInstructions,
         roleId: role.id,
@@ -202,7 +202,7 @@ export async function signInstruction(
  */
 export function addAuthorityInstruction(
   role: Role,
-  payer: Address,
+  payer: SolanaPublicKey,
   newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: InstructionDataOptions,
@@ -226,7 +226,7 @@ export function addAuthorityInstruction(
  */
 export function removeAuthorityInstruction(
   role: Role,
-  payer: Address,
+  payer: SolanaPublicKey,
   roleToRemove: Role,
   options?: InstructionDataOptions,
 ) {
@@ -249,8 +249,8 @@ export function removeAuthorityInstruction(
  */
 export function createSessionInstruction(
   role: Role,
-  payer: Address,
-  newSessionKey: Address,
+  payer: SolanaPublicKey,
+  newSessionKey: SolanaPublicKey,
   sessionDuration?: bigint,
   options?: InstructionDataOptions,
 ) {
@@ -267,7 +267,7 @@ export function createSessionInstruction(
 
 export function createSubAccountInstruction(
   role: Role,
-  payer: Address,
+  payer: SolanaPublicKey,
   options?: InstructionDataOptions,
 ) {
   return role.authority.subAccountCreate({
@@ -281,13 +281,15 @@ export function createSubAccountInstruction(
 
 export async function toggleSubAccountInstruction(
   role: Role,
-  payer: Address,
+  payer: SolanaPublicKey,
   enabled: boolean,
   options?: InstructionDataOptions,
 ) {
   return role.authority.subAccountToggle({
     swigAddress: role.swigAddress,
-    subAccount: (await findSwigSubAccountPda(role.swigId, role.id))[0],
+    subAccount: new SolanaPublicKey(
+      (await findSwigSubAccountPda(role.swigId, role.id))[0],
+    ),
     payer,
     roleId: role.id,
     options,
@@ -297,13 +299,15 @@ export async function toggleSubAccountInstruction(
 
 export async function withdrawFromSubAccountInstruction(
   role: Role,
-  payer: Address,
+  payer: SolanaPublicKey,
   args:
     | { amount: bigint } // SOL
-    | { amount: bigint; mint: Address; tokenProgram?: Address }, // SPL Token
+    | { amount: bigint; mint: SolanaPublicKey; tokenProgram?: SolanaPublicKey }, // SPL Token
   options?: InstructionDataOptions,
 ) {
-  const subAccount = (await findSwigSubAccountPda(role.swigId, role.id))[0];
+  const subAccount = new SolanaPublicKey(
+    (await findSwigSubAccountPda(role.swigId, role.id))[0],
+  );
   return 'mint' in args
     ? role.authority.subAccountWithdrawToken({
         swigAddress: role.swigAddress,
@@ -326,7 +330,7 @@ export async function withdrawFromSubAccountInstruction(
 }
 
 export function deserializeRoles(
-  swigAddress: Address,
+  swigAddress: SolanaPublicKey,
   rolesBuffer: Uint8Array,
   count: number,
   swigId: Uint8Array,

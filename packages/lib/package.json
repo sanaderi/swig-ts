@@ -21,6 +21,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@types/bn.js": "^5.2.0",
     "@types/bun": "^1.2.5",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
@@ -36,7 +37,8 @@
     "@noble/curves": "^1.8.2",
     "@solana/kit": "^2.1.0",
     "@solana-program/token": "^0.5.1",
-    "@swig-wallet/coder": "workspace:*"
+    "@swig-wallet/coder": "workspace:*",
+    "bn.js": "^5.2.2"
   },
   "peerDependencies": {}
 }

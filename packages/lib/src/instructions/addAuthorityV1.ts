@@ -1,61 +1,55 @@
-import {
-  AccountRole,
-  type Address,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type WritableAccount,
-  type WritableSignerAccount,
-} from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type AddAuthorityV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
 };
 
 export type AddAuthorityV1BaseAccountMetas = [
-  WritableAccount,
-  WritableSignerAccount,
-  ReadonlyAccount<typeof SYSTEM_PROGRAM_ADDRESS>,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
 ];
 
 export function getAddAuthorityV1BaseAccountMetas(
   accounts: AddAuthorityV1InstructionAccounts,
 ): AddAuthorityV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.WRITABLE,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
-    },
-    {
+    }),
+    SolAccountMeta.fromKitAccountMeta({
       address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY,
-    },
+    }),
   ];
 }
 
 export type AddAuthorityV1BaseAccountMetasWithAuthority = [
   ...AddAuthorityV1BaseAccountMetas,
-  ReadonlySignerAccount,
+  SolAccountMeta,
 ];
 
 export function getAddV1BaseAccountMetasWithAuthority(
   accounts: AddAuthorityV1InstructionAccounts,
-  authority: Address,
+  authority: SolanaPublicKey,
 ): [AddAuthorityV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getAddAuthorityV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
 
   const metas: AddAuthorityV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
-    {
-      address: authority,
+    SolAccountMeta.fromKitAccountMeta({
+      address: authority.toAddress(),
       role: AccountRole.READONLY_SIGNER,
-    },
+    }),
   ];
   return [metas, authorityIndex];
 }

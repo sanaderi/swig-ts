@@ -1,38 +1,38 @@
 import {
   AccountRole,
-  type Address,
   type ReadonlyAccount,
   type WritableAccount,
   type WritableSignerAccount,
 } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { SolAccountMeta, type SolanaPublicKey } from '../schema';
 
 export type CreateV1InstructionAccounts = {
-  swig: Address;
-  payer: Address;
+  swig: SolanaPublicKey;
+  payer: SolanaPublicKey;
 };
 
 export type CreateV1BaseAccountMetas = [
-  WritableAccount,
-  WritableSignerAccount,
-  ReadonlyAccount<typeof SYSTEM_PROGRAM_ADDRESS>,
+  SolAccountMeta,
+  SolAccountMeta,
+  SolAccountMeta,
 ];
 
 export function getCreateV1BaseAccountMetas(
   accounts: CreateV1InstructionAccounts,
 ): CreateV1BaseAccountMetas {
   return [
-    {
-      address: accounts.swig,
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.swig.toAddress(),
       role: AccountRole.WRITABLE,
-    },
-    {
-      address: accounts.payer,
+    }),
+    SolAccountMeta.fromKitAccountMeta({
+      address: accounts.payer.toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
-    },
-    {
+    }),
+    SolAccountMeta.fromKitAccountMeta({
       address: SYSTEM_PROGRAM_ADDRESS,
       role: AccountRole.READONLY,
-    },
+    }),
   ];
 }
