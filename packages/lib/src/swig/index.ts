@@ -55,19 +55,19 @@ export class Swig {
    */
   static async fetchNullable(
     rpcUrl: string,
-    swigAddress: SolanaPublicKey,
+    swigAddress: SolanaPublicKeyData,
     config?: FetchAccountConfig,
   ): Promise<Swig | null> {
     const maybeSwig = await fetchMaybeSwigAccount(
       rpcUrl,
-      swigAddress.toAddress(),
+      new SolanaPublicKey(swigAddress).toAddress(),
       config,
     );
     if (!maybeSwig.exists) {
       return null;
     }
     assertAccountExists(maybeSwig);
-    return new Swig(swigAddress, maybeSwig.data, rpcUrl);
+    return new Swig(new SolanaPublicKey(swigAddress), maybeSwig.data, rpcUrl);
   }
 
   /**
@@ -79,16 +79,16 @@ export class Swig {
    */
   static async fetch(
     rpcUrl: string,
-    swigAddress: SolanaPublicKey,
+    swigAddress: SolanaPublicKeyData,
     config?: FetchAccountConfig,
   ): Promise<Swig> {
     const swig = await fetchSwigAccount(
       rpcUrl,
-      swigAddress.toAddress(),
+      new SolanaPublicKey(swigAddress).toAddress(),
       config,
     );
 
-    return new Swig(swigAddress, swig.data, rpcUrl);
+    return new Swig(new SolanaPublicKey(swigAddress), swig.data, rpcUrl);
   }
 
   setRpcUrl = (rpcUrl: string) => {
@@ -422,11 +422,11 @@ export class Swig {
 
     const role = await this.findRoleById(roleId);
 
-    if (!isEd25519BasedAuthority(role.authority) || !options?.payer) {
+    if (!isEd25519BasedAuthority(role.authority) && !options?.payer) {
       throw new Error('payer not provided for non-ed25519 based authority');
     }
 
-    const payer = new SolanaPublicKey(options.payer ?? role.authority.id);
+    const payer = new SolanaPublicKey(options?.payer ?? role.authority.id);
 
     return { payer, role };
   };

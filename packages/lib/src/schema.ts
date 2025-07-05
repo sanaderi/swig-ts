@@ -477,18 +477,18 @@ export class SwigInstructionContext {
   }
 
   getKitInstructions = () => {
-    [
+    return [
       ...this.preInstructions.map((ix) => ix.toKitInstruction()),
       this.swigInstruction.toKitInstruction(),
-      this.postInstructions.map((ix) => ix.toKitInstruction()),
+      ...this.postInstructions.map((ix) => ix.toKitInstruction()),
     ];
   };
 
   getWeb3Instructions = () => {
-    [
+    return [
       ...this.preInstructions.map((ix) => ix.toWeb3Instruction()),
       this.swigInstruction.toWeb3Instruction(),
-      this.postInstructions.map((ix) => ix.toWeb3Instruction()),
+      ...this.postInstructions.map((ix) => ix.toWeb3Instruction()),
     ];
   };
 }

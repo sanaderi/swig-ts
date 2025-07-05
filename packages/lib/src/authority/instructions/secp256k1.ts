@@ -11,7 +11,6 @@ import {
   getSubAccountToggleV1InstructionDataCodec,
   getSubAccountWithdrawV1InstructionDataCodec,
 } from '@swig-wallet/coder';
-import type { SigningFn } from '../../../dist';
 import {
   SwigInstructionV1,
   compactInstructions,
@@ -26,7 +25,7 @@ import {
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
 import { SolAccountMeta } from '../../schema';
-import type { AuthorityInstruction, InstructionDataOptions } from './interface';
+import type { AuthorityInstruction, InstructionDataOptions, SigningFn } from './interface';
 
 /**
  * Secp256k1 Authority Instructions
@@ -139,7 +138,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
       getCreateSessionV1BaseAccountMetasWithSystemProgram(accounts);
 
     const authorityPayloadCodec =
-      getCreateSessionV1AuthorityPayloadCodec(1).codec;
+      getCreateSessionV1AuthorityPayloadCodec().codec;
 
     const message = authorityPayloadCodec.encode(data);
 

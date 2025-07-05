@@ -3,7 +3,7 @@ import {
   getCreateSecp256k1SessionEncoder,
   getEd25519SessionEncoder,
 } from '@swig-wallet/coder';
-import type { SolanaPublicKey } from '../schema';
+import { SolanaPublicKey, type SolanaPublicKeyData } from '../schema';
 import { getUnprefixedSecpBytes } from '../utils';
 
 export interface CreateAuthorityInfo {
@@ -12,20 +12,20 @@ export interface CreateAuthorityInfo {
 }
 
 export function createEd25519AuthorityInfo(
-  publicKey: SolanaPublicKey,
+  publicKey: SolanaPublicKeyData,
 ): CreateAuthorityInfo {
-  const data = publicKey.toBytes();
+  const data = new SolanaPublicKey(publicKey).toBytes();
   const type = AuthorityType.Ed25519;
   return { data, type };
 }
 
 export function createEd25519SessionAuthorityInfo(
-  publicKey: SolanaPublicKey,
+  publicKey: SolanaPublicKeyData,
   maxSessionDuration: bigint,
   sessionKey?: SolanaPublicKey,
 ): CreateAuthorityInfo {
   const sessionData = getEd25519SessionEncoder().encode({
-    publicKey: publicKey.toBytes(),
+    publicKey: new SolanaPublicKey(publicKey).toBytes(),
     sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
     currentSessionExpiration: 0n,
     maxSessionLength: maxSessionDuration,

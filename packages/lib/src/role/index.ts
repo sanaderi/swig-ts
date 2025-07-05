@@ -10,15 +10,8 @@ import {
   SessionBasedAuthority,
   TokenBasedAuthority,
   type Authority,
-  type CreateAuthorityInfo,
-  type InstructionDataOptions,
 } from '../authority';
-import {
-  SolanaPublicKey,
-  type SolanaPublicKeyData,
-  type SolInstruction,
-} from '../schema';
-import { findSwigSubAccountPda } from '../utils';
+import { SolanaPublicKey } from '../schema';
 
 export class Role implements RoleInfo {
   private constructor(
@@ -51,7 +44,7 @@ export class Role implements RoleInfo {
   }
 
   info = (): RoleInfo => {
-    return { ...this };
+    return { id: this.id, authorityType: this.authorityType };
   };
 
   /**
@@ -69,177 +62,6 @@ export class Role implements RoleInfo {
   isTokenBased = (): this is TokenBasedRole => {
     return this.authority instanceof TokenBasedAuthority;
   };
-}
-
-/**
- * Sign instruction
- * @param role Acting `Role`
- * @param payer Ed22519 payer public key
- * @param innerInstructions Instructions to sign
- * @returns `TransactionInstruction`
- */
-export async function signInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  innerInstructions: SolInstruction[],
-  options?: InstructionDataOptions,
-  withSubAccount?: boolean,
-) {
-  return withSubAccount
-    ? role.authority.subAccountSign({
-        swigAddress: role.swigAddress,
-        subAccount: new SolanaPublicKey(
-          (await findSwigSubAccountPda(role.swigId, role.id))[0],
-        ),
-        payer,
-        innerInstructions,
-        roleId: role.id,
-        options,
-      })
-    : role.authority.sign({
-        swigAddress: role.swigAddress,
-        payer,
-        innerInstructions,
-        roleId: role.id,
-        options,
-      });
-}
-
-/**
- * `AddAuthority` Instruction
- * @param role Acting Swig `Role`
- * @param payer Payer public key
- * @param newAuthorityInfo new {@link CreateAuthorityInfo} to add
- * @param actions `Actions` the authority can perform on behalf of the swig
- * @returns `TransactionInstruction`
- */
-export function addAuthorityInstruction(
-  role: Role,
-  payer: SolanaPublicKeyData,
-  newAuthorityInfo: CreateAuthorityInfo,
-  actions: Actions,
-  options?: InstructionDataOptions,
-) {
-  return role.authority.addAuthority({
-    payer: new SolanaPublicKey(payer),
-    swigAddress: role.swigAddress,
-    actingRoleId: role.id,
-    actions,
-    newAuthorityInfo,
-    options,
-  });
-}
-
-/**
- * `RemoveAuthority` Instruction
- * @param role Acting Swig `Role`
- * @param payer Payer public key
- * @param roleToRemove Swig `Role` to remove
- * @returns `TransactionInstruction`
- */
-export function removeAuthorityInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  roleToRemove: Role,
-  options?: InstructionDataOptions,
-) {
-  return role.authority.removeAuthority({
-    payer,
-    swigAddress: role.swigAddress,
-    roleId: role.id,
-    roleIdToRemove: roleToRemove.id,
-    options,
-  });
-}
-
-/**
- * `CreateSession` Instruction
- * @param role Acting Swig `Role`
- * @param payer Payer public key
- * @param newSessionKey Public key of the new Session
- * @param sessionDuration Session duration in slots
- * @returns `TransactionInstruction`
- */
-export function createSessionInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  newSessionKey: SolanaPublicKey,
-  sessionDuration?: bigint,
-  options?: InstructionDataOptions,
-) {
-  if (!role.isSessionBased()) return null;
-  return role.authority.createSession({
-    roleId: role.id,
-    swigAddress: role.swigAddress,
-    payer,
-    sessionDuration,
-    newSessionKey,
-    options,
-  });
-}
-
-export function createSubAccountInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  options?: InstructionDataOptions,
-) {
-  return role.authority.subAccountCreate({
-    swigAddress: role.swigAddress,
-    swigId: role.swigId,
-    payer,
-    roleId: role.id,
-    options,
-  });
-}
-
-export async function toggleSubAccountInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  enabled: boolean,
-  options?: InstructionDataOptions,
-) {
-  return role.authority.subAccountToggle({
-    swigAddress: role.swigAddress,
-    subAccount: new SolanaPublicKey(
-      (await findSwigSubAccountPda(role.swigId, role.id))[0],
-    ),
-    payer,
-    roleId: role.id,
-    options,
-    enabled,
-  });
-}
-
-export async function withdrawFromSubAccountInstruction(
-  role: Role,
-  payer: SolanaPublicKey,
-  args:
-    | { amount: bigint } // SOL
-    | { amount: bigint; mint: SolanaPublicKey; tokenProgram?: SolanaPublicKey }, // SPL Token
-  options?: InstructionDataOptions,
-) {
-  const subAccount = new SolanaPublicKey(
-    (await findSwigSubAccountPda(role.swigId, role.id))[0],
-  );
-  return 'mint' in args
-    ? role.authority.subAccountWithdrawToken({
-        swigAddress: role.swigAddress,
-        subAccount,
-        payer,
-        roleId: role.id,
-        options,
-        amount: args.amount,
-        mint: args.mint,
-        tokenProgram: args.tokenProgram,
-      })
-    : role.authority.subAccountWithdrawSol({
-        swigAddress: role.swigAddress,
-        subAccount,
-        payer,
-        roleId: role.id,
-        options,
-        amount: args.amount,
-      });
 }
 
 export function deserializeRoles(

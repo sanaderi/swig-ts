@@ -3,10 +3,10 @@ export * from './actions';
 export * from './authority';
 export * from './consts';
 export * from './instructions';
-export * from "./kit"
+export * from './kit';
 export * from './role';
 export * from './rpc';
-export * from "./schema"
+export * from './schema';
 export * from './swig';
 export * from './utils';
 export * from './wallet';

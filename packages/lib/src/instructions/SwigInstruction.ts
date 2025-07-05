@@ -159,7 +159,7 @@ export class SwigInstructionV1 {
     options?: InstructionContextOptions,
   ): SwigInstructionContext {
     const createSessionV1InstructionDataEncoder =
-      getCreateSessionV1InstructionCodec(data.authorityPayload.length).encoder;
+      getCreateSessionV1InstructionCodec().encoder;
 
     const instructionData = createSessionV1InstructionDataEncoder.encode(data);
 
