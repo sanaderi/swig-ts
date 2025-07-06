@@ -22,7 +22,7 @@ import {
   SolAccountMeta,
   SolanaPublicKey,
   SolInstruction,
-  swigInst,
+  swigInstruction as swigInst,
   SwigInstructionContext,
 } from '../schema';
 import { findSwigPda } from '../utils';
@@ -45,10 +45,10 @@ import type { SubAccountWithdrawV1BaseAccountMetas } from './subAccountWithdrawV
  * @param data `CreateV1InstructionDataArgs`
  * @returns `SwigInstruction`
  */
-export async function createSwigInstruction(
+export async function createV1SwigInstruction(
   accounts: { payer: SolanaPublicKey },
   data: Omit<CreateV1InstructionDataArgs, 'bump'>,
-): Promise<SolInstruction> {
+): Promise<SwigInstructionContext> {
   const [swigAddress, bump] = await findSwigPda(Uint8Array.from(data.id));
   const createIxAccountMetas = getCreateV1BaseAccountMetas({
     ...accounts,
@@ -69,13 +69,18 @@ export class SwigInstructionV1 {
   static create<T extends CreateV1BaseAccountMetas = CreateV1BaseAccountMetas>(
     accounts: T,
     data: CreateV1InstructionDataArgs,
-  ): SolInstruction {
+  ): SwigInstructionContext {
     const createV1InstructionDataEncoder =
       getCreateV1InstructionDataCodec().encoder;
 
     const createV1InstructionData = createV1InstructionDataEncoder.encode(data);
 
-    return swigInst(accounts, new Uint8Array(createV1InstructionData));
+    const swigInstruction = swigInst(
+      accounts,
+      new Uint8Array(createV1InstructionData),
+    );
+
+    return new SwigInstructionContext({ swigInstruction });
   }
 
   /**
@@ -89,7 +94,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: AddAuthorityV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const addV1InstructionDataEncoder = getAddAuthorityV1InstructionCodec(
       data.authorityPayload.length,
@@ -114,7 +119,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: RemoveAuthorityV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const removeV1InstructionDataEncoder = getRemoveAuthorityV1InstructionCodec(
       data.authorityPayload.length,
@@ -138,7 +143,7 @@ export class SwigInstructionV1 {
   static sign<T extends [...SignV1BaseAccountMetas, ...SolAccountMeta[]]>(
     accounts: T,
     data: SignV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const signV1InstructionDataEncoder = getSignV1InstructionCodec(
       data.authorityPayload.length,
@@ -156,7 +161,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: CreateSessionV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const createSessionV1InstructionDataEncoder =
       getCreateSessionV1InstructionCodec().encoder;
@@ -173,7 +178,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: SubAccountCreateV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const subAccountCreateV1InstructionDataEncoder =
       getSubAccountCreateV1InstructionDataCodec().encoder;
@@ -191,7 +196,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: SubAccountSignV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const encoder = getSubAccountSignV1InstructionDataCodec().encoder;
 
@@ -207,7 +212,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: SubAccountWithdrawV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const encoder = getSubAccountWithdrawV1InstructionDataCodec().encoder;
 
@@ -223,7 +228,7 @@ export class SwigInstructionV1 {
   >(
     accounts: T,
     data: SubAccountToggleV1InstructionDataArgs,
-    options?: InstructionContextOptions,
+    options?: SwigInstructionContextOptions,
   ): SwigInstructionContext {
     const encoder = getSubAccountToggleV1InstructionDataCodec().encoder;
 
@@ -235,7 +240,7 @@ export class SwigInstructionV1 {
   }
 }
 
-type InstructionContextOptions = {
+type SwigInstructionContextOptions = {
   preInstructions?: SolInstruction[];
   postInstructions?: SolInstruction[];
 };
