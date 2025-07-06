@@ -1,10 +1,9 @@
-import {
-  Connection,
-  PublicKey,
-  type Commitment,
-  type GetAccountInfoConfig,
-  type TransactionInstruction,
-} from '@solana/web3.js';
+import type {
+  Address,
+  FetchAccountConfig,
+  GetAccountInfoApi,
+  Rpc,
+} from '@solana/kit';
 import {
   Actions,
   getAddAuthorityInstructionContext,
@@ -19,18 +18,18 @@ import {
   Swig,
   SwigInstructionContext,
   type CreateAuthorityInfo,
+  type KitInstruction,
   type SigningFn,
-  type Web3Instruction,
   type WithdrawSubAccountArgs,
 } from '@swig-wallet/lib';
 import { fetchMaybeSwigAccount, fetchSwigAccount } from './accounts';
 
 export async function getCreateSwigInstruction(args: {
-  payer: PublicKey;
+  payer: Address;
   id: Uint8Array;
   actions: Actions;
   authorityInfo: CreateAuthorityInfo;
-}): Promise<TransactionInstruction> {
+}): Promise<KitInstruction> {
   const context = await getCreateSwigInstructionContext(args);
   return getInstructionsFromContext(context)[0];
 }
@@ -41,7 +40,7 @@ export async function getAddAuthorityInstructions(
   newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getAddAuthorityInstructionContext(
     swig,
     roleId,
@@ -58,7 +57,7 @@ export async function getRemoveAuthorityInstructions(
   roleId: number,
   roleToRemoveId: number,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getRemoveAuthorityInstructionContext(
     swig,
     roleId,
@@ -72,10 +71,10 @@ export async function getRemoveAuthorityInstructions(
 export async function getSignInstructions(
   swig: Swig,
   roleId: number,
-  instructions: TransactionInstruction[],
+  instructions: KitInstruction[],
   withSubAccount?: boolean,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getSignInstructionContext(
     swig,
     roleId,
@@ -90,10 +89,10 @@ export async function getSignInstructions(
 export async function getCreateSessionInstructions(
   swig: Swig,
   roleId: number,
-  sessionKey: PublicKey,
+  sessionKey: Address,
   duration?: bigint,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getCreateSessionInstructionContext(
     swig,
     roleId,
@@ -109,7 +108,7 @@ export async function getCreateSubAccountInstructions(
   swig: Swig,
   roleId: number,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getCreateSubAccountInstructionContext(
     swig,
     roleId,
@@ -124,7 +123,7 @@ export async function getToggleSubAccountInstructions(
   roleId: number,
   enabled: boolean,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getToggleSubAccountInstructionContext(
     swig,
     roleId,
@@ -138,9 +137,9 @@ export async function getToggleSubAccountInstructions(
 export async function getWithdrawFromSubAccountSubAccountInstructions(
   swig: Swig,
   roleId: number,
-  withdrawArgs: WithdrawSubAccountArgs<PublicKey>,
+  withdrawArgs: WithdrawSubAccountArgs<Address>,
   options?: SwigOptions,
-): Promise<TransactionInstruction[]> {
+): Promise<KitInstruction[]> {
   const context = await getWithdrawFromSubAccountInstructionContext(
     swig,
     roleId,
@@ -152,19 +151,15 @@ export async function getWithdrawFromSubAccountSubAccountInstructions(
 }
 
 export async function fetchNullableSwig(
-  connection: Connection,
-  swigAddress: PublicKey,
-  config?: Commitment | GetAccountInfoConfig,
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
 ): Promise<Swig | null> {
-  const maybeSwig = await fetchMaybeSwigAccount(
-    connection,
-    swigAddress,
-    config,
-  );
-  if (!maybeSwig) {
+  const maybeSwig = await fetchMaybeSwigAccount(rpc, swigAddress, config);
+  if (!maybeSwig.exists) {
     return null;
   }
-  return new Swig(swigAddress, maybeSwig);
+  return new Swig(swigAddress, maybeSwig.data);
 }
 
 /**
@@ -175,39 +170,23 @@ export async function fetchNullableSwig(
  * @returns Swig | null
  */
 export async function fetchSwig(
-  connection: Connection,
-  swigAddress: PublicKey,
-  config?: Commitment | GetAccountInfoConfig,
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
 ): Promise<Swig> {
-  const swig = await fetchSwigAccount(connection, swigAddress, config);
+  const swig = await fetchSwigAccount(rpc, swigAddress, config);
 
-  return new Swig(swigAddress, swig);
-}
-
-export function getTransactionInstructionFromWeb3Instruction(
-  ix: Web3Instruction,
-): TransactionInstruction {
-  return {
-    programId: new PublicKey(ix.programId.toBytes()),
-    keys: ix.keys.map((meta) => ({
-      isSigner: meta.isSigner,
-      isWritable: meta.isWritable,
-      pubkey: new PublicKey(meta.pubkey.toBytes()),
-    })),
-    data: Buffer.from(ix.data),
-  };
+  return new Swig(swigAddress, swig.data);
 }
 
 export function getInstructionsFromContext(
   swigContext: SwigInstructionContext,
-): TransactionInstruction[] {
-  return swigContext
-    .getWeb3Instructions()
-    .map(getTransactionInstructionFromWeb3Instruction);
+): KitInstruction[] {
+  return swigContext.getKitInstructions();
 }
 
 export type SwigOptions = {
   signningFn?: SigningFn;
   currentSlot?: bigint;
-  payer?: PublicKey;
+  payer?: Address;
 };

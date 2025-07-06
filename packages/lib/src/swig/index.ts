@@ -8,11 +8,7 @@ import {
   type SigningFn,
 } from '../authority';
 import { createV1SwigInstruction } from '../instructions';
-import {
-  deserializeRoles,
-  type RoleInfo,
-  type SessionBasedRole,
-} from '../role';
+import { deserializeRoles, type SessionBasedRole } from '../role';
 import {
   SolanaPublicKey,
   SolInstruction,
@@ -110,7 +106,7 @@ export class Swig {
   //  * @param connection Connection
   //  * @param config Connection config
   //  */
-  // refetch = async (config?: FetchAccountConfig): Promise<Swig> => {
+  // refetch = async (config?: FetchAccountConfig): Promise<Swig> => { // todo: use callback for refetch, set on init
   //   if (!this.rpcUrl)
   //     throw new Error('Failed to refetch swig. RPC url not set');
   //   const swig = await fetchSwigAccount(
@@ -223,16 +219,12 @@ export const getCreateSwigInstructionContext = (args: {
 
 export const getAddAuthorityInstructionContext = async (
   swig: Swig,
-  actingRoleInfo: RoleInfo,
+  roleId: number,
   newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
   options?: AssertSwigOptions,
 ): Promise<SwigInstructionContext> => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    actingRoleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   return role.authority.addAuthority({
     actingRoleId: role.id,
@@ -246,19 +238,15 @@ export const getAddAuthorityInstructionContext = async (
 
 export const getRemoveAuthorityInstructionContext = async (
   swig: Swig,
-  actingRoleInfo: RoleInfo,
-  roleToRemoveInfo: RoleInfo,
+  roleId: number,
+  roleIdToRemove: number,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    actingRoleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   return role.authority.removeAuthority({
     roleId: role.id,
-    roleIdToRemove: roleToRemoveInfo.id,
+    roleIdToRemove,
     payer,
     swigAddress: swig.address,
     options,
@@ -267,16 +255,12 @@ export const getRemoveAuthorityInstructionContext = async (
 
 export const getSignInstructionContext = async (
   swig: Swig,
-  roleInfo: RoleInfo,
+  roleId: number,
   innerInstructions: SolInstruction[],
   withSubAccount?: boolean,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    roleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   return withSubAccount
     ? role.authority.subAccountSign({
@@ -298,20 +282,16 @@ export const getSignInstructionContext = async (
 
 export const getCreateSessionInstructionContext = async (
   swig: Swig,
-  roleInfo: RoleInfo,
+  roleId: number,
   newSessionKey: SolanaPublicKeyData,
   duration?: bigint,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    roleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   if (!role.isSessionBased()) {
     throw new Error(
-      `Cannot create session for Role Id: ${roleInfo.id}. Role is not a session-based`,
+      `Cannot create session for Role Id: ${role.id}. Role is not a session-based`,
     );
   }
 
@@ -327,14 +307,10 @@ export const getCreateSessionInstructionContext = async (
 
 export const getCreateSubAccountInstructionContext = async (
   swig: Swig,
-  roleInfo: RoleInfo,
+  roleId: number,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    roleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   return role.authority.subAccountCreate({
     swigAddress: role.swigAddress,
@@ -347,15 +323,11 @@ export const getCreateSubAccountInstructionContext = async (
 
 export const getToggleSubAccountInstructionContext = async (
   swig: Swig,
-  roleInfo: RoleInfo,
+  roleId: number,
   enabled: boolean,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    roleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   return role.authority.subAccountToggle({
     swigAddress: role.swigAddress,
@@ -371,15 +343,11 @@ export const getWithdrawFromSubAccountInstructionContext = async <
   T extends SolanaPublicKeyData = SolanaPublicKeyData,
 >(
   swig: Swig,
-  roleInfo: RoleInfo,
+  roleId: number,
   args: WithdrawSubAccountArgs<T>,
   options?: AssertSwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(
-    swig,
-    roleInfo.id,
-    options,
-  );
+  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
   const subAccount = new SolanaPublicKey(
     (await findSwigSubAccountPda(role.swigId, role.id))[0],
@@ -393,7 +361,7 @@ export const getWithdrawFromSubAccountInstructionContext = async <
         options,
         amount: args.amount,
         mint: args.mint,
-        tokenProgram: args.tokenProgram
+        tokenProgram: args.tokenProgram,
       })
     : role.authority.subAccountWithdrawSol({
         swigAddress: role.swigAddress,
@@ -437,7 +405,9 @@ type AssertSwigOptions = Omit<SwigOptions, 'preFetch'> & {
   prefetchFn?: (swig: Swig) => Promise<Swig>;
 };
 
-export type WithdrawSubAccountArgs<T extends SolanaPublicKeyData> =
+export type WithdrawSubAccountArgs<
+  T extends SolanaPublicKeyData = SolanaPublicKeyData,
+> =
   | { amount: bigint }
   | {
       amount: bigint;

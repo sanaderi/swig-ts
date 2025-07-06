@@ -1,5 +1,5 @@
 {
-  "name": "@swig-wallet/classic-x",
+  "name": "@swig-wallet/kit-x",
   "version": "0.2.0-beta.6",
   "license": "AGPL-3.0-only",
   "type": "module",
@@ -41,7 +41,5 @@
     "@swig-wallet/lib": "workspace:*",
     "bn.js": "^5.2.2"
   },
-  "peerDependencies": {
-    "@solana/web3.js": "^1.98.0"
-  }
+  "peerDependencies": {}
 }

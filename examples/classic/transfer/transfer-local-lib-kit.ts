@@ -27,10 +27,12 @@ import {
 import {
   Actions,
   createEd25519AuthorityInfo,
+  fetchSwig,
   findSwigPda,
-  SolInstruction,
-  Swig,
-} from '@swig-wallet/lib';
+  getAddAuthorityInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
+} from '@swig-wallet/kit-x';
 import { sleepSync } from 'bun';
 
 //
@@ -174,14 +176,12 @@ const swigAddress = (await findSwigPda(id))[0];
 
 let rootActions = Actions.set().all().get();
 
-const ix = (
-  await Swig.create({
-    payer: userRootKeypair.address,
-    actions: rootActions,
-    authorityInfo: createEd25519AuthorityInfo(userRootKeypair.address),
-    id,
-  })
-).toKitInstruction();
+const ix = await getCreateSwigInstruction({
+  payer: userRootKeypair.address,
+  actions: rootActions,
+  authorityInfo: createEd25519AuthorityInfo(userRootKeypair.address),
+  id,
+});
 
 await sendTransaction(rpc, [ix], userRootKeypair);
 
@@ -190,16 +190,12 @@ await sleep(3);
 //
 // * fetch swig
 //
-let swig = await Swig.fetch(rpcUrl, swigAddress);
+let swig = await fetchSwig(rpc, swigAddress);
 
 //
 // * find role by authority
 //
-let rootRole = (
-  await swig.findRolesByEd25519SignerPk(userRootKeypair.address, {
-    prefetch: true,
-  })
-)[0];
+let rootRole = swig.findRolesByEd25519SignerPk(userRootKeypair.address)[0];
 
 //
 // * helper for creating actions
@@ -213,27 +209,24 @@ let manageAuthorityActions = Actions.set().manageAuthority().get();
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityIx = await swig.addAuthorityInstruction(
-  rootRole,
+let addAuthorityIx = await getAddAuthorityInstructions(
+  swig,
+  rootRole.id,
   createEd25519AuthorityInfo(userAuthorityManagerKeypair.address),
   manageAuthorityActions,
 );
 
-await sendTransaction(
-  rpc,
-  addAuthorityIx.getKitInstructions(),
-  userRootKeypair,
-);
+await sendTransaction(rpc, addAuthorityIx, userRootKeypair);
 
 await sleep(3);
 
 //
 // * update the swig utilty with Swig.refetch
 //
-await swig.refetch();
+swig = await fetchSwig(rpc, swigAddress);
 
-let managerRole = (
-  await swig.findRolesByEd25519SignerPk(userAuthorityManagerKeypair.address)
+let managerRole = swig.findRolesByEd25519SignerPk(
+  userAuthorityManagerKeypair.address,
 )[0];
 
 if (!managerRole) throw new Error('Role not found for authority');
@@ -246,8 +239,8 @@ if (!managerRole) throw new Error('Role not found for authority');
 // * role.canSpendToken
 // * e.t.c
 // //
-// if (!managerRole.canManageAuthority())
-//   throw new Error('Selected role cannot manage authority');
+if (!managerRole.actions.canManageAuthority())
+  throw new Error('Selected role cannot manage authority');
 
 //
 // * allocate 0.1 max sol spend, for the dapp
@@ -259,16 +252,16 @@ let dappAuthorityActions = Actions.set()
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = await swig.addAuthorityInstruction(
-  managerRole,
-  // userAuthorityManagerKeypair.publicKey,
+let addDappAuthorityInstruction = await getAddAuthorityInstructions(
+  swig,
+  managerRole.id,
   createEd25519AuthorityInfo(dappAuthorityKeypair.address),
   dappAuthorityActions,
 );
 
 await sendTransaction(
   rpc,
-  addDappAuthorityInstruction.getKitInstructions(),
+  addDappAuthorityInstruction,
   userAuthorityManagerKeypair,
 );
 
@@ -278,7 +271,7 @@ await rpc
 
 await sleep(3);
 
-await swig.refetch();
+swig = await fetchSwig(rpc, swigAddress);
 
 //
 // * role array methods (we check what roles can spend sol)
@@ -315,7 +308,7 @@ if (!maybeDappRole) throw new Error('Role does not exist');
 //
 if (
   !maybeDappRole.authority.matchesSigner(
-    new Uint8Array(getAddressEncoder().encode(dappAuthorityKeypair.address)), // todo: make this SolanaPublicKeyData
+    new Uint8Array(getAddressEncoder().encode(dappAuthorityKeypair.address)),
   )
 )
   throw new Error('Role authority is not the authority');
@@ -344,15 +337,11 @@ let dappAuthorityRole = (
   await swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.address)
 )[0];
 
-let signTransfer = await swig.signInstruction(dappAuthorityRole, [
-  SolInstruction.fromKitInstruction(transfer),
+let signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
+  transfer,
 ]);
 
-let tx = await sendTransaction(
-  rpc,
-  signTransfer.getKitInstructions(),
-  dappAuthorityKeypair,
-);
+let tx = await sendTransaction(rpc, signTransfer, dappAuthorityKeypair);
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 
@@ -363,7 +352,7 @@ console.log(
   await rpc.getBalance(swigAddress).send(),
 );
 
-await swig.refetch();
+swig = await fetchSwig(rpc, swigAddress);
 
 //
 // * try spend sol
@@ -378,15 +367,11 @@ dappAuthorityRole = (
   await swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.address)
 )[0];
 
-signTransfer = await swig.signInstruction(dappAuthorityRole, [
-  SolInstruction.fromKitInstruction(transfer),
+signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
+  transfer,
 ]);
 
-await sendTransaction(
-  rpc,
-  signTransfer.getKitInstructions(),
-  dappAuthorityKeypair,
-)
+await sendTransaction(rpc, signTransfer, dappAuthorityKeypair)
   .then(() => {
     throw new Error(
       'Transaction succeeded! Dapp authority spent more than allowed',
