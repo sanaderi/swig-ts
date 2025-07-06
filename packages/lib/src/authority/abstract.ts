@@ -1,6 +1,6 @@
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
-import type { SolanaPublicKey, SolInstruction, SwigInstructionContext } from '../schema';
+import type { SolanaPublicKey, SolanaPublicKeyData, SolInstruction, SwigInstructionContext } from '../schema';
 import { uint8ArraysEqual } from '../utils';
 import type { CreateAuthorityInfo } from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
@@ -50,8 +50,8 @@ export abstract class Authority {
    * @returns `Sign` Instruction.
    */
   abstract sign(args: {
-    swigAddress: SolanaPublicKey;
-    payer: SolanaPublicKey;
+    swigAddress: SolanaPublicKeyData;
+    payer: SolanaPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
@@ -71,8 +71,8 @@ export abstract class Authority {
    * @returns `AddAuthority` Instruction.
    */
   abstract addAuthority(args: {
-    swigAddress: SolanaPublicKey;
-    payer: SolanaPublicKey;
+    swigAddress: SolanaPublicKeyData;
+    payer: SolanaPublicKeyData;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -91,56 +91,56 @@ export abstract class Authority {
    * @returns `RemoveAuthority` Instruction.
    */
   abstract removeAuthority(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
     roleId: number;
     roleIdToRemove: number;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountCreate(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
     swigId: Uint8Array;
     roleId: number;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountSign(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountToggle(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     enabled: boolean;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawSol(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     amount: bigint;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawToken(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
-    mint: SolanaPublicKey;
+    mint: SolanaPublicKeyData;
     amount: bigint;
-    tokenProgram?: SolanaPublicKey;
+    tokenProgram?: SolanaPublicKeyData;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
@@ -193,10 +193,10 @@ export abstract class SessionBasedAuthority extends Authority {
    * @returns `AddAuthority` Instruction.
    */
   abstract createSession(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
     roleId: number;
-    newSessionKey: SolanaPublicKey;
+    newSessionKey: SolanaPublicKeyData;
     sessionDuration?: bigint;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;

@@ -1,10 +1,10 @@
 import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
-import { SolAccountMeta, type SolanaPublicKey } from '../schema';
+import { SolAccountMeta, SolanaPublicKey, type SolanaPublicKeyData } from '../schema';
 
 export type AddAuthorityV1InstructionAccounts = {
-  swig: SolanaPublicKey;
-  payer: SolanaPublicKey;
+  swig: SolanaPublicKeyData;
+  payer: SolanaPublicKeyData;
 };
 
 export type AddAuthorityV1BaseAccountMetas = [
@@ -18,11 +18,11 @@ export function getAddAuthorityV1BaseAccountMetas(
 ): AddAuthorityV1BaseAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.swig.toAddress(),
+      address: new SolanaPublicKey(accounts.swig).toAddress(),
       role: AccountRole.WRITABLE,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.payer.toAddress(),
+      address: new SolanaPublicKey(accounts.payer).toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
     }),
     SolAccountMeta.fromKitAccountMeta({
@@ -39,7 +39,7 @@ export type AddAuthorityV1BaseAccountMetasWithAuthority = [
 
 export function getAddV1BaseAccountMetasWithAuthority(
   accounts: AddAuthorityV1InstructionAccounts,
-  authority: SolanaPublicKey,
+  authority: SolanaPublicKeyData,
 ): [AddAuthorityV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getAddAuthorityV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -47,7 +47,7 @@ export function getAddV1BaseAccountMetasWithAuthority(
   const metas: AddAuthorityV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: authority.toAddress(),
+      address: new SolanaPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
     }),
   ];

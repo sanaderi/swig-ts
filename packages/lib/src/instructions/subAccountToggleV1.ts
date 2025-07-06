@@ -1,10 +1,10 @@
 import { AccountRole } from '@solana/kit';
-import { SolAccountMeta, type SolanaPublicKey } from '../schema';
+import { SolAccountMeta, SolanaPublicKey, type SolanaPublicKeyData } from '../schema';
 
 export type SubAccountToggleV1InstructionAccounts = {
-  swig: SolanaPublicKey;
-  payer: SolanaPublicKey;
-  subAccount: SolanaPublicKey;
+  swig: SolanaPublicKeyData;
+  payer: SolanaPublicKeyData;
+  subAccount: SolanaPublicKeyData;
 };
 
 export type SubAccountToggleV1BaseAccountMetas = [
@@ -18,19 +18,19 @@ export function getSubAccountToggleV1BaseAccountMetas(
 ): SubAccountToggleV1BaseAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.swig.toAddress(),
+      address: new SolanaPublicKey(accounts.swig).toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.payer.toAddress(),
+      address: new SolanaPublicKey(accounts.payer).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.subAccount.toAddress(),
+      address: new SolanaPublicKey(accounts.subAccount).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
@@ -45,7 +45,7 @@ export type SubAccountToggleV1BaseAccountMetasWithAuthority = [
 
 export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   accounts: SubAccountToggleV1InstructionAccounts,
-  authority: SolanaPublicKey,
+  authority: SolanaPublicKeyData,
 ): [SubAccountToggleV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountToggleV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -53,7 +53,7 @@ export function getSubAccountToggleV1BaseAccountMetasWithAuthority(
   const metas: SubAccountToggleV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: authority.toAddress(),
+      address: new SolanaPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,

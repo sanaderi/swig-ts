@@ -24,6 +24,7 @@ import {
   SolInstruction,
   swigInstruction as swigInst,
   SwigInstructionContext,
+  type SolanaPublicKeyData,
 } from '../schema';
 import { findSwigPda } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
@@ -46,13 +47,13 @@ import type { SubAccountWithdrawV1BaseAccountMetas } from './subAccountWithdrawV
  * @returns `SwigInstruction`
  */
 export async function createV1SwigInstruction(
-  accounts: { payer: SolanaPublicKey },
+  accounts: { payer: SolanaPublicKeyData },
   data: Omit<CreateV1InstructionDataArgs, 'bump'>,
 ): Promise<SwigInstructionContext> {
   const [swigAddress, bump] = await findSwigPda(Uint8Array.from(data.id));
   const createIxAccountMetas = getCreateV1BaseAccountMetas({
     ...accounts,
-    swig: new SolanaPublicKey(swigAddress),
+    swig: swigAddress,
   });
   return SwigInstructionV1.create(createIxAccountMetas, { ...data, bump });
 }

@@ -19,7 +19,11 @@ import {
   SwigInstructionContext,
   type SolanaPublicKeyData,
 } from '../schema';
-import { findSwigSubAccountPda, findSwigSubAccountPdaRaw, getUnprefixedSecpBytes } from '../utils';
+import {
+  findSwigSubAccountPda,
+  findSwigSubAccountPdaRaw,
+  getUnprefixedSecpBytes,
+} from '../utils';
 
 export class Swig {
   readonly address: SolanaPublicKey;
@@ -149,21 +153,6 @@ export class Swig {
     return role;
   };
 
-  // /**
-  //  * Find a {@link Role} by session key
-  //  * @param sessionKey
-  //  * @returns Session-based Role
-  //  */
-  // findRoleBySessionKey = async (
-  //   sessionKey: SolanaPublicKeyData,
-  //   options?: { prefetch?: boolean },
-  // ): Promise<SessionBasedRole | null> => {
-  //   // if (options?.prefetch) {
-  //   //   await this.refetch();
-  //   // }
-  //   return this.findRoleBySessionKeySync(sessionKey);
-  // };
-
   /**
    * Find a {@link Role} by session key
    * @param sessionKey
@@ -182,21 +171,6 @@ export class Swig {
     return role as SessionBasedRole;
   };
 
-  // /**
-  //  * Find a Role by Authority Signer
-  //  * @param signer Authority signer
-  //  * @returns Role[]
-  //  */
-  // findRolesByAuthoritySigner = async (
-  //   signer: Uint8Array,
-  //   options?: { prefetch?: boolean },
-  // ) => {
-  //   if (options?.prefetch) {
-  //     await this.refetch();
-  //   }
-  //   return this.findRolesByAuthoritySignerSync(signer);
-  // };
-
   /**
    * Find a Role by Authority Signer
    * @param signer Authority signer
@@ -205,21 +179,6 @@ export class Swig {
   findRolesByAuthoritySigner = (signer: Uint8Array) => {
     return this.roles.filter((role) => role.authority.matchesSigner(signer));
   };
-
-  // /**
-  //  * Find a Role by Ed25519 Signer Publickey
-  //  * @param signerPk Ed25519 Publickey
-  //  * @returns Role[]
-  //  */
-  // findRolesByEd25519SignerPk = async (
-  //   signerPk: SolanaPublicKeyData,
-  //   options?: { prefetch?: boolean },
-  // ) => {
-  //   return this.findRolesByAuthoritySigner(
-  //     new SolanaPublicKey(signerPk).toBytes(),
-  //     options,
-  //   );
-  // };
 
   /**
    * Find a Role by Ed25519 Signer Publickey
@@ -232,21 +191,11 @@ export class Swig {
     );
   };
 
-  // /**
-  //  * Find a Role by Authority Signer
-  //  * @param signerAddress Secp256k1 Signer Address hex or bytes
-  //  * @returns Role[]
-  //  */
-  // findRolesBySecp256k1SignerAddress = async (
-  //   signerAddress: Uint8Array | string,
-  //   options?: { prefetch?: boolean },
-  // ) => {
-  //   return this.findRolesByAuthoritySigner(
-  //     getUnprefixedSecpBytes(signerAddress, 20),
-  //     options,
-  //   );
-  // };
-
+  /**
+   * Find a Role by Authority Signer
+   * @param signerAddress Secp256k1 Signer Address hex or bytes
+   * @returns Role[]
+   */
   findRolesBySecp256k1SignerAddress = (signerAddress: Uint8Array | string) => {
     return this.findRolesByAuthoritySigner(
       getUnprefixedSecpBytes(signerAddress, 20),
@@ -261,7 +210,7 @@ export const getCreateSwigInstructionContext = (args: {
   authorityInfo: CreateAuthorityInfo;
 }) => {
   return createV1SwigInstruction(
-    { payer: new SolanaPublicKey(args.payer) },
+    { payer: args.payer },
     {
       id: args.id,
       actions: args.actions.bytes(),
@@ -350,7 +299,7 @@ export const getSignInstructionContext = async (
 export const getCreateSessionInstructionContext = async (
   swig: Swig,
   roleInfo: RoleInfo,
-  sessionKey: SolanaPublicKeyData,
+  newSessionKey: SolanaPublicKeyData,
   duration?: bigint,
   options?: AssertSwigOptions,
 ) => {
@@ -368,7 +317,7 @@ export const getCreateSessionInstructionContext = async (
 
   return role.authority.createSession({
     roleId: role.id,
-    newSessionKey: new SolanaPublicKey(sessionKey),
+    newSessionKey,
     payer,
     swigAddress: swig.address,
     sessionDuration: duration,
@@ -410,9 +359,7 @@ export const getToggleSubAccountInstructionContext = async (
 
   return role.authority.subAccountToggle({
     swigAddress: role.swigAddress,
-    subAccount: new SolanaPublicKey(
-      (await findSwigSubAccountPda(role.swigId, role.id))[0],
-    ),
+    subAccount: (await findSwigSubAccountPda(role.swigId, role.id))[0],
     payer,
     roleId: role.id,
     options,
@@ -445,10 +392,8 @@ export const getWithdrawFromSubAccountInstructionContext = async <
         roleId: role.id,
         options,
         amount: args.amount,
-        mint: new SolanaPublicKey(args.mint),
+        mint: args.mint,
         tokenProgram: args.tokenProgram
-          ? new SolanaPublicKey(args.tokenProgram)
-          : undefined,
       })
     : role.authority.subAccountWithdrawSol({
         swigAddress: role.swigAddress,

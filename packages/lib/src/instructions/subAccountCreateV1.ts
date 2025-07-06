@@ -1,17 +1,15 @@
-import {
-  AccountRole,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type WritableAccount,
-  type WritableSignerAccount,
-} from '@solana/kit';
+import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
-import { SolAccountMeta, type SolanaPublicKey } from '../schema';
+import {
+  SolAccountMeta,
+  SolanaPublicKey,
+  type SolanaPublicKeyData,
+} from '../schema';
 
 export type SubAccountCreateV1InstructionAccounts = {
-  swig: SolanaPublicKey;
-  payer: SolanaPublicKey;
-  subAccount: SolanaPublicKey;
+  swig: SolanaPublicKeyData;
+  payer: SolanaPublicKeyData;
+  subAccount: SolanaPublicKeyData;
 };
 
 export type SubAccountCreateV1BaseAccountMetas = [
@@ -26,19 +24,19 @@ export function getSubAccountCreateV1BaseAccountMetas(
 ): SubAccountCreateV1BaseAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.swig.toAddress(),
+      address: new SolanaPublicKey(accounts.swig).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.payer.toAddress(),
+      address: new SolanaPublicKey(accounts.payer).toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
       // isSigner: true,
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: accounts.subAccount.toAddress(),
+      address: new SolanaPublicKey(accounts.subAccount).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
@@ -59,7 +57,7 @@ export type SubAccountCreateV1BaseAccountMetasWithAuthority = [
 
 export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
   accounts: SubAccountCreateV1InstructionAccounts,
-  authority: SolanaPublicKey,
+  authority: SolanaPublicKeyData,
 ): [SubAccountCreateV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountCreateV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -67,7 +65,7 @@ export function getSubAccountCreateV1BaseAccountMetasWithAuthority(
   const metas: SubAccountCreateV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: authority.toAddress(),
+      address: new SolanaPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,

@@ -1,15 +1,19 @@
+import {
+  findAssociatedTokenPda,
+  TOKEN_PROGRAM_ADDRESS,
+} from '@solana-program/token';
 import { AuthorityType, getEd25519SessionDecoder } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
+import {
+  SolanaPublicKey,
+  type SolanaPublicKeyData,
+  SolInstruction,
+} from '../../schema';
 import { findSwigSubAccountPda } from '../../utils';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
 import type { Ed25519BasedAuthority } from './based';
-import {
-  findAssociatedTokenPda,
-  TOKEN_PROGRAM_ADDRESS,
-} from '@solana-program/token';
-import { SolanaPublicKey, SolInstruction } from '../../schema';
 
 export class Ed25519SessionAuthority
   extends SessionBasedAuthority
@@ -67,8 +71,8 @@ export class Ed25519SessionAuthority
   }
 
   sign(args: {
-    swigAddress: SolanaPublicKey;
-    payer: SolanaPublicKey;
+    swigAddress: SolanaPublicKeyData;
+    payer: SolanaPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -78,7 +82,7 @@ export class Ed25519SessionAuthority
         payer: args.payer,
       },
       {
-        authorityData: this.sessionKey.toBytes(),
+        authorityData: new SolanaPublicKey(this.sessionKey).toBytes(),
         innerInstructions: args.innerInstructions,
         roleId: args.roleId,
       },
@@ -86,8 +90,8 @@ export class Ed25519SessionAuthority
   }
 
   addAuthority(args: {
-    swigAddress: SolanaPublicKey;
-    payer: SolanaPublicKey;
+    swigAddress: SolanaPublicKeyData;
+    payer: SolanaPublicKeyData;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -109,8 +113,8 @@ export class Ed25519SessionAuthority
   }
 
   removeAuthority(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
     roleId: number;
     roleIdToRemove: number;
   }) {
@@ -128,9 +132,9 @@ export class Ed25519SessionAuthority
   }
 
   createSession(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    newSessionKey: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    newSessionKey: SolanaPublicKeyData;
     roleId: number;
     sessionDuration?: bigint;
   }) {
@@ -149,8 +153,8 @@ export class Ed25519SessionAuthority
   }
 
   async subAccountCreate(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
     swigId: Uint8Array;
     roleId: number;
   }) {
@@ -173,9 +177,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountSign(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -194,9 +198,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountToggle(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     enabled: boolean;
   }) {
@@ -215,9 +219,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountWithdrawSol(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
     amount: bigint;
   }) {
@@ -236,34 +240,39 @@ export class Ed25519SessionAuthority
   }
 
   async subAccountWithdrawToken(args: {
-    payer: SolanaPublicKey;
-    swigAddress: SolanaPublicKey;
-    subAccount: SolanaPublicKey;
+    payer: SolanaPublicKeyData;
+    swigAddress: SolanaPublicKeyData;
+    subAccount: SolanaPublicKeyData;
     roleId: number;
-    mint: SolanaPublicKey;
+    mint: SolanaPublicKeyData;
     amount: bigint;
-    tokenProgram?: SolanaPublicKey;
+    tokenProgram?: SolanaPublicKeyData;
   }) {
+    const mint = new SolanaPublicKey(args.mint).toAddress();
+    const swigAddress = new SolanaPublicKey(args.swigAddress).toAddress();
+    const subAccount = new SolanaPublicKey(args.subAccount).toAddress();
+    const tokenProgram =
+      new SolanaPublicKey(args.subAccount).toAddress() ?? TOKEN_PROGRAM_ADDRESS;
+
     const [swigToken] = await findAssociatedTokenPda({
-      mint: args.mint.toAddress(),
-      owner: args.swigAddress.toAddress(),
-      tokenProgram: args.tokenProgram?.toAddress() ?? TOKEN_PROGRAM_ADDRESS,
+      mint,
+      owner: swigAddress,
+      tokenProgram,
     });
 
     const [subAccountToken] = await findAssociatedTokenPda({
-      mint: args.mint.toAddress(),
-      owner: args.subAccount.toAddress(),
-      tokenProgram: args.tokenProgram?.toAddress() ?? TOKEN_PROGRAM_ADDRESS,
+      mint,
+      owner: subAccount,
+      tokenProgram,
     });
     return Ed25519Instruction.subAccountWithdrawV1TokenInstruction(
       {
         payer: args.payer,
         swig: args.swigAddress,
         subAccount: args.subAccount,
-        subAccountToken: new SolanaPublicKey(subAccountToken),
-        swigToken: new SolanaPublicKey(swigToken),
-        tokenProgram:
-          args.tokenProgram ?? new SolanaPublicKey(TOKEN_PROGRAM_ADDRESS),
+        subAccountToken,
+        swigToken,
+        tokenProgram,
       },
       {
         roleId: args.roleId,
