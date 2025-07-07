@@ -5,7 +5,6 @@ export * from './consts';
 export * from './instructions';
 export * from './kit';
 export * from './role';
-export * from './rpc';
 export * from './schema';
 export * from './swig';
 export * from './utils';

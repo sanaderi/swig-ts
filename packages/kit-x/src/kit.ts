@@ -1,9 +1,4 @@
-import type {
-  Address,
-  FetchAccountConfig,
-  GetAccountInfoApi,
-  Rpc,
-} from '@solana/kit';
+import type { Address } from '@solana/kit';
 import {
   Actions,
   getAddAuthorityInstructionContext,
@@ -19,10 +14,9 @@ import {
   SwigInstructionContext,
   type CreateAuthorityInfo,
   type KitInstruction,
-  type SigningFn,
+  type SwigOptions,
   type WithdrawSubAccountArgs,
 } from '@swig-wallet/lib';
-import { fetchMaybeSwigAccount, fetchSwigAccount } from './accounts';
 
 export async function getCreateSwigInstruction(args: {
   payer: Address;
@@ -150,43 +144,8 @@ export async function getWithdrawFromSubAccountSubAccountInstructions(
   return getInstructionsFromContext(context);
 }
 
-export async function fetchNullableSwig(
-  rpc: Rpc<GetAccountInfoApi>,
-  swigAddress: Address,
-  config?: FetchAccountConfig,
-): Promise<Swig | null> {
-  const maybeSwig = await fetchMaybeSwigAccount(rpc, swigAddress, config);
-  if (!maybeSwig.exists) {
-    return null;
-  }
-  return new Swig(swigAddress, maybeSwig.data);
-}
-
-/**
- * Fetch a Swig. Throws an error if Swig account has not been created
- * @param connection Connection
- * @param swigAddress Swig address
- * @param config Commitment config
- * @returns Swig | null
- */
-export async function fetchSwig(
-  rpc: Rpc<GetAccountInfoApi>,
-  swigAddress: Address,
-  config?: FetchAccountConfig,
-): Promise<Swig> {
-  const swig = await fetchSwigAccount(rpc, swigAddress, config);
-
-  return new Swig(swigAddress, swig.data);
-}
-
 export function getInstructionsFromContext(
   swigContext: SwigInstructionContext,
 ): KitInstruction[] {
   return swigContext.getKitInstructions();
 }
-
-export type SwigOptions = {
-  signningFn?: SigningFn;
-  currentSlot?: bigint;
-  payer?: Address;
-};

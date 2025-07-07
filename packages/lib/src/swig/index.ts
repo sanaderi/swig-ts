@@ -1,6 +1,5 @@
-import { assertAccountExists, type FetchAccountConfig } from '@solana/kit';
+import { type Commitment } from '@solana/kit';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
-import { fetchMaybeSwigAccount, fetchSwigAccount } from '../accounts';
 import { type Actions } from '../actions';
 import {
   isEd25519BasedAuthority,
@@ -23,13 +22,15 @@ import {
 
 export class Swig {
   readonly address: SolanaPublicKey;
+  #fetchFn: SwigFetchFn;
 
   constructor(
     address: SolanaPublicKeyData,
     private account: SwigAccount,
-    // public rpcUrl: string,
+    fetchFn?: SwigFetchFn,
   ) {
     this.address = new SolanaPublicKey(address);
+    this.#fetchFn = fetchFn ?? defaultSwigFetchFn;
   }
 
   /**
@@ -51,54 +52,9 @@ export class Swig {
     );
   }
 
-  /**
-   * Fetch a Swig. Returns null if Swig account has not been created
-   * @param connection Connection
-   * @param swigAddress Swig address
-   * @param config Commitment config
-   * @returns Swig | null
-   */
-  static async fetchNullable(
-    rpcUrl: string,
-    swigAddress: SolanaPublicKeyData,
-    config?: FetchAccountConfig,
-  ): Promise<Swig | null> {
-    const maybeSwig = await fetchMaybeSwigAccount(
-      rpcUrl,
-      new SolanaPublicKey(swigAddress).toAddress(),
-      config,
-    );
-    if (!maybeSwig.exists) {
-      return null;
-    }
-    assertAccountExists(maybeSwig);
-    return new Swig(new SolanaPublicKey(swigAddress), maybeSwig.data);
-  }
-
-  /**
-   * Fetch a Swig. Throws an error if Swig account has not been created
-   * @param connection Connection
-   * @param swigAddress Swig address
-   * @param config Commitment config
-   * @returns Swig | null
-   */
-  static async fetch(
-    rpcUrl: string,
-    swigAddress: SolanaPublicKeyData,
-    config?: FetchAccountConfig,
-  ): Promise<Swig> {
-    const swig = await fetchSwigAccount(
-      rpcUrl,
-      new SolanaPublicKey(swigAddress).toAddress(),
-      config,
-    );
-
-    return new Swig(new SolanaPublicKey(swigAddress), swig.data);
-  }
-
-  // setRpcUrl = (rpcUrl: string) => {
-  //   this.rpcUrl = rpcUrl;
-  // };
+  setSwigFetchFn = (fn: SwigFetchFn) => {
+    this.#fetchFn = fn;
+  };
 
   // /**
   //  * Refetch the swig to invalidate stale account data.
@@ -106,18 +62,15 @@ export class Swig {
   //  * @param connection Connection
   //  * @param config Connection config
   //  */
-  // refetch = async (config?: FetchAccountConfig): Promise<Swig> => { // todo: use callback for refetch, set on init
-  //   if (!this.rpcUrl)
-  //     throw new Error('Failed to refetch swig. RPC url not set');
-  //   const swig = await fetchSwigAccount(
-  //     this.rpcUrl,
-  //     this.address.toAddress(),
-  //     config,
-  //   );
-  //   this.account = swig.data;
+  refetch = async <
+    T extends { commitment?: Commitment } = { commitment?: Commitment },
+  >(
+    config?: T,
+  ): Promise<Swig> => {
+    this.account = await this.#fetchFn(this.address, config);
 
-  //   return this;
-  // };
+    return this;
+  };
 
   /**
    * Get a swig from raw swig account data
@@ -222,7 +175,7 @@ export const getAddAuthorityInstructionContext = async (
   roleId: number,
   newAuthorityInfo: CreateAuthorityInfo,
   actions: Actions,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ): Promise<SwigInstructionContext> => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -240,7 +193,7 @@ export const getRemoveAuthorityInstructionContext = async (
   swig: Swig,
   roleId: number,
   roleIdToRemove: number,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -258,7 +211,7 @@ export const getSignInstructionContext = async (
   roleId: number,
   innerInstructions: SolInstruction[],
   withSubAccount?: boolean,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -285,7 +238,7 @@ export const getCreateSessionInstructionContext = async (
   roleId: number,
   newSessionKey: SolanaPublicKeyData,
   duration?: bigint,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -308,7 +261,7 @@ export const getCreateSessionInstructionContext = async (
 export const getCreateSubAccountInstructionContext = async (
   swig: Swig,
   roleId: number,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -325,7 +278,7 @@ export const getToggleSubAccountInstructionContext = async (
   swig: Swig,
   roleId: number,
   enabled: boolean,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -345,7 +298,7 @@ export const getWithdrawFromSubAccountInstructionContext = async <
   swig: Swig,
   roleId: number,
   args: WithdrawSubAccountArgs<T>,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
@@ -376,14 +329,13 @@ export const getWithdrawFromSubAccountInstructionContext = async <
 async function assertInstructionOptions(
   swig: Swig,
   roleId: number,
-  options?: AssertSwigOptions,
+  options?: SwigOptions,
 ) {
-  let _swig = swig;
-  if (options?.prefetchFn) {
-    _swig = await options.prefetchFn(swig);
+  if (options?.preFetch) {
+    await swig.refetch();
   }
 
-  const role = await _swig.findRoleById(roleId);
+  const role = await swig.findRoleById(roleId);
 
   if (!isEd25519BasedAuthority(role.authority) && !options?.payer) {
     throw new Error('payer not provided for non-ed25519 based authority');
@@ -394,15 +346,11 @@ async function assertInstructionOptions(
   return { payer, role };
 }
 
-type SwigOptions = {
+export type SwigOptions = {
   preFetch?: boolean;
-  signningFn?: SigningFn;
+  signingFn?: SigningFn;
   currentSlot?: bigint;
   payer?: SolanaPublicKeyData;
-};
-
-type AssertSwigOptions = Omit<SwigOptions, 'preFetch'> & {
-  prefetchFn?: (swig: Swig) => Promise<Swig>;
 };
 
 export type WithdrawSubAccountArgs<
@@ -414,3 +362,14 @@ export type WithdrawSubAccountArgs<
       mint: T;
       tokenProgram?: T;
     };
+
+export type SwigFetchFn<
+  T extends SolanaPublicKeyData = SolanaPublicKeyData,
+  OptionsWithCommitment extends { commitment?: Commitment } = {
+    commitment?: Commitment;
+  },
+> = (swigAddress: T, config?: OptionsWithCommitment) => Promise<SwigAccount>;
+
+const defaultSwigFetchFn: SwigFetchFn = (_) => {
+  throw new Error('Swig fetch fn not set!');
+};

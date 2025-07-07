@@ -1,10 +1,4 @@
-import {
-  Connection,
-  PublicKey,
-  type Commitment,
-  type GetAccountInfoConfig,
-  type TransactionInstruction,
-} from '@solana/web3.js';
+import { PublicKey, type TransactionInstruction } from '@solana/web3.js';
 import {
   Actions,
   getAddAuthorityInstructionContext,
@@ -19,11 +13,10 @@ import {
   Swig,
   SwigInstructionContext,
   type CreateAuthorityInfo,
-  type SigningFn,
+  type SwigOptions,
   type Web3Instruction,
   type WithdrawSubAccountArgs,
 } from '@swig-wallet/lib';
-import { fetchMaybeSwigAccount, fetchSwigAccount } from './accounts';
 
 export async function getCreateSwigInstruction(args: {
   payer: PublicKey;
@@ -151,39 +144,6 @@ export async function getWithdrawFromSubAccountSubAccountInstructions(
   return getInstructionsFromContext(context);
 }
 
-export async function fetchNullableSwig(
-  connection: Connection,
-  swigAddress: PublicKey,
-  config?: Commitment | GetAccountInfoConfig,
-): Promise<Swig | null> {
-  const maybeSwig = await fetchMaybeSwigAccount(
-    connection,
-    swigAddress,
-    config,
-  );
-  if (!maybeSwig) {
-    return null;
-  }
-  return new Swig(swigAddress, maybeSwig);
-}
-
-/**
- * Fetch a Swig. Throws an error if Swig account has not been created
- * @param connection Connection
- * @param swigAddress Swig address
- * @param config Commitment config
- * @returns Swig | null
- */
-export async function fetchSwig(
-  connection: Connection,
-  swigAddress: PublicKey,
-  config?: Commitment | GetAccountInfoConfig,
-): Promise<Swig> {
-  const swig = await fetchSwigAccount(connection, swigAddress, config);
-
-  return new Swig(swigAddress, swig);
-}
-
 export function getTransactionInstructionFromWeb3Instruction(
   ix: Web3Instruction,
 ): TransactionInstruction {
@@ -205,9 +165,3 @@ export function getInstructionsFromContext(
     .getWeb3Instructions()
     .map(getTransactionInstructionFromWeb3Instruction);
 }
-
-export type SwigOptions = {
-  signningFn?: SigningFn;
-  currentSlot?: bigint;
-  payer?: PublicKey;
-};

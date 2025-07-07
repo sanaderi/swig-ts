@@ -50,10 +50,6 @@ function randomBytes(length: number): Uint8Array {
   return randomArray;
 }
 
-export function sleep(s: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, s * 1000));
-}
-
 console.log('starting...');
 
 let connection = new Connection('http://localhost:8899', 'confirmed');
@@ -79,7 +75,7 @@ await connection.requestAirdrop(
   LAMPORTS_PER_SOL,
 );
 
-await sleep(3);
+sleepSync(3000);
 
 let id = randomBytes(32);
 
@@ -104,7 +100,7 @@ const ix = await getCreateSwigInstruction({
 
 await sendTransaction(connection, [ix], userRootKeypair);
 
-await sleep(3);
+sleepSync(3000);
 
 //
 // * fetch swig
@@ -137,12 +133,13 @@ let addAuthorityIx = await getAddAuthorityInstructions(
 
 await sendTransaction(connection, addAuthorityIx, userRootKeypair);
 
-await sleep(3);
+sleepSync(3000);
 
 //
 // * update the swig utilty with Swig.refetch
 //
-swig = await fetchSwig(connection, swigAddress);
+// swig = await fetchSwig(connection, swigAddress);
+await swig.refetch()
 
 let managerRole = swig.findRolesByEd25519SignerPk(
   userAuthorityManagerKeypair.publicKey,
@@ -186,9 +183,10 @@ await sendTransaction(
 
 await connection.requestAirdrop(swigAddress, LAMPORTS_PER_SOL);
 
-await sleep(3);
+sleepSync(3000);
 
-swig = await fetchSwig(connection, swigAddress);
+// swig = await fetchSwig(connection, swigAddress);
+await swig.refetch();
 
 //
 // * role array methods (we check what roles can spend sol)
@@ -256,14 +254,15 @@ let tx = await sendTransaction(connection, signTransfer, dappAuthorityKeypair);
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 
-await sleep(3);
+sleepSync(3000);
 
 console.log(
   'balance after first transfer:',
   await connection.getBalance(swigAddress),
 );
 
-swig = await fetchSwig(connection, swigAddress);
+// swig = await fetchSwig(connection, swigAddress);
+await swig.refetch();
 
 //
 // * try spend sol

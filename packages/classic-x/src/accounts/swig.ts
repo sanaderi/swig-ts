@@ -1,10 +1,16 @@
-import type {
-  Commitment,
-  Connection,
-  GetAccountInfoConfig,
+import {
   PublicKey,
+  type Commitment,
+  type Connection,
+  type GetAccountInfoConfig,
 } from '@solana/web3.js';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
+import {
+  SolanaPublicKey,
+  Swig,
+  type SolanaPublicKeyData,
+  type SwigFetchFn,
+} from '@swig-wallet/lib';
 
 /**
  * Fetches a swig account. Will return `null` if the account is not found
@@ -33,7 +39,7 @@ export async function fetchMaybeSwigAccount(
 export async function fetchSwigAccount(
   connection: Connection,
   swigAddress: PublicKey,
-  config?: Commitment | GetAccountInfoConfig,
+  config?: GetAccountInfoConfig,
 ): Promise<SwigAccount> {
   const maybeSwig = await fetchMaybeSwigAccount(
     connection,
@@ -43,3 +49,50 @@ export async function fetchSwigAccount(
   if (!maybeSwig) throw new Error('Unable to fetch Swig account');
   return maybeSwig;
 }
+
+export async function fetchNullableSwig(
+  connection: Connection,
+  swigAddress: PublicKey,
+  config?: Commitment | GetAccountInfoConfig,
+): Promise<Swig | null> {
+  const maybeSwig = await fetchMaybeSwigAccount(
+    connection,
+    swigAddress,
+    config,
+  );
+  if (!maybeSwig) {
+    return null;
+  }
+  return new Swig(swigAddress, maybeSwig, getSwigFetchFn(connection));
+}
+
+/**
+ * Fetch a Swig. Throws an error if Swig account has not been created
+ * @param connection Connection
+ * @param swigAddress Swig address
+ * @param config Commitment config
+ * @returns Swig | null
+ */
+export async function fetchSwig(
+  connection: Connection,
+  swigAddress: PublicKey,
+  config?: GetAccountInfoConfig,
+): Promise<Swig> {
+  const swig = await fetchSwigAccount(connection, swigAddress, config);
+
+  return new Swig(swigAddress, swig, getSwigFetchFn(connection));
+}
+
+export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
+  connection: Connection,
+  config?: T,
+): SwigFetchFn => {
+  return (swigAddress: SolanaPublicKeyData) => {
+    const swigPublicKey = new SolanaPublicKey(swigAddress);
+    return fetchSwigAccount(
+      connection,
+      new PublicKey(swigPublicKey.toBytes()),
+      config,
+    );
+  };
+};

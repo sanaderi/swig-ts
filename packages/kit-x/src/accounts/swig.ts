@@ -6,6 +6,7 @@ import {
   fetchEncodedAccounts,
   type Account,
   type Address,
+  type Commitment,
   type EncodedAccount,
   type FetchAccountConfig,
   type FetchAccountsConfig,
@@ -16,6 +17,7 @@ import {
   type Rpc,
 } from '@solana/kit';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
+import { SolanaPublicKey, Swig, type SolanaPublicKeyData, type SwigFetchFn } from '@swig-wallet/lib';
 
 export function decodeSwig<TAddress extends string = string>(
   encodedAccount: EncodedAccount<TAddress>,
@@ -69,3 +71,47 @@ export async function fetchAllMaybeSwigAccounts(
   const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeSwig(maybeAccount));
 }
+
+export async function fetchNullableSwig(
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
+): Promise<Swig | null> {
+  const maybeSwig = await fetchMaybeSwigAccount(rpc, swigAddress, config);
+  if (!maybeSwig.exists) {
+    return null;
+  }
+  return new Swig(swigAddress, maybeSwig.data, getSwigFetchFn(rpc, config));
+}
+
+/**
+ * Fetch a Swig. Throws an error if Swig account has not been created
+ * @param connection Connection
+ * @param swigAddress Swig address
+ * @param config Commitment config
+ * @returns Swig | null
+ */
+export async function fetchSwig(
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
+): Promise<Swig> {
+  const swig = await fetchSwigAccount(rpc, swigAddress, config);
+
+  return new Swig(swigAddress, swig.data, getSwigFetchFn(rpc, config));
+}
+
+export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
+  connection: Rpc<GetAccountInfoApi>,
+  config?: T,
+): SwigFetchFn => {
+  return async (swigAddress: SolanaPublicKeyData) => {
+    const swigPublicKey = new SolanaPublicKey(swigAddress);
+    const swigAccount = await fetchSwigAccount(
+      connection,
+      swigPublicKey.toAddress(),
+      config,
+    );
+    return swigAccount.data;
+  };
+};

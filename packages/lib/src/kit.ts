@@ -1,5 +1,4 @@
 import type {
-  Address,
   IAccountMeta,
   IInstruction,
   IInstructionWithAccounts,
@@ -13,10 +12,8 @@ import type {
 export type GenericInstruction<
   T extends string = string,
   U extends IAccountMeta[] = IAccountMeta[],
-  V extends ReadonlyUint8Array = ReadonlyUint8Array
-> = IInstruction<T> &
-  IInstructionWithData<V> &
-  IInstructionWithAccounts<U>;
+  V extends ReadonlyUint8Array = ReadonlyUint8Array,
+> = IInstruction<T> & IInstructionWithData<V> & IInstructionWithAccounts<U>;
 
 // export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
 //   if (a.length !== b.length) return false;

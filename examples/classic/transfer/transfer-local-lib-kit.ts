@@ -7,13 +7,14 @@ import {
   addSignersToTransactionMessage,
   appendTransactionMessageInstructions,
   createSolanaRpc,
+  createSolanaRpcSubscriptions,
   createTransactionMessage,
   generateKeyPairSigner,
   getAddressEncoder,
   getSignatureFromTransaction,
   lamports,
   pipe,
-  sendTransactionWithoutConfirmingFactory,
+  sendAndConfirmTransactionFactory,
   setTransactionMessageFeePayerSigner,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
@@ -22,7 +23,9 @@ import {
   type IInstruction,
   type KeyPairSigner,
   type Rpc,
+  type RpcSubscriptions,
   type SolanaRpcApi,
+  type SolanaRpcSubscriptionsApi,
 } from '@solana/kit';
 import {
   Actions,
@@ -42,12 +45,6 @@ import { sleepSync } from 'bun';
 //   return limit === null
 //     ? 'unlimited'
 //     : `${Number(limit) / LAMPORTS_PER_SOL} SOL`;
-// }
-
-// function getInstructionsFromContext<Insts extends IInstruction[]>(
-//   swigContext: SwigInstructionContext,
-// ): Insts {
-//   return swigContext.getKitInstructions();
 // }
 
 function getSolTransferInstruction(args: {
@@ -94,12 +91,17 @@ function getTransactionMessage<Inst extends IInstruction[]>(
 }
 
 async function sendTransaction<T extends IInstruction[]>(
-  rpc: Rpc<SolanaRpcApi>,
+  connection: {
+    rpc: Rpc<SolanaRpcApi>;
+    rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
+  },
   instructions: T,
   payer: KeyPairSigner,
   signers: KeyPairSigner[] = [],
 ) {
-  const { value: latestBlockhash } = await rpc.getLatestBlockhash().send();
+  const { value: latestBlockhash } = await connection.rpc
+    .getLatestBlockhash()
+    .send();
   const transactionMessage = getTransactionMessage(
     instructions,
     latestBlockhash,
@@ -109,7 +111,7 @@ async function sendTransaction<T extends IInstruction[]>(
   const signedTransaction =
     await signTransactionMessageWithSigners(transactionMessage);
 
-  await sendTransactionWithoutConfirmingFactory({ rpc })(signedTransaction, {
+  await sendAndConfirmTransactionFactory(connection)(signedTransaction, {
     commitment: 'confirmed',
   });
 
@@ -124,29 +126,26 @@ function randomBytes(length: number): Uint8Array {
   return randomArray;
 }
 
-export function sleep(s: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, s * 1000));
-}
-
 const LAMPORTS_PER_SOL = 1_000_000_000;
 
 console.log('starting...');
 
-const rpcUrl = 'http://localhost:8899';
-
-const rpc = createSolanaRpc(rpcUrl);
+const connection = {
+  rpc: createSolanaRpc('http://localhost:8899'),
+  rpcSubscriptions: createSolanaRpcSubscriptions('ws://localhost:8900'),
+};
 
 // user root
 //
 let userRootKeypair = await generateKeyPairSigner();
-await rpc
+await connection.rpc
   .requestAirdrop(userRootKeypair.address, lamports(BigInt(LAMPORTS_PER_SOL)))
   .send();
 
 // user authority manager
 //
 let userAuthorityManagerKeypair = await generateKeyPairSigner();
-await rpc
+await connection.rpc
   .requestAirdrop(
     userAuthorityManagerKeypair.address,
     lamports(BigInt(LAMPORTS_PER_SOL)),
@@ -156,14 +155,14 @@ await rpc
 // dapp authority
 //
 let dappAuthorityKeypair = await generateKeyPairSigner();
-await rpc
+await connection.rpc
   .requestAirdrop(
     dappAuthorityKeypair.address,
     lamports(BigInt(LAMPORTS_PER_SOL)),
   )
   .send();
 
-await sleep(3);
+sleepSync(3000);
 
 let id = randomBytes(32);
 
@@ -172,8 +171,6 @@ const swigAddress = (await findSwigPda(id))[0];
 //
 // * Find a swig pda by id
 //
-// let [swigAddress] = findSwigPda(id);
-
 let rootActions = Actions.set().all().get();
 
 const ix = await getCreateSwigInstruction({
@@ -183,14 +180,14 @@ const ix = await getCreateSwigInstruction({
   id,
 });
 
-await sendTransaction(rpc, [ix], userRootKeypair);
+await sendTransaction(connection, [ix], userRootKeypair);
 
-await sleep(3);
+sleepSync(3000);
 
 //
 // * fetch swig
 //
-let swig = await fetchSwig(rpc, swigAddress);
+let swig = await fetchSwig(connection.rpc, swigAddress);
 
 //
 // * find role by authority
@@ -216,14 +213,14 @@ let addAuthorityIx = await getAddAuthorityInstructions(
   manageAuthorityActions,
 );
 
-await sendTransaction(rpc, addAuthorityIx, userRootKeypair);
+await sendTransaction(connection, addAuthorityIx, userRootKeypair);
 
-await sleep(3);
+sleepSync(3000);
 
 //
 // * update the swig utilty with Swig.refetch
 //
-swig = await fetchSwig(rpc, swigAddress);
+await swig.refetch();
 
 let managerRole = swig.findRolesByEd25519SignerPk(
   userAuthorityManagerKeypair.address,
@@ -260,18 +257,18 @@ let addDappAuthorityInstruction = await getAddAuthorityInstructions(
 );
 
 await sendTransaction(
-  rpc,
+  connection,
   addDappAuthorityInstruction,
   userAuthorityManagerKeypair,
 );
 
-await rpc
+await connection.rpc
   .requestAirdrop(swigAddress, lamports(BigInt(LAMPORTS_PER_SOL)))
   .send();
 
-await sleep(3);
+sleepSync(3000);
 
-swig = await fetchSwig(rpc, swigAddress);
+await swig.refetch();
 
 //
 // * role array methods (we check what roles can spend sol)
@@ -315,44 +312,38 @@ if (
 
 console.log(
   'balance before first transfer:',
-  await rpc.getBalance(swigAddress).send(),
+  (await connection.rpc.getBalance(swigAddress).send()).value,
 );
 
 //
 // * spend max sol permitted
 //
-// let transfer = SystemProgram.transfer({
-//   fromPubkey: swigAddress,
-//   toPubkey: dappAuthorityKeypair.publicKey,
-//   lamports: 0.1 * LAMPORTS_PER_SOL,
-// });
-
 let transfer = getSolTransferInstruction({
   fromAddress: swigAddress,
   toAddress: dappAuthorityKeypair.address,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let dappAuthorityRole = (
-  await swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.address)
+let dappAuthorityRole = swig.findRolesByEd25519SignerPk(
+  dappAuthorityKeypair.address,
 )[0];
 
 let signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
   transfer,
 ]);
 
-let tx = await sendTransaction(rpc, signTransfer, dappAuthorityKeypair);
+let tx = await sendTransaction(connection, signTransfer, dappAuthorityKeypair);
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 
-await sleep(3);
+sleepSync(3000);
 
 console.log(
   'balance after first transfer:',
-  await rpc.getBalance(swigAddress).send(),
+  (await connection.rpc.getBalance(swigAddress).send()).value,
 );
 
-swig = await fetchSwig(rpc, swigAddress);
+await swig.refetch();
 
 //
 // * try spend sol
@@ -363,15 +354,15 @@ transfer = getSolTransferInstruction({
   fromAddress: swigAddress,
 });
 
-dappAuthorityRole = (
-  await swig.findRolesByEd25519SignerPk(dappAuthorityKeypair.address)
+dappAuthorityRole = swig.findRolesByEd25519SignerPk(
+  dappAuthorityKeypair.address,
 )[0];
 
 signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
   transfer,
 ]);
 
-await sendTransaction(rpc, signTransfer, dappAuthorityKeypair)
+await sendTransaction(connection, signTransfer, dappAuthorityKeypair)
   .then(() => {
     throw new Error(
       'Transaction succeeded! Dapp authority spent more than allowed',
@@ -385,5 +376,5 @@ sleepSync(3000);
 
 console.log(
   'balance after second transfer:',
-  await rpc.getBalance(swigAddress).send(),
+  (await connection.rpc.getBalance(swigAddress).send()).value,
 );
