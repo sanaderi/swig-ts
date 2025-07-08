@@ -8,8 +8,8 @@ import {
 } from '@solana/kit';
 
 export enum SwigAccountDiscriminator {
-  Swig,
-  SubAccount,
+  Swig = 1,
+  SubAccount = 2,
 }
 
 export function getSwigAccountDiscriminatorEncoder(): Encoder<SwigAccountDiscriminator> {
