@@ -20,8 +20,8 @@ import {
   type TokenLimit,
   type TokenRecurringLimit,
 } from '@swig-wallet/coder';
+import type { SolPublicKey } from '../solana';
 import { Actions } from './action';
-import type { SolanaPublicKey } from '../schema';
 
 type ActionsData = { bytes: Uint8Array; noOfActions: number };
 
@@ -90,7 +90,7 @@ export class ActionsBuilder {
    * Enable a program scope
    * @param payload.programId ID of the program to enable
    */
-  programLimit(payload: { programId: SolanaPublicKey }): this {
+  programLimit(payload: { programId: SolPublicKey }): this {
     this._actionConfigs.push(
       new ProgramLimitConfig({ programId: payload.programId.toBytes() }),
     );
@@ -104,8 +104,8 @@ export class ActionsBuilder {
    * @returns Basic ProgramScope action
    */
   programScopeBasic(payload: {
-    programId: SolanaPublicKey;
-    targetAccount: SolanaPublicKey;
+    programId: SolPublicKey;
+    targetAccount: SolPublicKey;
   }) {
     this._actionConfigs.push(
       new ProgramScopeConfig({
@@ -135,8 +135,8 @@ export class ActionsBuilder {
   programScopeLimit(payload: {
     amount: bigint;
     numericType: NumericType;
-    programId: SolanaPublicKey;
-    targetAccount: SolanaPublicKey;
+    programId: SolPublicKey;
+    targetAccount: SolPublicKey;
   }) {
     this._actionConfigs.push(
       new ProgramScopeConfig({
@@ -168,8 +168,8 @@ export class ActionsBuilder {
     amount: bigint;
     window: bigint;
     numericType: NumericType;
-    programId: SolanaPublicKey;
-    targetAccount: SolanaPublicKey;
+    programId: SolPublicKey;
+    targetAccount: SolPublicKey;
   }) {
     this._actionConfigs.push(
       new ProgramScopeConfig({
@@ -231,7 +231,7 @@ export class ActionsBuilder {
    * @param payload.mint token mint public key
    * @param payload.amount amount allowed to spend
    */
-  tokenLimit(payload: { mint: SolanaPublicKey; amount: bigint }): this {
+  tokenLimit(payload: { mint: SolPublicKey; amount: bigint }): this {
     this._actionConfigs.push(
       new TokenLimitConfig({ ...payload, mint: payload.mint.toBytes() }),
     );
@@ -245,7 +245,7 @@ export class ActionsBuilder {
    * @param payload.window period in slots until amount reset
    */
   tokenReccuringLimit(payload: {
-    mint: SolanaPublicKey;
+    mint: SolPublicKey;
     recurringAmount: bigint;
     window: bigint;
   }): this {

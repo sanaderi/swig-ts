@@ -38,15 +38,6 @@ import {
 } from '@swig-wallet/kit-x';
 import { sleepSync } from 'bun';
 
-//
-// Helpers
-//
-// function formatSolLimit(limit: bigint | null): string {
-//   return limit === null
-//     ? 'unlimited'
-//     : `${Number(limit) / LAMPORTS_PER_SOL} SOL`;
-// }
-
 function getSolTransferInstruction(args: {
   fromAddress: Address;
   toAddress: Address;
@@ -166,7 +157,7 @@ sleepSync(3000);
 
 let id = randomBytes(32);
 
-const swigAddress = (await findSwigPda(id))[0];
+const swigAddress = await findSwigPda(id);
 
 //
 // * Find a swig pda by id

@@ -1,14 +1,10 @@
 import { AccountRole } from '@solana/kit';
-import {
-  SolAccountMeta,
-  SolanaPublicKey,
-  type SolanaPublicKeyData,
-} from '../schema';
+import { SolAccountMeta, SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export type SubAccountWithdrawV1BaseInstructionAccounts = {
-  swig: SolanaPublicKeyData;
-  payer: SolanaPublicKeyData;
-  subAccount: SolanaPublicKeyData;
+  swig: SolPublicKeyData;
+  payer: SolPublicKeyData;
+  subAccount: SolPublicKeyData;
 };
 
 export type SubAccountWithdrawV1SolInstructionAccounts =
@@ -16,9 +12,9 @@ export type SubAccountWithdrawV1SolInstructionAccounts =
 
 export type SubAccountWithdrawV1TokenInstructionAccounts =
   SubAccountWithdrawV1BaseInstructionAccounts & {
-    subAccountToken: SolanaPublicKeyData;
-    swigToken: SolanaPublicKeyData;
-    tokenProgram: SolanaPublicKeyData;
+    subAccountToken: SolPublicKeyData;
+    swigToken: SolPublicKeyData;
+    tokenProgram: SolPublicKeyData;
   };
 
 export type SubAccountWithdrawV1BaseAccountMetas = [
@@ -42,19 +38,19 @@ export function getSubAccountWithdrawV1SolAccountMetas(
 ): SubAccountWithdrawV1SolAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.swig).toAddress(),
+      address: new SolPublicKey(accounts.swig).toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.payer).toAddress(),
+      address: new SolPublicKey(accounts.payer).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.subAccount).toAddress(),
+      address: new SolPublicKey(accounts.subAccount).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
@@ -67,37 +63,37 @@ export function getSubAccountWithdrawV1TokenAccountMetas(
 ): SubAccountWithdrawV1TokenAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.swig).toAddress(),
+      address: new SolPublicKey(accounts.swig).toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.payer).toAddress(),
+      address: new SolPublicKey(accounts.payer).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.subAccount).toAddress(),
+      address: new SolPublicKey(accounts.subAccount).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.subAccountToken).toAddress(),
+      address: new SolPublicKey(accounts.subAccountToken).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.swigToken).toAddress(),
+      address: new SolPublicKey(accounts.swigToken).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.tokenProgram).toAddress(),
+      address: new SolPublicKey(accounts.tokenProgram).toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
@@ -112,7 +108,7 @@ export type SubAccountWithdrawV1SolAccountMetasWithAuthority = [
 
 export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1SolInstructionAccounts,
-  authority: SolanaPublicKeyData,
+  authority: SolPublicKeyData,
 ): [SubAccountWithdrawV1SolAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -120,7 +116,7 @@ export function getSubAccountWithdrawV1SolAccountMetasWithAuthority(
   const metas: SubAccountWithdrawV1SolAccountMetasWithAuthority = [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(authority).toAddress(),
+      address: new SolPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
@@ -141,7 +137,7 @@ export type SubAccountWithdrawV1TokenAccountMetasWithAuthority = [
 
 export function getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
   accounts: SubAccountWithdrawV1TokenInstructionAccounts,
-  authority: SolanaPublicKeyData,
+  authority: SolPublicKeyData,
 ): [SubAccountWithdrawV1TokenAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountWithdrawV1TokenAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -151,7 +147,7 @@ export function getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
     accountMetas[1], // payer
     accountMetas[2], // sub-account
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(authority).toAddress(),
+      address: new SolPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,

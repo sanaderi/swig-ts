@@ -9,27 +9,26 @@ import {
 import { createV1SwigInstruction } from '../instructions';
 import { deserializeRoles, type SessionBasedRole } from '../role';
 import {
-  SolanaPublicKey,
   SolInstruction,
+  SolPublicKey,
   SwigInstructionContext,
-  type SolanaPublicKeyData,
-} from '../schema';
+  type SolPublicKeyData,
+} from '../solana';
 import {
-  findSwigSubAccountPda,
   findSwigSubAccountPdaRaw,
   getUnprefixedSecpBytes,
 } from '../utils';
 
 export class Swig {
-  readonly address: SolanaPublicKey;
+  readonly address: SolPublicKey;
   #fetchFn: SwigFetchFn;
 
   constructor(
-    address: SolanaPublicKeyData,
+    address: SolPublicKeyData,
     private account: SwigAccount,
     fetchFn?: SwigFetchFn,
   ) {
-    this.address = new SolanaPublicKey(address);
+    this.address = new SolPublicKey(address);
     this.#fetchFn = fetchFn ?? defaultSwigFetchFn;
   }
 
@@ -79,7 +78,7 @@ export class Swig {
    * @returns Swig
    */
   static fromRawAccountData(
-    swigAddress: SolanaPublicKeyData,
+    swigAddress: SolPublicKeyData,
     accountData: Uint8Array,
   ) {
     const swigAccount = getSwigCodec().decode(accountData);
@@ -108,13 +107,13 @@ export class Swig {
    * @returns Session-based Role
    */
   findRoleBySessionKey = (
-    sessionKey: SolanaPublicKeyData,
+    sessionKey: SolPublicKeyData,
   ): SessionBasedRole | null => {
     const role = this.roles.find(
       (r) =>
         r.isSessionBased() &&
         r.authority.sessionKey.toBase58() ===
-          new SolanaPublicKey(sessionKey).toBase58(),
+          new SolPublicKey(sessionKey).toBase58(),
     );
     if (!role) return null;
     return role as SessionBasedRole;
@@ -134,9 +133,9 @@ export class Swig {
    * @param signerPk Ed25519 Publickey
    * @returns Role[]
    */
-  findRolesByEd25519SignerPk = (signerPk: SolanaPublicKeyData) => {
+  findRolesByEd25519SignerPk = (signerPk: SolPublicKeyData) => {
     return this.findRolesByAuthoritySigner(
-      new SolanaPublicKey(signerPk).toBytes(),
+      new SolPublicKey(signerPk).toBytes(),
     );
   };
 
@@ -153,7 +152,7 @@ export class Swig {
 }
 
 export const getCreateSwigInstructionContext = (args: {
-  payer: SolanaPublicKeyData;
+  payer: SolPublicKeyData;
   id: Uint8Array;
   actions: Actions;
   authorityInfo: CreateAuthorityInfo;
@@ -236,7 +235,7 @@ export const getSignInstructionContext = async (
 export const getCreateSessionInstructionContext = async (
   swig: Swig,
   roleId: number,
-  newSessionKey: SolanaPublicKeyData,
+  newSessionKey: SolPublicKeyData,
   duration?: bigint,
   options?: SwigOptions,
 ) => {
@@ -284,7 +283,7 @@ export const getToggleSubAccountInstructionContext = async (
 
   return role.authority.subAccountToggle({
     swigAddress: role.swigAddress,
-    subAccount: (await findSwigSubAccountPda(role.swigId, role.id))[0],
+    subAccount: (await findSwigSubAccountPdaRaw(role.swigId, role.id))[0],
     payer,
     roleId: role.id,
     options,
@@ -293,7 +292,7 @@ export const getToggleSubAccountInstructionContext = async (
 };
 
 export const getWithdrawFromSubAccountInstructionContext = async <
-  T extends SolanaPublicKeyData = SolanaPublicKeyData,
+  T extends SolPublicKeyData = SolPublicKeyData,
 >(
   swig: Swig,
   roleId: number,
@@ -302,8 +301,8 @@ export const getWithdrawFromSubAccountInstructionContext = async <
 ) => {
   const { payer, role } = await assertInstructionOptions(swig, roleId, options);
 
-  const subAccount = new SolanaPublicKey(
-    (await findSwigSubAccountPda(role.swigId, role.id))[0],
+  const subAccount = new SolPublicKey(
+    (await findSwigSubAccountPdaRaw(role.swigId, role.id))[0],
   );
   return 'mint' in args
     ? role.authority.subAccountWithdrawToken({
@@ -341,7 +340,7 @@ async function assertInstructionOptions(
     throw new Error('payer not provided for non-ed25519 based authority');
   }
 
-  const payer = new SolanaPublicKey(options?.payer ?? role.authority.id);
+  const payer = new SolPublicKey(options?.payer ?? role.authority.id);
 
   return { payer, role };
 }
@@ -350,11 +349,11 @@ export type SwigOptions = {
   preFetch?: boolean;
   signingFn?: SigningFn;
   currentSlot?: bigint;
-  payer?: SolanaPublicKeyData;
+  payer?: SolPublicKeyData;
 };
 
 export type WithdrawSubAccountArgs<
-  T extends SolanaPublicKeyData = SolanaPublicKeyData,
+  T extends SolPublicKeyData = SolPublicKeyData,
 > =
   | { amount: bigint }
   | {
@@ -364,7 +363,7 @@ export type WithdrawSubAccountArgs<
     };
 
 export type SwigFetchFn<
-  T extends SolanaPublicKeyData = SolanaPublicKeyData,
+  T extends SolPublicKeyData = SolPublicKeyData,
   OptionsWithCommitment extends { commitment?: Commitment } = {
     commitment?: Commitment;
   },

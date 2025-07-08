@@ -5,11 +5,11 @@ import {
 import { AuthorityType, getEd25519SessionDecoder } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import {
-  SolanaPublicKey,
-  type SolanaPublicKeyData,
   SolInstruction,
-} from '../../schema';
-import { findSwigSubAccountPda } from '../../utils';
+  SolPublicKey,
+  type SolPublicKeyData,
+} from '../../solana';
+import { findSwigSubAccountPdaRaw } from '../../utils';
 import { Authority, SessionBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction } from '../instructions';
@@ -46,7 +46,7 @@ export class Ed25519SessionAuthority
   }
 
   get ed25519PublicKey() {
-    return new SolanaPublicKey(this.info.publicKey);
+    return new SolPublicKey(this.info.publicKey);
   }
 
   get sessionKey() {
@@ -66,13 +66,13 @@ export class Ed25519SessionAuthority
     return {
       ...data,
       publicKey: new Uint8Array(data.publicKey),
-      sessionKey: new SolanaPublicKey(new Uint8Array(data.sessionKey)),
+      sessionKey: new SolPublicKey(new Uint8Array(data.sessionKey)),
     };
   }
 
   sign(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -82,7 +82,7 @@ export class Ed25519SessionAuthority
         payer: args.payer,
       },
       {
-        authorityData: new SolanaPublicKey(this.sessionKey).toBytes(),
+        authorityData: new SolPublicKey(this.sessionKey).toBytes(),
         innerInstructions: args.innerInstructions,
         roleId: args.roleId,
       },
@@ -90,8 +90,8 @@ export class Ed25519SessionAuthority
   }
 
   addAuthority(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -113,8 +113,8 @@ export class Ed25519SessionAuthority
   }
 
   removeAuthority(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     roleId: number;
     roleIdToRemove: number;
   }) {
@@ -132,9 +132,9 @@ export class Ed25519SessionAuthority
   }
 
   createSession(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    newSessionKey: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    newSessionKey: SolPublicKeyData;
     roleId: number;
     sessionDuration?: bigint;
   }) {
@@ -147,18 +147,18 @@ export class Ed25519SessionAuthority
         authorityData: this.id,
         roleId: args.roleId,
         sessionDuration: args.sessionDuration ?? this.maxDuration,
-        sessionKey: new SolanaPublicKey(args.newSessionKey).toBytes(),
+        sessionKey: new SolPublicKey(args.newSessionKey).toBytes(),
       },
     );
   }
 
   async subAccountCreate(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     swigId: Uint8Array;
     roleId: number;
   }) {
-    const [subAccount, bump] = await findSwigSubAccountPda(
+    const [subAccount, bump] = await findSwigSubAccountPdaRaw(
       args.swigId,
       args.roleId,
     );
@@ -166,7 +166,7 @@ export class Ed25519SessionAuthority
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount: new SolanaPublicKey(subAccount),
+        subAccount,
       },
       {
         roleId: args.roleId,
@@ -177,9 +177,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountSign(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -198,9 +198,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountToggle(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     enabled: boolean;
   }) {
@@ -219,9 +219,9 @@ export class Ed25519SessionAuthority
   }
 
   subAccountWithdrawSol(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     amount: bigint;
   }) {
@@ -240,19 +240,19 @@ export class Ed25519SessionAuthority
   }
 
   async subAccountWithdrawToken(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
-    mint: SolanaPublicKeyData;
+    mint: SolPublicKeyData;
     amount: bigint;
-    tokenProgram?: SolanaPublicKeyData;
+    tokenProgram?: SolPublicKeyData;
   }) {
-    const mint = new SolanaPublicKey(args.mint).toAddress();
-    const swigAddress = new SolanaPublicKey(args.swigAddress).toAddress();
-    const subAccount = new SolanaPublicKey(args.subAccount).toAddress();
+    const mint = new SolPublicKey(args.mint).toAddress();
+    const swigAddress = new SolPublicKey(args.swigAddress).toAddress();
+    const subAccount = new SolPublicKey(args.subAccount).toAddress();
     const tokenProgram =
-      new SolanaPublicKey(args.subAccount).toAddress() ?? TOKEN_PROGRAM_ADDRESS;
+      new SolPublicKey(args.subAccount).toAddress() ?? TOKEN_PROGRAM_ADDRESS;
 
     const [swigToken] = await findAssociatedTokenPda({
       mint,
@@ -291,7 +291,7 @@ export function isEd25519SessionAuthority(
 
 type Ed25519SessionData = {
   publicKey: Uint8Array;
-  sessionKey: SolanaPublicKey;
+  sessionKey: SolPublicKey;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;
 };

@@ -4,7 +4,7 @@ import {
   Permission,
   type ActionHeader,
 } from '@swig-wallet/coder';
-import { SolanaPublicKey } from '../schema';
+import { SolPublicKey } from '../solana';
 import { ActionsBuilder } from './builder';
 import { SpendController } from './control';
 import {
@@ -77,7 +77,7 @@ export class Actions {
    * @param programId ID of the Program to interact with
    * @returns boolean
    */
-  canUseProgram(programId: SolanaPublicKey): boolean {
+  canUseProgram(programId: SolPublicKey): boolean {
     return !!this.actions.find((action) => action.canUseProgram(programId));
   }
 
@@ -146,7 +146,7 @@ export class Actions {
    * @param mint Token mint
    * @returns boolean
    */
-  canSpendTokenMax(mint: SolanaPublicKey): boolean {
+  canSpendTokenMax(mint: SolPublicKey): boolean {
     return !!this.actions.find((action) =>
       action.tokenControl(mint).canSpendMax(),
     );
@@ -159,7 +159,7 @@ export class Actions {
    * @param [amount] Minimum spendaable amount
    * @returns boolean
    */
-  canSpendToken(mint: SolanaPublicKey, amount?: bigint): boolean {
+  canSpendToken(mint: SolPublicKey, amount?: bigint): boolean {
     return !!this.actions.find((action) =>
       action.tokenControl(mint).canSpend(amount),
     );
@@ -170,7 +170,7 @@ export class Actions {
    * @param mint Token mint
    * @returns `bigint` | `null`
    */
-  tokenSpendLimit(mint: SolanaPublicKey): bigint | null {
+  tokenSpendLimit(mint: SolPublicKey): bigint | null {
     // check for unlimited spend action
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
@@ -191,7 +191,7 @@ export class Actions {
    * @param mint Token mint
    * @returns SpendController
    */
-  tokenSpend(mint: SolanaPublicKey): SpendController {
+  tokenSpend(mint: SolPublicKey): SpendController {
     // check for unlimited spend action
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
@@ -296,7 +296,7 @@ class Action {
   /**
    * Token Spend controller
    */
-  tokenControl(mint: SolanaPublicKey): SpendController {
+  tokenControl(mint: SolPublicKey): SpendController {
     if (isActionPayload(Permission.All, this.payload)) {
       return SpendController.max();
     }
@@ -307,7 +307,7 @@ class Action {
     ) {
       if (
         mint.toBase58() ===
-        new SolanaPublicKey(new Uint8Array(this.payload.data.mint)).toBase58()
+        new SolPublicKey(new Uint8Array(this.payload.data.mint)).toBase58()
       ) {
         return SpendController.get(this.payload);
       }
@@ -319,7 +319,7 @@ class Action {
   /**
    * Check action use program
    */
-  canUseProgram(program: SolanaPublicKey): boolean {
+  canUseProgram(program: SolPublicKey): boolean {
     if (isActionPayload(Permission.All, this.payload)) {
       return true;
     }
@@ -327,9 +327,7 @@ class Action {
     if (isActionPayload(Permission.Program, this.payload)) {
       if (
         program.toBase58() ===
-        new SolanaPublicKey(
-          new Uint8Array(this.payload.data.programId),
-        ).toBase58()
+        new SolPublicKey(new Uint8Array(this.payload.data.programId)).toBase58()
       )
         return true;
     }

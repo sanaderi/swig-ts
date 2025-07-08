@@ -11,7 +11,7 @@ import {
   getSubAccountWithdrawV1TokenAccountMetasWithAuthority,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithAuthority } from '../../instructions/createSessionV1';
-import { SolanaPublicKey } from '../../schema';
+import { SolPublicKey } from '../../solana';
 import type { AuthorityInstruction } from './interface';
 
 /**
@@ -19,7 +19,7 @@ import type { AuthorityInstruction } from './interface';
  */
 export const Ed25519Instruction: AuthorityInstruction = {
   async addAuthorityV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [addAuthorityIxAccountMetas, authorityPayload] =
       getAddV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -31,7 +31,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async removeAuthorityV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [removeIxAccountMetas, authorityPayload] =
       getRemoveV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -43,7 +43,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async signV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [signInstructionsAccount, authorityPayload] =
       getSignV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -62,7 +62,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async createSessionV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [createSessionAccount, authorityPayload] =
       getCreateSessionV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -74,7 +74,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountCreateV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [metas, authorityPayload] =
       getSubAccountCreateV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -86,7 +86,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1SolInstruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [metas, authorityPayload] =
       getSubAccountWithdrawV1SolAccountMetasWithAuthority(accounts, authority);
@@ -98,7 +98,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1TokenInstruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [metas, authorityPayload] =
       getSubAccountWithdrawV1TokenAccountMetasWithAuthority(
@@ -113,7 +113,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountToggleV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [metas, authorityPayload] =
       getSubAccountToggleV1BaseAccountMetasWithAuthority(accounts, authority);
@@ -125,7 +125,7 @@ export const Ed25519Instruction: AuthorityInstruction = {
   },
 
   async subAccountSignV1Instruction(accounts, data) {
-    const authority = new SolanaPublicKey(new Uint8Array(data.authorityData));
+    const authority = new SolPublicKey(new Uint8Array(data.authorityData));
 
     const [signAccounts, authorityPayload] =
       getSubAccountSignV1BaseAccountMetasWithAuthority(accounts, authority);

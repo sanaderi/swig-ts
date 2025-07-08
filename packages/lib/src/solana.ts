@@ -16,15 +16,15 @@ import { SWIG_PROGRAM_ADDRESS } from './consts';
 /**
  * Utility representing a Solana PublicKey
  */
-export class SolanaPublicKey implements Web3PublicKey {
+export class SolPublicKey implements Web3PublicKey {
   #bytes: Uint8Array;
 
   /**
-   * Creates a new {@link SolanaPublicKey} instance
+   * Creates a new {@link SolPublicKey} instance
    *
    * @param data 32-byte publickey bytes or Base58-enoded publickey
    */
-  constructor(data: SolanaPublicKeyData) {
+  constructor(data: SolPublicKeyData) {
     let bytes =
       typeof data === 'string'
         ? new Uint8Array(getAddressEncoder().encode(address(data)))
@@ -114,12 +114,12 @@ function isWeb3PublicKey(obj: any): obj is Web3PublicKey {
 }
 
 export class SolAccountMeta {
-  publicKey: SolanaPublicKey;
+  publicKey: SolPublicKey;
   writable: boolean;
   signer: boolean;
 
   constructor(data: {
-    publicKey: SolanaPublicKey;
+    publicKey: SolPublicKey;
     writable: boolean;
     signer: boolean;
   }) {
@@ -128,19 +128,19 @@ export class SolAccountMeta {
     this.signer = data.signer;
   }
 
-  static readonly = (publicKey: SolanaPublicKey): SolAccountMeta => {
+  static readonly = (publicKey: SolPublicKey): SolAccountMeta => {
     return new SolAccountMeta({ publicKey, signer: false, writable: false });
   };
 
-  static readonlySigner = (publicKey: SolanaPublicKey): SolAccountMeta => {
+  static readonlySigner = (publicKey: SolPublicKey): SolAccountMeta => {
     return new SolAccountMeta({ publicKey, signer: true, writable: false });
   };
 
-  static writable = (publicKey: SolanaPublicKey): SolAccountMeta => {
+  static writable = (publicKey: SolPublicKey): SolAccountMeta => {
     return new SolAccountMeta({ publicKey, signer: false, writable: true });
   };
 
-  static writableSigner = (publicKey: SolanaPublicKey): SolAccountMeta => {
+  static writableSigner = (publicKey: SolPublicKey): SolAccountMeta => {
     return new SolAccountMeta({ publicKey, signer: true, writable: true });
   };
 
@@ -148,7 +148,7 @@ export class SolAccountMeta {
     meta: Web3AccountMeta<T>,
   ): SolAccountMeta => {
     return new this({
-      publicKey: new SolanaPublicKey(meta.pubkey),
+      publicKey: new SolPublicKey(meta.pubkey),
       signer: meta.isSigner,
       writable: meta.isWritable,
     });
@@ -158,7 +158,7 @@ export class SolAccountMeta {
     meta: T,
   ): SolAccountMeta => {
     return new this({
-      publicKey: new SolanaPublicKey(meta.address),
+      publicKey: new SolPublicKey(meta.address),
       signer: isSignerRole(meta.role),
       writable: isWritableRole(meta.role),
     });
@@ -196,12 +196,12 @@ export class SolAccountMeta {
 }
 
 export class SolInstruction {
-  program: SolanaPublicKey;
+  program: SolPublicKey;
   data: Uint8Array;
   accounts: SolAccountMeta[];
 
   constructor(inst: {
-    program: SolanaPublicKey;
+    program: SolPublicKey;
     data: ReadonlyUint8Array;
     accounts: SolAccountMeta[];
   }) {
@@ -228,7 +228,7 @@ export class SolInstruction {
       accounts: inst.keys.map((meta) =>
         SolAccountMeta.fromWeb3AccountMeta(meta),
       ),
-      program: new SolanaPublicKey(inst.programId),
+      program: new SolPublicKey(inst.programId),
     });
   };
 
@@ -236,7 +236,7 @@ export class SolInstruction {
     inst: KitInstruction,
   ): SolInstruction => {
     return new SolInstruction({
-      program: new SolanaPublicKey(inst.programAddress),
+      program: new SolPublicKey(inst.programAddress),
       data: inst.data,
       accounts: inst.accounts.map((acct) =>
         SolAccountMeta.fromKitAccountMeta(acct),
@@ -268,11 +268,11 @@ export function swigInstruction(
   return new SolInstruction({
     data,
     accounts,
-    program: new SolanaPublicKey(SWIG_PROGRAM_ADDRESS),
+    program: new SolPublicKey(SWIG_PROGRAM_ADDRESS),
   });
 }
 
-export type SolanaPublicKeyData = Uint8Array | string | Web3PublicKey;
+export type SolPublicKeyData = Uint8Array | string | Web3PublicKey;
 
 export class SwigInstructionContext {
   preInstructions: SolInstruction[];
@@ -286,7 +286,7 @@ export class SwigInstructionContext {
   }) {
     this.swigInstruction = instructions.swigInstruction ?? [];
     this.preInstructions = instructions.preInstructions ?? [];
-    this.postInstructions = instructions.preInstructions ?? [];
+    this.postInstructions = instructions.postInstructions ?? [];
   }
 
   getKitInstructions = () => {

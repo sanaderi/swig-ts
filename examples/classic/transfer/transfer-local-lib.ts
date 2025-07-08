@@ -11,7 +11,7 @@ import {
   Actions,
   createEd25519AuthorityInfo,
   fetchSwig,
-  findSwigPdaRaw,
+  findSwigPda,
   getAddAuthorityInstructions,
   getCreateSwigInstruction,
   getSignInstructions,
@@ -79,7 +79,7 @@ sleepSync(3000);
 
 let id = randomBytes(32);
 
-const swigAddress = new PublicKey((await findSwigPdaRaw(id))[0].toBytes());
+const swigAddress = findSwigPda(id);
 
 //
 // * Find a swig pda by id
@@ -139,7 +139,7 @@ sleepSync(3000);
 // * update the swig utilty with Swig.refetch
 //
 // swig = await fetchSwig(connection, swigAddress);
-await swig.refetch()
+await swig.refetch();
 
 let managerRole = swig.findRolesByEd25519SignerPk(
   userAuthorityManagerKeypair.publicKey,

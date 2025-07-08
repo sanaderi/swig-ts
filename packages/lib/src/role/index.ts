@@ -11,11 +11,11 @@ import {
   TokenBasedAuthority,
   type Authority,
 } from '../authority';
-import { SolanaPublicKey } from '../schema';
+import { SolPublicKey } from '../solana';
 
 export class Role implements RoleInfo {
   private constructor(
-    public readonly swigAddress: SolanaPublicKey,
+    public readonly swigAddress: SolPublicKey,
     private readonly position: Position,
     public readonly authority: Authority,
     public readonly actions: Actions,
@@ -23,7 +23,7 @@ export class Role implements RoleInfo {
   ) {}
 
   static from(
-    swigAddress: SolanaPublicKey,
+    swigAddress: SolPublicKey,
     position: Position,
     roleData: Uint8Array,
     swigId: Uint8Array,
@@ -65,7 +65,7 @@ export class Role implements RoleInfo {
 }
 
 export function deserializeRoles(
-  swigAddress: SolanaPublicKey,
+  swigAddress: SolPublicKey,
   rolesBuffer: Uint8Array,
   count: number,
   swigId: Uint8Array,

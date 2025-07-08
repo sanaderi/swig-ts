@@ -17,7 +17,7 @@ import {
   type SubAccountWithdrawV1SolInstructionAccounts,
   type SubAccountWithdrawV1TokenInstructionAccounts,
 } from '../../instructions';
-import type { SolInstruction, SwigInstructionContext } from '../../schema';
+import type { SolInstruction, SwigInstructionContext } from '../../solana';
 
 /**
  * Authority Instruction Interface

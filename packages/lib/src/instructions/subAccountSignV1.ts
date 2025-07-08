@@ -1,11 +1,11 @@
 import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
-import { SolAccountMeta, SolanaPublicKey, type SolanaPublicKeyData } from '../schema';
+import { SolAccountMeta, SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export type SubAccountSignV1InstructionAccounts = {
-  swig: SolanaPublicKeyData;
-  payer: SolanaPublicKeyData;
-  subAccount: SolanaPublicKeyData;
+  swig: SolPublicKeyData;
+  payer: SolPublicKeyData;
+  subAccount: SolPublicKeyData;
 };
 
 export type SubAccountSignV1BaseAccountMetas = [
@@ -20,19 +20,19 @@ export function getSubAccountSignV1BaseAccountMetas(
 ): SubAccountSignV1BaseAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.swig).toAddress(),
+      address: new SolPublicKey(accounts.swig).toAddress(),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.payer).toAddress(),
+      address: new SolPublicKey(accounts.payer).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.subAccount).toAddress(),
+      address: new SolPublicKey(accounts.subAccount).toAddress(),
       role: AccountRole.WRITABLE,
       // isSigner: false,
       // isWritable: true,
@@ -53,7 +53,7 @@ export type SubAccountSignV1BaseAccountMetasWithAuthority = [
 
 export function getSubAccountSignV1BaseAccountMetasWithAuthority(
   accounts: SubAccountSignV1InstructionAccounts,
-  authority: SolanaPublicKeyData,
+  authority: SolPublicKeyData,
 ): [SubAccountSignV1BaseAccountMetasWithAuthority, number] {
   const accountMetas = getSubAccountSignV1BaseAccountMetas(accounts);
   const authorityIndex = accountMetas.length;
@@ -61,7 +61,7 @@ export function getSubAccountSignV1BaseAccountMetasWithAuthority(
   const metas: SubAccountSignV1BaseAccountMetasWithAuthority = [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(authority).toAddress(),
+      address: new SolPublicKey(authority).toAddress(),
       role: AccountRole.READONLY_SIGNER,
       // isSigner: true,
       // isWritable: false,

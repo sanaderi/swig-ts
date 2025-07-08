@@ -1,14 +1,10 @@
 import { AccountRole } from '@solana/kit';
 import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
-import {
-  SolAccountMeta,
-  SolanaPublicKey,
-  type SolanaPublicKeyData,
-} from '../schema';
+import { SolAccountMeta, SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export type CreateV1InstructionAccounts = {
-  swig: SolanaPublicKeyData;
-  payer: SolanaPublicKeyData;
+  swig: SolPublicKeyData;
+  payer: SolPublicKeyData;
 };
 
 export type CreateV1BaseAccountMetas = [
@@ -22,11 +18,11 @@ export function getCreateV1BaseAccountMetas(
 ): CreateV1BaseAccountMetas {
   return [
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.swig).toAddress(),
+      address: new SolPublicKey(accounts.swig).toAddress(),
       role: AccountRole.WRITABLE,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: new SolanaPublicKey(accounts.payer).toAddress(),
+      address: new SolPublicKey(accounts.payer).toAddress(),
       role: AccountRole.WRITABLE_SIGNER,
     }),
     SolAccountMeta.fromKitAccountMeta({

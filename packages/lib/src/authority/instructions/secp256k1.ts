@@ -24,8 +24,12 @@ import {
   getSubAccountWithdrawV1TokenAccountMetas,
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
-import { SolAccountMeta } from '../../schema';
-import type { AuthorityInstruction, InstructionDataOptions, SigningFn } from './interface';
+import { SolAccountMeta } from '../../solana';
+import type {
+  AuthorityInstruction,
+  InstructionDataOptions,
+  SigningFn,
+} from './interface';
 
 /**
  * Secp256k1 Authority Instructions
@@ -227,10 +231,10 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1SolInstruction(accounts, data, options) {
-   if (!options?.signingFn || !options?.currentSlot)
-     throw new Error(
-       'Current slot or Signing function not provided for Secp256k1 based authority',
-     );
+    if (!options?.signingFn || !options?.currentSlot)
+      throw new Error(
+        'Current slot or Signing function not provided for Secp256k1 based authority',
+      );
 
     const accountMetas = getSubAccountWithdrawV1SolAccountMetas(accounts);
 

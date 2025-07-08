@@ -1,8 +1,8 @@
-import type { SolanaPublicKey } from '../../schema';
+import type { SolPublicKey } from '../../solana';
 import type { Authority } from '../abstract';
 
 export interface Ed25519BasedAuthority {
-  ed25519PublicKey: SolanaPublicKey;
+  ed25519PublicKey: SolPublicKey;
 }
 
 export function isEd25519BasedAuthority(

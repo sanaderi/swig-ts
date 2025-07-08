@@ -6,9 +6,10 @@ import {
 } from '@solana/web3.js';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 import {
-  SolanaPublicKey,
+  SolPublicKey,
   Swig,
-  type SolanaPublicKeyData,
+  SWIG_PROGRAM_ADDRESS,
+  type SolPublicKeyData,
   type SwigFetchFn,
 } from '@swig-wallet/lib';
 
@@ -87,8 +88,8 @@ export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
   connection: Connection,
   config?: T,
 ): SwigFetchFn => {
-  return (swigAddress: SolanaPublicKeyData) => {
-    const swigPublicKey = new SolanaPublicKey(swigAddress);
+  return (swigAddress: SolPublicKeyData) => {
+    const swigPublicKey = new SolPublicKey(swigAddress);
     return fetchSwigAccount(
       connection,
       new PublicKey(swigPublicKey.toBytes()),
@@ -96,3 +97,35 @@ export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
     );
   };
 };
+
+/**
+ * Utility for deriving a Swig PDA
+ * @param id Swig ID
+ * @returns [PublicKey, number]
+ */
+export function findSwigPda(id: Uint8Array): PublicKey {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('swig'), Buffer.from(id)],
+    new PublicKey(SWIG_PROGRAM_ADDRESS),
+  )[0];
+}
+
+/**
+ * Utility for deriving a Swig PDA
+ * @param id Swig ID
+ * @returns [PublicKey, number]
+ */
+export function findSwigSubAccountPda(
+  swigId: Uint8Array,
+  roleId: number,
+): PublicKey {
+  const roleIdU32 = new Uint8Array(4);
+
+  const view = new DataView(roleIdU32.buffer);
+  view.setUint32(0, roleId, true);
+
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from('sub-account'), Buffer.from(swigId), Buffer.from(roleIdU32)],
+    new PublicKey(SWIG_PROGRAM_ADDRESS),
+  )[0];
+}

@@ -20,13 +20,12 @@ import {
 } from '@swig-wallet/coder';
 import {
   SolAccountMeta,
-  SolanaPublicKey,
   SolInstruction,
   swigInstruction as swigInst,
   SwigInstructionContext,
-  type SolanaPublicKeyData,
-} from '../schema';
-import { findSwigPda } from '../utils';
+  type SolPublicKeyData,
+} from '../solana';
+import { findSwigPdaRaw } from '../utils';
 import { type AddAuthorityV1BaseAccountMetas } from './addAuthorityV1';
 import type { CreateSessionV1BaseAccountMetas } from './createSessionV1';
 import {
@@ -47,10 +46,10 @@ import type { SubAccountWithdrawV1BaseAccountMetas } from './subAccountWithdrawV
  * @returns `SwigInstruction`
  */
 export async function createV1SwigInstruction(
-  accounts: { payer: SolanaPublicKeyData },
+  accounts: { payer: SolPublicKeyData },
   data: Omit<CreateV1InstructionDataArgs, 'bump'>,
 ): Promise<SwigInstructionContext> {
-  const [swigAddress, bump] = await findSwigPda(Uint8Array.from(data.id));
+  const [swigAddress, bump] = await findSwigPdaRaw(Uint8Array.from(data.id));
   const createIxAccountMetas = getCreateV1BaseAccountMetas({
     ...accounts,
     swig: swigAddress,

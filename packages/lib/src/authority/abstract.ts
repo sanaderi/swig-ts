@@ -1,6 +1,11 @@
 import { type AuthorityType } from '@swig-wallet/coder';
 import type { Actions } from '../actions';
-import type { SolanaPublicKey, SolanaPublicKeyData, SolInstruction, SwigInstructionContext } from '../schema';
+import type {
+  SolInstruction,
+  SolPublicKey,
+  SolPublicKeyData,
+  SwigInstructionContext,
+} from '../solana';
 import { uint8ArraysEqual } from '../utils';
 import type { CreateAuthorityInfo } from './createAuthority';
 import type { InstructionDataOptions } from './instructions/interface';
@@ -50,8 +55,8 @@ export abstract class Authority {
    * @returns `Sign` Instruction.
    */
   abstract sign(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
@@ -71,8 +76,8 @@ export abstract class Authority {
    * @returns `AddAuthority` Instruction.
    */
   abstract addAuthority(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -91,56 +96,56 @@ export abstract class Authority {
    * @returns `RemoveAuthority` Instruction.
    */
   abstract removeAuthority(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     roleId: number;
     roleIdToRemove: number;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountCreate(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     swigId: Uint8Array;
     roleId: number;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountSign(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountToggle(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     enabled: boolean;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawSol(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     amount: bigint;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
   abstract subAccountWithdrawToken(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
-    mint: SolanaPublicKeyData;
+    mint: SolPublicKeyData;
     amount: bigint;
-    tokenProgram?: SolanaPublicKeyData;
+    tokenProgram?: SolPublicKeyData;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;
 
@@ -169,7 +174,7 @@ export abstract class SessionBasedAuthority extends Authority {
   /**
    * Ed25519 based Public Key as Session key
    */
-  abstract sessionKey: SolanaPublicKey;
+  abstract sessionKey: SolPublicKey;
   /**
    * Slot when the session expires
    */
@@ -193,10 +198,10 @@ export abstract class SessionBasedAuthority extends Authority {
    * @returns `AddAuthority` Instruction.
    */
   abstract createSession(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     roleId: number;
-    newSessionKey: SolanaPublicKeyData;
+    newSessionKey: SolPublicKeyData;
     sessionDuration?: bigint;
     options?: InstructionDataOptions;
   }): Promise<SwigInstructionContext>;

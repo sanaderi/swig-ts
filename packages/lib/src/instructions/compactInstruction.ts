@@ -1,10 +1,10 @@
 import { type CompactInstruction } from '@swig-wallet/coder';
 import {
   SolAccountMeta,
-  SolanaPublicKey,
   SolInstruction,
-  type SolanaPublicKeyData,
-} from '../schema';
+  SolPublicKey,
+  type SolPublicKeyData,
+} from '../solana';
 
 /**
  * Convert TransactionInstructions to CompactInstructions
@@ -16,10 +16,10 @@ import {
 export function compactInstructions<
   T extends SolAccountMeta[] = SolAccountMeta[],
 >(
-  swigAccount: SolanaPublicKeyData,
+  swigAccount: SolPublicKeyData,
   accounts: T,
   innerInstructions: SolInstruction[],
-  subAccount?: SolanaPublicKeyData,
+  subAccount?: SolPublicKeyData,
 ): { accounts: T; compactIxs: CompactInstruction[] } {
   const compactIxs: CompactInstruction[] = [];
 
@@ -34,10 +34,10 @@ export function compactInstructions<
 
     const accts: number[] = [];
     for (const ixAccount of ix.accounts) {
-      const subAcct = subAccount ? new SolanaPublicKey(subAccount) : undefined;
+      const subAcct = subAccount ? new SolPublicKey(subAccount) : undefined;
       if (
         ixAccount.publicKey.toBase58() ===
-          new SolanaPublicKey(swigAccount).toBase58() ||
+          new SolPublicKey(swigAccount).toBase58() ||
         ixAccount.publicKey.toBase58() === subAcct?.toBase58()
       ) {
         ixAccount.setSigner(false);

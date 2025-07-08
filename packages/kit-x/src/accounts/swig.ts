@@ -4,6 +4,7 @@ import {
   decodeAccount,
   fetchEncodedAccount,
   fetchEncodedAccounts,
+  getProgramDerivedAddress,
   type Account,
   type Address,
   type Commitment,
@@ -17,7 +18,13 @@ import {
   type Rpc,
 } from '@solana/kit';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
-import { SolanaPublicKey, Swig, type SolanaPublicKeyData, type SwigFetchFn } from '@swig-wallet/lib';
+import {
+  SolPublicKey,
+  Swig,
+  SWIG_PROGRAM_ADDRESS,
+  type SolPublicKeyData,
+  type SwigFetchFn,
+} from '@swig-wallet/lib';
 
 export function decodeSwig<TAddress extends string = string>(
   encodedAccount: EncodedAccount<TAddress>,
@@ -105,8 +112,8 @@ export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
   connection: Rpc<GetAccountInfoApi>,
   config?: T,
 ): SwigFetchFn => {
-  return async (swigAddress: SolanaPublicKeyData) => {
-    const swigPublicKey = new SolanaPublicKey(swigAddress);
+  return async (swigAddress: SolPublicKeyData) => {
+    const swigPublicKey = new SolPublicKey(swigAddress);
     const swigAccount = await fetchSwigAccount(
       connection,
       swigPublicKey.toAddress(),
@@ -115,3 +122,40 @@ export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
     return swigAccount.data;
   };
 };
+
+/**
+ * Utility for deriving a Swig PDA (async)
+ * @param id Swig ID
+ * @returns Promise<[Address, number]> (address, bump)
+ */
+export async function findSwigPda(id: Uint8Array) {
+  return (await getProgramDerivedAddress({
+    programAddress: SWIG_PROGRAM_ADDRESS,
+    seeds: [Buffer.from('swig'), Buffer.from(id)],
+  }))[0];
+}
+
+/**
+ * Utility for deriving a Swig SubAccount PDA (async)
+ * @param swigId Swig ID
+ * @param roleId number
+ * @returns Promise<[Address, number]> (address, bump)
+ */
+export async function findSwigSubAccountPda(
+  swigId: Uint8Array,
+  roleId: number,
+) {
+  const roleIdU32 = new Uint8Array(4);
+
+  const view = new DataView(roleIdU32.buffer);
+  view.setUint32(0, roleId, true);
+
+  return (await getProgramDerivedAddress({
+    programAddress: SWIG_PROGRAM_ADDRESS,
+    seeds: [
+      Buffer.from('sub-account'),
+      Buffer.from(swigId),
+      Buffer.from(roleIdU32),
+    ],
+  }))[0];
+}

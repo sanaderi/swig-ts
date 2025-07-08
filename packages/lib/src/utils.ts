@@ -3,21 +3,7 @@ import { secp256k1 } from '@noble/curves/secp256k1';
 import { keccak_256 } from '@noble/hashes/sha3';
 import { getProgramDerivedAddress } from '@solana/kit';
 import { SWIG_PROGRAM_ADDRESS } from './consts';
-import { SolanaPublicKey } from './schema';
-
-// /**
-//  * Creates a SWIG Instruction with the swig program addresss
-//  */
-// export function swigInstruction<T extends SolanaAccountMeta[]>(
-//   accounts: T,
-//   data: Uint8Array,
-// ): SolanaInstructionContext {
-//   return new SolanaInstructionContext({
-//     programId: new SolanaPublicKey(SWIG_PROGRAM_ADDRESS),
-//     keys: accounts,
-//     data,
-//   });
-// }
+import { SolPublicKey } from './solana';
 
 export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
@@ -29,7 +15,7 @@ export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
  * @param id Swig ID
  * @returns Promise<[Address, number]> (address, bump)
  */
-export async function findSwigPda(id: Uint8Array) {
+async function findSwigPda(id: Uint8Array) {
   return await getProgramDerivedAddress({
     programAddress: SWIG_PROGRAM_ADDRESS,
     seeds: [Buffer.from('swig'), Buffer.from(id)],
@@ -43,10 +29,10 @@ export async function findSwigPda(id: Uint8Array) {
  */
 export async function findSwigPdaRaw(
   id: Uint8Array,
-): Promise<[SolanaPublicKey, number]> {
+): Promise<[SolPublicKey, number]> {
   const [address, bump] = await findSwigPda(id);
 
-  return [new SolanaPublicKey(address), bump];
+  return [new SolPublicKey(address), bump];
 }
 
 /**
@@ -55,7 +41,7 @@ export async function findSwigPdaRaw(
  * @param roleId number
  * @returns Promise<[Address, number]> (address, bump)
  */
-export async function findSwigSubAccountPda(
+async function findSwigSubAccountPda(
   swigId: Uint8Array,
   roleId: number,
 ) {
@@ -83,9 +69,9 @@ export async function findSwigSubAccountPda(
 export async function findSwigSubAccountPdaRaw(
   swigId: Uint8Array,
   roleId: number,
-): Promise<[SolanaPublicKey, number]> {
+): Promise<[SolPublicKey, number]> {
   const [address, bump] = await findSwigSubAccountPda(swigId, roleId);
-  return [new SolanaPublicKey(address), bump];
+  return [new SolPublicKey(address), bump];
 }
 
 export function compressedPubkeyToAddress(

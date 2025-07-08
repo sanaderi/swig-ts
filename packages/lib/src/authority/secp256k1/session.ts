@@ -10,11 +10,11 @@ import {
 } from '@swig-wallet/coder';
 import type { Actions } from '../../actions';
 import {
-  SolanaPublicKey,
   SolInstruction,
-  type SolanaPublicKeyData,
-} from '../../schema';
-import { compressedPubkeyToAddress, findSwigSubAccountPda } from '../../utils';
+  SolPublicKey,
+  type SolPublicKeyData,
+} from '../../solana';
+import { compressedPubkeyToAddress, findSwigSubAccountPdaRaw } from '../../utils';
 import { SessionBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Ed25519Instruction, Secp256k1Instruction } from '../instructions';
@@ -63,7 +63,7 @@ export class Secp256k1SessionAuthority
     return this.publicKeyString;
   }
 
-  get sessionKey(): SolanaPublicKey {
+  get sessionKey(): SolPublicKey {
     return this.info.sessionKey;
   }
 
@@ -86,13 +86,13 @@ export class Secp256k1SessionAuthority
     return {
       ...data,
       publicKey: Uint8Array.from(data.publicKey),
-      sessionKey: new SolanaPublicKey(new Uint8Array(data.sessionKey)),
+      sessionKey: new SolPublicKey(new Uint8Array(data.sessionKey)),
     };
   }
 
   sign(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -110,8 +110,8 @@ export class Secp256k1SessionAuthority
   }
 
   addAuthority(args: {
-    swigAddress: SolanaPublicKeyData;
-    payer: SolanaPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    payer: SolPublicKeyData;
     actingRoleId: number;
     actions: Actions;
     newAuthorityInfo: CreateAuthorityInfo;
@@ -135,8 +135,8 @@ export class Secp256k1SessionAuthority
   }
 
   removeAuthority(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     roleId: number;
     roleIdToRemove: number;
     options: InstructionDataOptions;
@@ -156,9 +156,9 @@ export class Secp256k1SessionAuthority
   }
 
   createSession(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    newSessionKey: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    newSessionKey: SolPublicKeyData;
     roleId: number;
     sessionDuration?: bigint;
     options: InstructionDataOptions;
@@ -172,20 +172,20 @@ export class Secp256k1SessionAuthority
         authorityData: this.data,
         roleId: args.roleId,
         sessionDuration: args.sessionDuration ?? this.maxDuration,
-        sessionKey: new SolanaPublicKey(args.newSessionKey).toBytes(),
+        sessionKey: new SolPublicKey(args.newSessionKey).toBytes(),
       },
       { ...args.options, odometer: this.odometer() ?? args.options?.odometer },
     );
   }
 
   async subAccountCreate(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
     swigId: Uint8Array;
     roleId: number;
     options: InstructionDataOptions;
   }) {
-    const [subAccount, bump] = await findSwigSubAccountPda(
+    const [subAccount, bump] = await findSwigSubAccountPdaRaw(
       args.swigId,
       args.roleId,
     );
@@ -193,7 +193,7 @@ export class Secp256k1SessionAuthority
       {
         payer: args.payer,
         swig: args.swigAddress,
-        subAccount: new SolanaPublicKey(subAccount),
+        subAccount,
       },
       {
         roleId: args.roleId,
@@ -205,9 +205,9 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountSign(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     innerInstructions: SolInstruction[];
   }) {
@@ -226,9 +226,9 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountToggle(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     enabled: boolean;
     options: InstructionDataOptions;
@@ -249,9 +249,9 @@ export class Secp256k1SessionAuthority
   }
 
   subAccountWithdrawSol(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
     amount: bigint;
     options: InstructionDataOptions;
@@ -272,20 +272,20 @@ export class Secp256k1SessionAuthority
   }
 
   async subAccountWithdrawToken(args: {
-    payer: SolanaPublicKeyData;
-    swigAddress: SolanaPublicKeyData;
-    subAccount: SolanaPublicKeyData;
+    payer: SolPublicKeyData;
+    swigAddress: SolPublicKeyData;
+    subAccount: SolPublicKeyData;
     roleId: number;
-    mint: SolanaPublicKeyData;
+    mint: SolPublicKeyData;
     amount: bigint;
-    tokenProgram?: SolanaPublicKeyData;
+    tokenProgram?: SolPublicKeyData;
     options: InstructionDataOptions;
   }) {
-    const mint = new SolanaPublicKey(args.mint).toAddress();
-    const swigAddress = new SolanaPublicKey(args.swigAddress).toAddress();
-    const subAccount = new SolanaPublicKey(args.subAccount).toAddress();
+    const mint = new SolPublicKey(args.mint).toAddress();
+    const swigAddress = new SolPublicKey(args.swigAddress).toAddress();
+    const subAccount = new SolPublicKey(args.subAccount).toAddress();
     const tokenProgram =
-      new SolanaPublicKey(args.subAccount).toAddress() ?? TOKEN_PROGRAM_ADDRESS;
+      new SolPublicKey(args.subAccount).toAddress() ?? TOKEN_PROGRAM_ADDRESS;
 
     const [swigToken] = await findAssociatedTokenPda({
       mint,
@@ -320,7 +320,7 @@ export class Secp256k1SessionAuthority
 
 type SessionData = {
   publicKey: Uint8Array;
-  sessionKey: SolanaPublicKey;
+  sessionKey: SolPublicKey;
   odometer: number;
   maxSessionLength: bigint;
   currentSessionExpiration: bigint;

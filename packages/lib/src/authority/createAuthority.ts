@@ -3,7 +3,7 @@ import {
   getCreateSecp256k1SessionEncoder,
   getEd25519SessionEncoder,
 } from '@swig-wallet/coder';
-import { SolanaPublicKey, type SolanaPublicKeyData } from '../schema';
+import { SolPublicKey, type SolPublicKeyData } from '../solana';
 import { getUnprefixedSecpBytes } from '../utils';
 
 export interface CreateAuthorityInfo {
@@ -12,20 +12,20 @@ export interface CreateAuthorityInfo {
 }
 
 export function createEd25519AuthorityInfo(
-  publicKey: SolanaPublicKeyData,
+  publicKey: SolPublicKeyData,
 ): CreateAuthorityInfo {
-  const data = new SolanaPublicKey(publicKey).toBytes();
+  const data = new SolPublicKey(publicKey).toBytes();
   const type = AuthorityType.Ed25519;
   return { data, type };
 }
 
 export function createEd25519SessionAuthorityInfo(
-  publicKey: SolanaPublicKeyData,
+  publicKey: SolPublicKeyData,
   maxSessionDuration: bigint,
-  sessionKey?: SolanaPublicKey,
+  sessionKey?: SolPublicKey,
 ): CreateAuthorityInfo {
   const sessionData = getEd25519SessionEncoder().encode({
-    publicKey: new SolanaPublicKey(publicKey).toBytes(),
+    publicKey: new SolPublicKey(publicKey).toBytes(),
     sessionKey: sessionKey ? sessionKey.toBytes() : Uint8Array.from(Array(32)),
     currentSessionExpiration: 0n,
     maxSessionLength: maxSessionDuration,
@@ -58,7 +58,7 @@ export function createSecp256k1AuthorityInfo(
 export function createSecp256k1SessionAuthorityInfo(
   publicKey: string | Uint8Array,
   maxSessionDuration: bigint,
-  sessionKey?: SolanaPublicKey,
+  sessionKey?: SolPublicKey,
 ): CreateAuthorityInfo {
   const publicKeyBytes = getUnprefixedSecpBytes(publicKey, 64);
 
