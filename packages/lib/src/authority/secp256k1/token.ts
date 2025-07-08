@@ -10,7 +10,10 @@ import {
   SolPublicKey,
   type SolPublicKeyData,
 } from '../../solana';
-import { compressedPubkeyToAddress, findSwigSubAccountPdaRaw } from '../../utils';
+import {
+  compressedPubkeyToAddress,
+  findSwigSubAccountPdaRaw,
+} from '../../utils';
 import { TokenBasedAuthority } from '../abstract';
 import type { CreateAuthorityInfo } from '../createAuthority';
 import { Secp256k1Instruction } from '../instructions';

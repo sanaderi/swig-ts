@@ -10,10 +10,11 @@ import {
 import {
   Actions,
   createSecp256k1SessionAuthorityInfo,
-  createSessionInstruction,
   findSwigPda,
+  getCreateSessionInstructions,
+  getCreateSwigInstruction,
   getSigningFnForSecp256k1PrivateKey,
-  signInstruction,
+  getSignInstructions,
   Swig,
   SWIG_PROGRAM_ADDRESS,
   type InstructionDataOptions,
@@ -30,11 +31,11 @@ import { readFileSync } from 'node:fs';
 //
 function sendSVMTransaction(
   svm: LiteSVM,
-  instruction: TransactionInstruction,
+  instructions: TransactionInstruction[],
   payer: Keypair,
 ) {
   let transaction = new Transaction();
-  transaction.instructions = [instruction];
+  transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
@@ -91,7 +92,7 @@ let id = Uint8Array.from(Array(32).fill(0));
 //
 // * Find a swig pda by id
 //
-let [swigAddress] = findSwigPda(id);
+let swigAddress = findSwigPda(id);
 
 //
 // * create swig instruction
@@ -100,7 +101,7 @@ let [swigAddress] = findSwigPda(id);
 //
 let rootActions = Actions.set().all().get();
 
-let createSwigInstruction = Swig.create({
+let createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createSecp256k1SessionAuthorityInfo(
     userWallet.getPublicKey(),
     100n,
@@ -110,7 +111,7 @@ let createSwigInstruction = Swig.create({
   actions: rootActions,
 });
 
-sendSVMTransaction(svm, createSwigInstruction, userRootKeypair);
+sendSVMTransaction(svm, [createSwigInstruction], userRootKeypair);
 
 //
 // * fetch swig
@@ -132,12 +133,12 @@ let signingFn = getSigningFnForSecp256k1PrivateKey(
 
 let instOptions: InstructionDataOptions = { currentSlot, signingFn };
 
-let newSessionInstruction = await createSessionInstruction(
-  rootRole,
-  userRootKeypair.publicKey,
+let newSessionInstruction = await getCreateSessionInstructions(
+  swig,
+  rootRole.id,
   dappSessionKeypair.publicKey,
   50n,
-  instOptions,
+  { ...instOptions, payer: userRootKeypair.publicKey },
 );
 
 if (!newSessionInstruction) throw new Error('Session is null');
@@ -165,10 +166,14 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let signTransfer = await signInstruction(
-  rootRole,
-  dappSessionKeypair.publicKey,
+let signTransfer = await getSignInstructions(
+  swig,
+  rootRole.id,
   [transfer],
+  false,
+  {
+    payer: dappSessionKeypair.publicKey,
+  },
 );
 
 sendSVMTransaction(svm, signTransfer, dappSessionKeypair);

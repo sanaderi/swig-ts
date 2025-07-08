@@ -1,16 +1,16 @@
 import { address } from '@solana/kit';
-import { Actions } from '../src/actions/action';
 import {
-  addAuthorityInstruction,
-  createSessionInstruction,
   deserializeRoleData,
   deserializeRoles,
-  removeAuthorityInstruction,
+  getAddAuthorityInstructionContext,
+  getCreateSessionInstructionContext,
+  getRemoveAuthorityInstructionContext,
+  getSignInstructionContext,
   Role,
-  signInstruction,
   type SessionBasedRole,
   type TokenBasedRole,
-} from '../src/role';
+} from '../src';
+import { Actions } from '../src/actions/action';
 
 // Mock addresses
 const MOCK_SWIG_ADDRESS = address(
@@ -35,25 +35,25 @@ describe('Role Class Static Methods', () => {
 describe('Role Helper Functions', () => {
   describe('signInstruction', () => {
     test('should exist and be a function', () => {
-      expect(typeof signInstruction).toBe('function');
+      expect(typeof getSignInstructionContext).toBe('function');
     });
   });
 
   describe('addAuthorityInstruction', () => {
     test('should exist and be a function', () => {
-      expect(typeof addAuthorityInstruction).toBe('function');
+      expect(typeof getAddAuthorityInstructionContext).toBe('function');
     });
   });
 
   describe('removeAuthorityInstruction', () => {
     test('should exist and be a function', () => {
-      expect(typeof removeAuthorityInstruction).toBe('function');
+      expect(typeof getRemoveAuthorityInstructionContext).toBe('function');
     });
   });
 
   describe('createSessionInstruction', () => {
     test('should exist and be a function', () => {
-      expect(typeof createSessionInstruction).toBe('function');
+      expect(typeof getCreateSessionInstructionContext).toBe('function');
     });
   });
 

@@ -1,27 +1,9 @@
 import { Swig } from '../src/swig';
 
 describe('Swig Class', () => {
-  describe('static create', () => {
-    test('should have create method', () => {
-      expect(typeof Swig.create).toBe('function');
-    });
-  });
-
   describe('static fromRawAccountData', () => {
     test('should have fromRawAccountData method', () => {
       expect(typeof Swig.fromRawAccountData).toBe('function');
-    });
-  });
-
-  describe('static fetchNullable', () => {
-    test('should have fetchNullable method', () => {
-      expect(typeof Swig.fetchNullable).toBe('function');
-    });
-  });
-
-  describe('static fetch', () => {
-    test('should have fetch method', () => {
-      expect(typeof Swig.fetch).toBe('function');
     });
   });
 
@@ -29,11 +11,6 @@ describe('Swig Class', () => {
     test('should have findRoleBySessionKey method', () => {
       expect(Swig.prototype.findRoleBySessionKey).toBeDefined();
       expect(typeof Swig.prototype.findRoleBySessionKey).toBe('function');
-    });
-
-    test('should have findRoleByAuthority method', () => {
-      expect(Swig.prototype.findRoleByAuthority).toBeDefined();
-      expect(typeof Swig.prototype.findRoleByAuthority).toBe('function');
     });
 
     test('should have findRoleById method', () => {

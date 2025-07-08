@@ -1,5 +1,5 @@
-import { AccountRole } from '@solana/kit';
-import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { AccountRole, address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS_STRING } from '../consts';
 import { SolAccountMeta, SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export type SubAccountCreateV1InstructionAccounts = {
@@ -38,7 +38,7 @@ export function getSubAccountCreateV1BaseAccountMetas(
       // isWritable: true,
     }),
     SolAccountMeta.fromKitAccountMeta({
-      address: SYSTEM_PROGRAM_ADDRESS,
+      address: address(SYSTEM_PROGRAM_ADDRESS_STRING),
       role: AccountRole.READONLY,
       // isSigner: false,
       // isWritable: false,

@@ -1,5 +1,5 @@
-import { AccountRole } from '@solana/kit';
-import { SYSTEM_PROGRAM_ADDRESS } from '../consts';
+import { AccountRole, address } from '@solana/kit';
+import { SYSTEM_PROGRAM_ADDRESS_STRING } from '../consts';
 import { SolAccountMeta, SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export type CreateSessionV1InstructionAccounts = {
@@ -59,7 +59,7 @@ export function getCreateSessionV1BaseAccountMetasWithSystemProgram(
   return [
     ...accountMetas,
     SolAccountMeta.fromKitAccountMeta({
-      address: SYSTEM_PROGRAM_ADDRESS,
+      address: address(SYSTEM_PROGRAM_ADDRESS_STRING),
       role: AccountRole.READONLY,
     }),
   ];

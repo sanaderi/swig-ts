@@ -22,11 +22,6 @@
     // Some stricter flags (disabled by default)
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false,
-
-    // Add this for test globals
-    "types": ["jest", "node"]
-  },
-  // Add this to include tests
-  "include": ["src", "tests"]
+    "noPropertyAccessFromIndexSignature": false
+  }
 }

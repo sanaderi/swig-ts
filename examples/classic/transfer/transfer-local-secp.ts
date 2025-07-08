@@ -11,10 +11,12 @@ import {
   Actions,
   createSecp256k1AuthorityInfo,
   findSwigPda,
+  getCreateSwigInstruction,
   getSigningFnForSecp256k1PrivateKey,
-  signInstruction,
+  getSignInstructions,
   Swig,
   type InstructionDataOptions,
+  type SwigOptions,
 } from '@swig-wallet/classic';
 
 //
@@ -59,14 +61,14 @@ await sleep(3000);
 // * Find a swig pda by id
 //
 const id = Uint8Array.from(Array(32).fill(1)); // use any 32-byte identifier
-const [swigAddress] = findSwigPda(id);
+const swigAddress = findSwigPda(id);
 
 //
 // * create swig instruction
 //
 const rootActions = Actions.set().all().get();
 
-const createSwigInstruction = Swig.create({
+const createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createSecp256k1AuthorityInfo(userWallet.getPublicKey()),
   id,
   payer: payer.publicKey,
@@ -104,9 +106,10 @@ const signingFn = getSigningFnForSecp256k1PrivateKey(
   userWallet.getPrivateKey(),
 );
 const slot = await connection.getSlot('finalized');
-const instOptions: InstructionDataOptions = {
+const instOptions: SwigOptions = {
   currentSlot: BigInt(slot),
   signingFn,
+  payer: signer.publicKey,
 };
 
 //
@@ -125,14 +128,15 @@ const transfer = SystemProgram.transfer({
   lamports,
 });
 
-const signedTransfer = await signInstruction(
-  rootRole,
-  signer.publicKey,
+const signedTransfer = await getSignInstructions(
+  swig,
+  rootRole.id,
   [transfer],
-  instOptions,
+  undefined,
+  instOptions
 );
 
-const tx = new Transaction().add(signedTransfer);
+const tx = new Transaction().add(...signedTransfer);
 const sig = await sendAndConfirmTransaction(connection, tx, [signer]);
 
 console.log(

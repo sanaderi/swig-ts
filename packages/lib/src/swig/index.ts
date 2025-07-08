@@ -3,21 +3,19 @@ import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
 import { type Actions } from '../actions';
 import {
   isEd25519BasedAuthority,
+  isSessionBasedAuthority,
   type CreateAuthorityInfo,
   type SigningFn,
 } from '../authority';
 import { createV1SwigInstruction } from '../instructions';
-import { deserializeRoles, type SessionBasedRole } from '../role';
+import { deserializeRoles } from '../role';
 import {
   SolInstruction,
   SolPublicKey,
   SwigInstructionContext,
   type SolPublicKeyData,
 } from '../solana';
-import {
-  findSwigSubAccountPdaRaw,
-  getUnprefixedSecpBytes,
-} from '../utils';
+import { findSwigSubAccountPdaRaw, getUnprefixedSecpBytes } from '../utils';
 
 export class Swig {
   readonly address: SolPublicKey;
@@ -90,14 +88,12 @@ export class Swig {
    * @param id Role ID
    * @returns Role | null
    */
-  findRoleById = async (id: number) => {
+  findRoleById = (id: number) => {
     // if (options?.prefetch) {
     //   await this.refetch();
     // }
     const role = this.roles.find((role) => role.id === id) ?? null;
-    if (!role) {
-      throw new Error(`Role not found for ID: ${id}`);
-    }
+
     return role;
   };
 
@@ -106,9 +102,7 @@ export class Swig {
    * @param sessionKey
    * @returns Session-based Role
    */
-  findRoleBySessionKey = (
-    sessionKey: SolPublicKeyData,
-  ): SessionBasedRole | null => {
+  findRoleBySessionKey = (sessionKey: SolPublicKeyData) => {
     const role = this.roles.find(
       (r) =>
         r.isSessionBased() &&
@@ -116,7 +110,7 @@ export class Swig {
           new SolPublicKey(sessionKey).toBase58(),
     );
     if (!role) return null;
-    return role as SessionBasedRole;
+    return role;
   };
 
   /**
@@ -176,7 +170,12 @@ export const getAddAuthorityInstructionContext = async (
   actions: Actions,
   options?: SwigOptions,
 ): Promise<SwigInstructionContext> => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   return role.authority.addAuthority({
     actingRoleId: role.id,
@@ -194,7 +193,12 @@ export const getRemoveAuthorityInstructionContext = async (
   roleIdToRemove: number,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   return role.authority.removeAuthority({
     roleId: role.id,
@@ -212,7 +216,12 @@ export const getSignInstructionContext = async (
   withSubAccount?: boolean,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    true,
+    options,
+  );
 
   return withSubAccount
     ? role.authority.subAccountSign({
@@ -239,7 +248,12 @@ export const getCreateSessionInstructionContext = async (
   duration?: bigint,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   if (!role.isSessionBased()) {
     throw new Error(
@@ -262,7 +276,12 @@ export const getCreateSubAccountInstructionContext = async (
   roleId: number,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   return role.authority.subAccountCreate({
     swigAddress: role.swigAddress,
@@ -279,7 +298,12 @@ export const getToggleSubAccountInstructionContext = async (
   enabled: boolean,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   return role.authority.subAccountToggle({
     swigAddress: role.swigAddress,
@@ -299,7 +323,12 @@ export const getWithdrawFromSubAccountInstructionContext = async <
   args: WithdrawSubAccountArgs<T>,
   options?: SwigOptions,
 ) => {
-  const { payer, role } = await assertInstructionOptions(swig, roleId, options);
+  const { payer, role } = await assertInstructionOptions(
+    swig,
+    roleId,
+    false,
+    options,
+  );
 
   const subAccount = new SolPublicKey(
     (await findSwigSubAccountPdaRaw(role.swigId, role.id))[0],
@@ -328,19 +357,38 @@ export const getWithdrawFromSubAccountInstructionContext = async <
 async function assertInstructionOptions(
   swig: Swig,
   roleId: number,
+  isSignIx: boolean,
   options?: SwigOptions,
 ) {
   if (options?.preFetch) {
     await swig.refetch();
   }
 
-  const role = await swig.findRoleById(roleId);
+  const role = swig.findRoleById(roleId);
 
-  if (!isEd25519BasedAuthority(role.authority) && !options?.payer) {
-    throw new Error('payer not provided for non-ed25519 based authority');
+  if (!role) throw new Error(`Role not found for ID: ${roleId}`);
+
+  let payerBytes: SolPublicKeyData | undefined = undefined;
+
+  if (options?.payer) {
+    payerBytes = options.payer;
+  } else if (
+    isSignIx &&
+    (isEd25519BasedAuthority(role.authority) ||
+      isSessionBasedAuthority(role.authority))
+  ) {
+    payerBytes = role.authority.signer;
+  } else if (!isSignIx && isEd25519BasedAuthority(role.authority)) {
+    payerBytes = role.authority.id;
   }
 
-  const payer = new SolPublicKey(options?.payer ?? role.authority.id);
+  if (!payerBytes) {
+    throw new Error(
+      'payer not provided for non-ed25519 or session-based authority',
+    );
+  }
+
+  const payer = new SolPublicKey(payerBytes);
 
   return { payer, role };
 }
@@ -369,6 +417,7 @@ export type SwigFetchFn<
   },
 > = (swigAddress: T, config?: OptionsWithCommitment) => Promise<SwigAccount>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const defaultSwigFetchFn: SwigFetchFn = (_) => {
   throw new Error('Swig fetch fn not set!');
 };

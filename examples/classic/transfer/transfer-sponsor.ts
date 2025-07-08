@@ -14,22 +14,22 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  addAuthorityInstruction,
   createEd25519AuthorityInfo,
-  createSwig,
   fetchSwig,
   findSwigPda,
-  signInstruction,
+  getAddAuthorityInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
 } from '@swig-wallet/classic';
 
 //helpers
 async function sendAndConfirm(
   conn: Connection,
-  ix: TransactionInstruction,
+  ixs: TransactionInstruction[],
   feePayer: Keypair,
   extra: Keypair[] = [],
 ) {
-  const tx = new Transaction().add(ix);
+  const tx = new Transaction().add(...ixs);
   tx.feePayer = feePayer.publicKey;
   const { blockhash, lastValidBlockHeight } = await conn.getLatestBlockhash();
   tx.recentBlockhash = blockhash;
@@ -56,23 +56,33 @@ await new Promise((r) => setTimeout(r, 3_000));
 
 //swig setup
 const id = crypto.getRandomValues(new Uint8Array(32));
-const [swigAddr] = findSwigPda(id);
+const swigAddr = findSwigPda(id);
 
-await createSwig(
-  conn,
+// await createSwig(
+//   conn,
+//   id,
+//   createEd25519AuthorityInfo(userRoot.publicKey),
+//   Actions.set().all().get(),
+//   userRoot.publicKey,
+//   [userRoot],
+// );
+
+const ix = await getCreateSwigInstruction({
+  payer: userRoot.publicKey,
+  actions: Actions.set().all().get(),
+  authorityInfo: createEd25519AuthorityInfo(userRoot.publicKey),
   id,
-  createEd25519AuthorityInfo(userRoot.publicKey),
-  Actions.set().all().get(),
-  userRoot.publicKey,
-  [userRoot],
-);
+});
+
+await sendAndConfirm(conn, [ix], userRoot);
+
 await new Promise((r) => setTimeout(r, 3_000));
 let swig = await fetchSwig(conn, swigAddr);
 
 //manage role
-const mgrIx = await addAuthorityInstruction(
-  swig.findRolesByEd25519SignerPk(userRoot.publicKey)[0],
-  userRoot.publicKey,
+const mgrIx = await getAddAuthorityInstructions(
+  swig,
+  swig.findRolesByEd25519SignerPk(userRoot.publicKey)[0].id,
   createEd25519AuthorityInfo(userMgr.publicKey),
   Actions.set().manageAuthority().get(),
 );
@@ -111,11 +121,11 @@ await mintTo(
   1_000 * 10 ** DECIMALS,
 );
 
-await swig.refetch(conn);
+await swig.refetch();
 
-const devRoleIx = await addAuthorityInstruction(
-  swig.findRolesByEd25519SignerPk(userMgr.publicKey)[0],
-  userMgr.publicKey,
+const devRoleIx = await getAddAuthorityInstructions(
+  swig,
+  swig.findRolesByEd25519SignerPk(userMgr.publicKey)[0].id,
   createEd25519AuthorityInfo(devWallet.publicKey),
   Actions.set()
     .tokenLimit({
@@ -127,7 +137,7 @@ const devRoleIx = await addAuthorityInstruction(
 await sendAndConfirm(conn, devRoleIx, userMgr);
 
 //transfer USDC to recipient
-await swig.refetch(conn);
+await swig.refetch();
 
 const devRole = swig.findRolesByEd25519SignerPk(devWallet.publicKey)[0];
 const xferIx = createTransferInstruction(
@@ -138,7 +148,7 @@ const xferIx = createTransferInstruction(
   [],
   TOKEN_PROGRAM_ID,
 );
-const signed = await signInstruction(devRole, devWallet.publicKey, [xferIx]);
+const signed = await getSignInstructions(swig, devRole.id, [xferIx]);
 
 const sig = await sendAndConfirm(conn, signed, devWallet);
 console.log(`https://explorer.solana.com/tx/${sig}?cluster=custom`);

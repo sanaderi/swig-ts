@@ -25,11 +25,7 @@ import {
 } from '../../instructions';
 import { getCreateSessionV1BaseAccountMetasWithSystemProgram } from '../../instructions/createSessionV1';
 import { SolAccountMeta } from '../../solana';
-import type {
-  AuthorityInstruction,
-  InstructionDataOptions,
-  SigningFn,
-} from './interface';
+import type { AuthorityInstruction, SigningFn } from './interface';
 
 /**
  * Secp256k1 Authority Instructions

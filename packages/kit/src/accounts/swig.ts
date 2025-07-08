@@ -4,15 +4,27 @@ import {
   decodeAccount,
   fetchEncodedAccount,
   fetchEncodedAccounts,
+  getProgramDerivedAddress,
   type Account,
   type Address,
+  type Commitment,
   type EncodedAccount,
   type FetchAccountConfig,
   type FetchAccountsConfig,
+  type GetAccountInfoApi,
+  type GetMultipleAccountsApi,
   type MaybeAccount,
   type MaybeEncodedAccount,
+  type Rpc,
 } from '@solana/kit';
 import { getSwigCodec, type SwigAccount } from '@swig-wallet/coder';
+import {
+  SolPublicKey,
+  Swig,
+  type SolPublicKeyData,
+  type SwigFetchFn,
+} from '@swig-wallet/lib';
+import { SWIG_PROGRAM_ADDRESS } from '../consts';
 
 export function decodeSwig<TAddress extends string = string>(
   encodedAccount: EncodedAccount<TAddress>,
@@ -30,7 +42,7 @@ export function decodeSwig<TAddress extends string = string>(
 }
 
 export async function fetchSwigAccount<TAddress extends string = string>(
-  rpc: Parameters<typeof fetchEncodedAccount>[0],
+  rpc: Rpc<GetAccountInfoApi>,
   address: Address<TAddress>,
   config?: FetchAccountConfig,
 ): Promise<Account<SwigAccount, TAddress>> {
@@ -40,7 +52,7 @@ export async function fetchSwigAccount<TAddress extends string = string>(
 }
 
 export async function fetchMaybeSwigAccount<TAddress extends string = string>(
-  rpc: Parameters<typeof fetchEncodedAccount>[0],
+  rpc: Rpc<GetAccountInfoApi>,
   address: Address<TAddress>,
   config?: FetchAccountConfig,
 ): Promise<MaybeAccount<SwigAccount, TAddress>> {
@@ -49,7 +61,7 @@ export async function fetchMaybeSwigAccount<TAddress extends string = string>(
 }
 
 export async function fetchAllSwigAccounts(
-  rpc: Parameters<typeof fetchEncodedAccounts>[0],
+  rpc: Rpc<GetMultipleAccountsApi>,
   addresses: Array<Address>,
   config?: FetchAccountsConfig,
 ): Promise<Account<SwigAccount>[]> {
@@ -59,10 +71,95 @@ export async function fetchAllSwigAccounts(
 }
 
 export async function fetchAllMaybeSwigAccounts(
-  rpc: Parameters<typeof fetchEncodedAccounts>[0],
+  rpc: Rpc<GetMultipleAccountsApi>,
   addresses: Array<Address>,
   config?: FetchAccountsConfig,
 ): Promise<MaybeAccount<SwigAccount>[]> {
   const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeSwig(maybeAccount));
+}
+
+export async function fetchNullableSwig(
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
+): Promise<Swig | null> {
+  const maybeSwig = await fetchMaybeSwigAccount(rpc, swigAddress, config);
+  if (!maybeSwig.exists) {
+    return null;
+  }
+  return new Swig(swigAddress, maybeSwig.data, getSwigFetchFn(rpc, config));
+}
+
+/**
+ * Fetch a Swig. Throws an error if Swig account has not been created
+ * @param connection Connection
+ * @param swigAddress Swig address
+ * @param config Commitment config
+ * @returns Swig | null
+ */
+export async function fetchSwig(
+  rpc: Rpc<GetAccountInfoApi>,
+  swigAddress: Address,
+  config?: FetchAccountConfig,
+): Promise<Swig> {
+  const swig = await fetchSwigAccount(rpc, swigAddress, config);
+
+  return new Swig(swigAddress, swig.data, getSwigFetchFn(rpc, config));
+}
+
+export const getSwigFetchFn = <T extends { commitment?: Commitment }>(
+  connection: Rpc<GetAccountInfoApi>,
+  config?: T,
+): SwigFetchFn => {
+  return async (swigAddress: SolPublicKeyData) => {
+    const swigPublicKey = new SolPublicKey(swigAddress);
+    const swigAccount = await fetchSwigAccount(
+      connection,
+      swigPublicKey.toAddress(),
+      config,
+    );
+    return swigAccount.data;
+  };
+};
+
+/**
+ * Utility for deriving a Swig PDA (async)
+ * @param id Swig ID
+ * @returns Promise<[Address, number]> (address, bump)
+ */
+export async function findSwigPda(id: Uint8Array) {
+  return (
+    await getProgramDerivedAddress({
+      programAddress: SWIG_PROGRAM_ADDRESS,
+      seeds: [Buffer.from('swig'), Buffer.from(id)],
+    })
+  )[0];
+}
+
+/**
+ * Utility for deriving a Swig SubAccount PDA (async)
+ * @param swigId Swig ID
+ * @param roleId number
+ * @returns Promise<[Address, number]> (address, bump)
+ */
+export async function findSwigSubAccountPda(
+  swigId: Uint8Array,
+  roleId: number,
+) {
+  const roleIdU32 = new Uint8Array(4);
+
+  const view = new DataView(roleIdU32.buffer);
+  view.setUint32(0, roleId, true);
+
+  return (
+    await getProgramDerivedAddress({
+      programAddress: SWIG_PROGRAM_ADDRESS,
+      seeds: [
+        Buffer.from('sub-account'),
+        Buffer.from(swigId),
+        Buffer.from(roleIdU32),
+      ],
+    })
+  )[0];
 }

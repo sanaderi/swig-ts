@@ -7,9 +7,9 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  addAuthorityInstruction,
+  getAddAuthorityInstructions,
   createEd25519AuthorityInfo,
-  createSwig,
+  getCreateSwigInstruction,
   fetchSwig,
   findSwigPda,
 } from '@swig-wallet/classic';
@@ -26,11 +26,12 @@ function randomBytes(length: number): Uint8Array {
 
 async function sendTransaction(
   connection: Connection,
-  instruction: TransactionInstruction,
+  instruction: TransactionInstruction[],
   payer: Keypair,
+  signers: Keypair[] = []
 ) {
-  const transaction = new Transaction().add(instruction);
-  const signature = await connection.sendTransaction(transaction, [payer]);
+  const transaction = new Transaction().add(...instruction);
+  const signature = await connection.sendTransaction(transaction, [payer, ...signers]);
 
   // Wait for confirmation
   const confirmation = await connection.confirmTransaction(
@@ -58,18 +59,16 @@ async function sendTransaction(
   await sleep(2);
 
   const swigId = randomBytes(32);
-  const [swigAddress] = findSwigPda(swigId);
+  const swigAddress = findSwigPda(swigId);
 
   // const rootAuthority = Ed25519Authority.fromPublicKey(rootKeypair.publicKey);
   const rootActions = Actions.set().all().get();
-  await createSwig(
-    connection,
-    swigId,
-    createEd25519AuthorityInfo(rootKeypair.publicKey),
-    rootActions,
-    rootKeypair.publicKey,
-    [rootKeypair],
-  );
+  const ix = await getCreateSwigInstruction({
+    actions: rootActions,
+    id: swigId,
+    authorityInfo: createEd25519AuthorityInfo(rootKeypair.publicKey),
+    payer: rootKeypair.publicKey
+  });
 
   await sleep(2);
 
@@ -92,9 +91,9 @@ async function sendTransaction(
       .solLimit({ amount: BigInt(amount * LAMPORTS_PER_SOL) })
       .get();
 
-    const ix = await addAuthorityInstruction(
-      rootRole,
-      rootKeypair.publicKey,
+    const ix = await getAddAuthorityInstructions(
+      swig,
+      rootRole.id,
       createEd25519AuthorityInfo(roleKeypair.publicKey),
       actions,
     );

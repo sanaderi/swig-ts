@@ -4,7 +4,7 @@ import {
   Permission,
   type ActionHeader,
 } from '@swig-wallet/coder';
-import { SolPublicKey } from '../solana';
+import { SolPublicKey, type SolPublicKeyData } from '../solana';
 import { ActionsBuilder } from './builder';
 import { SpendController } from './control';
 import {
@@ -77,7 +77,7 @@ export class Actions {
    * @param programId ID of the Program to interact with
    * @returns boolean
    */
-  canUseProgram(programId: SolPublicKey): boolean {
+  canUseProgram(programId: SolPublicKeyData): boolean {
     return !!this.actions.find((action) => action.canUseProgram(programId));
   }
 
@@ -146,7 +146,7 @@ export class Actions {
    * @param mint Token mint
    * @returns boolean
    */
-  canSpendTokenMax(mint: SolPublicKey): boolean {
+  canSpendTokenMax(mint: SolPublicKeyData): boolean {
     return !!this.actions.find((action) =>
       action.tokenControl(mint).canSpendMax(),
     );
@@ -159,7 +159,7 @@ export class Actions {
    * @param [amount] Minimum spendaable amount
    * @returns boolean
    */
-  canSpendToken(mint: SolPublicKey, amount?: bigint): boolean {
+  canSpendToken(mint: SolPublicKeyData, amount?: bigint): boolean {
     return !!this.actions.find((action) =>
       action.tokenControl(mint).canSpend(amount),
     );
@@ -170,10 +170,11 @@ export class Actions {
    * @param mint Token mint
    * @returns `bigint` | `null`
    */
-  tokenSpendLimit(mint: SolPublicKey): bigint | null {
+  tokenSpendLimit(mint: SolPublicKeyData): bigint | null {
     // check for unlimited spend action
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
+      console.log('limit:', limit);
       if (limit === null) {
         return null;
       }
@@ -181,7 +182,9 @@ export class Actions {
     // get max spend limit, becasue no unlimited action
     return this.actions.reduce(
       (max, val) =>
-        val.solControl().spendLimit! > max ? val.solControl().spendLimit! : max,
+        val.tokenControl(mint).spendLimit! > max
+          ? val.tokenControl(mint).spendLimit!
+          : max,
       0n,
     );
   }
@@ -191,7 +194,7 @@ export class Actions {
    * @param mint Token mint
    * @returns SpendController
    */
-  tokenSpend(mint: SolPublicKey): SpendController {
+  tokenSpend(mint: SolPublicKeyData): SpendController {
     // check for unlimited spend action
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
@@ -296,7 +299,7 @@ class Action {
   /**
    * Token Spend controller
    */
-  tokenControl(mint: SolPublicKey): SpendController {
+  tokenControl(mint: SolPublicKeyData): SpendController {
     if (isActionPayload(Permission.All, this.payload)) {
       return SpendController.max();
     }
@@ -306,7 +309,7 @@ class Action {
       isActionPayload(Permission.TokenRecurringLimit, this.payload)
     ) {
       if (
-        mint.toBase58() ===
+        new SolPublicKey(mint).toBase58() ===
         new SolPublicKey(new Uint8Array(this.payload.data.mint)).toBase58()
       ) {
         return SpendController.get(this.payload);
@@ -319,14 +322,14 @@ class Action {
   /**
    * Check action use program
    */
-  canUseProgram(program: SolPublicKey): boolean {
+  canUseProgram(program: SolPublicKeyData): boolean {
     if (isActionPayload(Permission.All, this.payload)) {
       return true;
     }
 
     if (isActionPayload(Permission.Program, this.payload)) {
       if (
-        program.toBase58() ===
+        new SolPublicKey(program).toBase58() ===
         new SolPublicKey(new Uint8Array(this.payload.data.programId)).toBase58()
       )
         return true;

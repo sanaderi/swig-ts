@@ -11,7 +11,7 @@ import {
   TokenBasedAuthority,
   type Authority,
 } from '../authority';
-import { SolPublicKey } from '../solana';
+import { SolPublicKey, type SolPublicKeyData } from '../solana';
 
 export class Role implements RoleInfo {
   private constructor(
@@ -23,13 +23,19 @@ export class Role implements RoleInfo {
   ) {}
 
   static from(
-    swigAddress: SolPublicKey,
+    swigAddress: SolPublicKeyData,
     position: Position,
     roleData: Uint8Array,
     swigId: Uint8Array,
   ) {
     const { actions, authority } = deserializeRoleData(position, roleData);
-    return new Role(swigAddress, position, authority, actions, swigId);
+    return new Role(
+      new SolPublicKey(swigAddress),
+      position,
+      authority,
+      actions,
+      swigId,
+    );
   }
 
   get authorityType() {
@@ -65,7 +71,7 @@ export class Role implements RoleInfo {
 }
 
 export function deserializeRoles(
-  swigAddress: SolPublicKey,
+  swigAddress: SolPublicKeyData,
   rolesBuffer: Uint8Array,
   count: number,
   swigId: Uint8Array,

@@ -15,7 +15,7 @@ import {
   getAddAuthorityInstructions,
   getCreateSwigInstruction,
   getSignInstructions,
-} from '@swig-wallet/classic-x';
+} from '@swig-wallet/classic';
 import { sleepSync } from 'bun';
 
 //

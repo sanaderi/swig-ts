@@ -1,5 +1,6 @@
 import { AccountRole, type Address } from '@solana/kit';
 import { AuthorityType } from '@swig-wallet/coder';
+import { SolAccountMeta, SwigInstructionContext } from '../src';
 import { getAddAuthorityV1BaseAccountMetas } from '../src/instructions/addAuthorityV1';
 import type { CreateV1BaseAccountMetas } from '../src/instructions/createV1';
 import { getCreateV1BaseAccountMetas } from '../src/instructions/createV1';
@@ -14,40 +15,36 @@ import { SwigInstructionV1 } from '../src/instructions/SwigInstruction';
 test('getCreateV1BaseAccountMetas returns correct structure', () => {
   const accounts = {
     swig: 'Swig111111111111111111111111111111111111111' as any,
-    payer: 'Payer1111111111111111111111111111111111111' as any,
+    payer: 'Payer11111111111111111111111111111111111111' as any,
   };
   const metas = getCreateV1BaseAccountMetas(accounts);
   expect(metas.length).toBe(3);
-  expect(metas[0]).toHaveProperty('address', accounts.swig);
-  expect(metas[1]).toHaveProperty('address', accounts.payer);
-  expect(metas[0]).toHaveProperty('role');
-  expect(Object.values(AccountRole)).toContain(metas[0].role);
+  expect(metas[0].publicKey.toAddress()).toBe(accounts.swig);
+  expect(metas[1].publicKey.toAddress()).toBe(accounts.payer);
 });
 
 test('getAddAuthorityV1BaseAccountMetas returns correct structure', () => {
   const accounts = {
     swig: 'Swig111111111111111111111111111111111111111' as any,
-    payer: 'Payer1111111111111111111111111111111111111' as any,
+    payer: 'Payer11111111111111111111111111111111111111' as any,
   };
   const metas = getAddAuthorityV1BaseAccountMetas(accounts);
   expect(metas.length).toBe(3);
-  expect(metas[0]).toHaveProperty('address', accounts.swig);
-  expect(metas[1]).toHaveProperty('address', accounts.payer);
-  expect(metas[0]).toHaveProperty('role');
-  expect(Object.values(AccountRole)).toContain(metas[0].role);
+  expect(metas[0].publicKey.toAddress()).toBe(accounts.swig);
+  expect(metas[1].publicKey.toAddress()).toBe(accounts.payer);
 });
 
 // Dummy addresses for testing
 const dummyAddress = (label: string) =>
-  `${label}111111111111111111111111111111111111111` as Address;
+  `${label}111111111111111111111111111111111111111`.slice(0, 43) as Address;
 
 describe('SwigInstructionV1', () => {
   it('create returns an IInstruction', () => {
-    const accounts: CreateV1BaseAccountMetas = [
+    const accounts = [
       { address: dummyAddress('swig'), role: AccountRole.WRITABLE },
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('system'), role: AccountRole.READONLY },
-    ];
+    ].map(SolAccountMeta.fromKitAccountMeta) as CreateV1BaseAccountMetas;
     const data = {
       authorityType: AuthorityType.Ed25519,
       authorityData: new Uint8Array([]),
@@ -57,9 +54,7 @@ describe('SwigInstructionV1', () => {
       actions: new Uint8Array([]),
     };
     const ix = SwigInstructionV1.create(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('addAuthority returns an IInstruction', () => {
@@ -68,7 +63,10 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('system'), role: AccountRole.READONLY },
       { address: dummyAddress('authority'), role: AccountRole.WRITABLE_SIGNER },
-    ] as [...CreateV1BaseAccountMetas, { address: Address; role: AccountRole }];
+    ].map(SolAccountMeta.fromKitAccountMeta) as [
+      ...CreateV1BaseAccountMetas,
+      SolAccountMeta,
+    ];
     const data = {
       actingRoleId: 0,
       newAuthorityType: AuthorityType.Ed25519,
@@ -78,9 +76,7 @@ describe('SwigInstructionV1', () => {
       authorityPayload: new Uint8Array([]),
     };
     const ix = SwigInstructionV1.addAuthority(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('removeAuthority returns an IInstruction', () => {
@@ -88,32 +84,30 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('swig'), role: AccountRole.WRITABLE },
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('authority'), role: AccountRole.WRITABLE_SIGNER },
-    ];
+    ].map(
+      SolAccountMeta.fromKitAccountMeta,
+    ) as RemoveAuthorityV1BaseAccountMetas;
     const data = {
       actingRoleId: 0,
       authorityToRemoveId: 0,
       authorityPayload: new Uint8Array([]),
     };
     const ix = SwigInstructionV1.removeAuthority(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('sign returns an IInstruction', () => {
     const accounts: SignV1BaseAccountMetas = [
       { address: dummyAddress('swig'), role: AccountRole.WRITABLE },
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
-    ];
+    ].map(SolAccountMeta.fromKitAccountMeta) as SignV1BaseAccountMetas;
     const data = {
       roleId: 0,
       authorityPayload: new Uint8Array([]),
       compactInstructions: [],
     };
     const ix = SwigInstructionV1.sign(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('createSession returns an IInstruction', () => {
@@ -121,10 +115,10 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('swig'), role: AccountRole.WRITABLE },
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('session'), role: AccountRole.READONLY },
-    ] as [
-      { address: Address; role: AccountRole },
-      { address: Address; role: AccountRole },
-      { address: Address; role: AccountRole },
+    ].map(SolAccountMeta.fromKitAccountMeta) as [
+      SolAccountMeta,
+      SolAccountMeta,
+      SolAccountMeta,
     ];
     const data = {
       roleId: 0,
@@ -132,10 +126,8 @@ describe('SwigInstructionV1', () => {
       authorityPayload: new Uint8Array([]),
       sessionKey: new Uint8Array(32),
     };
-    const ix = SwigInstructionV1.createSession(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    const ix = SwigInstructionV1.createSession(accounts, data);
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountCreate returns an IInstruction', () => {
@@ -144,19 +136,16 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('subaccount'), role: AccountRole.WRITABLE },
       { address: dummyAddress('system'), role: AccountRole.READONLY },
-    ];
+    ].map(
+      SolAccountMeta.fromKitAccountMeta,
+    ) as SubAccountCreateV1BaseAccountMetas;
     const data = {
-      subAccountId: new Uint8Array(32),
-      authorityType: AuthorityType.Ed25519,
+      roleId: 0,
+      bump: 255,
       authorityPayload: new Uint8Array([]),
-      actions: new Uint8Array([]),
-      noOfActions: 0,
-      subAccountData: new Uint8Array([]),
     };
-    const ix = SwigInstructionV1.subAccountCreate(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    const ix = SwigInstructionV1.subAccountCreate(accounts, data);
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountSign returns an IInstruction', () => {
@@ -165,16 +154,16 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('payer'), role: AccountRole.READONLY_SIGNER },
       { address: dummyAddress('subaccount'), role: AccountRole.WRITABLE },
       { address: dummyAddress('system'), role: AccountRole.READONLY },
-    ];
+    ].map(
+      SolAccountMeta.fromKitAccountMeta,
+    ) as SubAccountCreateV1BaseAccountMetas;
     const data = {
-      subAccountId: new Uint8Array(32),
+      roleId: 0,
       authorityPayload: new Uint8Array([]),
       compactInstructions: [],
     };
-    const ix = SwigInstructionV1.subAccountSign(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    const ix = SwigInstructionV1.subAccountSign(accounts, data);
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountWithdraw returns an IInstruction', () => {
@@ -182,16 +171,16 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('swig'), role: AccountRole.WRITABLE },
       { address: dummyAddress('payer'), role: AccountRole.WRITABLE_SIGNER },
       { address: dummyAddress('subaccount'), role: AccountRole.WRITABLE },
-    ];
+    ].map(
+      SolAccountMeta.fromKitAccountMeta,
+    ) as SubAccountWithdrawV1BaseAccountMetas;
     const data = {
-      subAccountId: new Uint8Array(32),
+      roleId: 0,
       authorityPayload: new Uint8Array([]),
       amount: 0n,
     };
-    const ix = SwigInstructionV1.subAccountWithdraw(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    const ix = SwigInstructionV1.subAccountWithdraw(accounts, data);
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountToggle returns an IInstruction', () => {
@@ -199,15 +188,15 @@ describe('SwigInstructionV1', () => {
       { address: dummyAddress('swig'), role: AccountRole.READONLY },
       { address: dummyAddress('payer'), role: AccountRole.READONLY_SIGNER },
       { address: dummyAddress('subaccount'), role: AccountRole.WRITABLE },
-    ];
+    ].map(
+      SolAccountMeta.fromKitAccountMeta,
+    ) as SubAccountToggleV1BaseAccountMetas;
     const data = {
-      subAccountId: new Uint8Array(32),
+      roleId: 0,
       authorityPayload: new Uint8Array([]),
       enabled: true,
     };
-    const ix = SwigInstructionV1.subAccountToggle(accounts, data as any);
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    const ix = SwigInstructionV1.subAccountToggle(accounts, data);
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 });

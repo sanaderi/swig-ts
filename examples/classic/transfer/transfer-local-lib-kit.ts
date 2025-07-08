@@ -35,7 +35,7 @@ import {
   getAddAuthorityInstructions,
   getCreateSwigInstruction,
   getSignInstructions,
-} from '@swig-wallet/kit-x';
+} from '@swig-wallet/kit';
 import { sleepSync } from 'bun';
 
 function getSolTransferInstruction(args: {

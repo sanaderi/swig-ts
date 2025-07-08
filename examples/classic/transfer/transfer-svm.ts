@@ -8,10 +8,11 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  addAuthorityInstruction,
   createEd25519AuthorityInfo,
   findSwigPda,
-  signInstruction,
+  getAddAuthorityInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
   Swig,
   SWIG_PROGRAM_ADDRESS,
 } from '@swig-wallet/classic';
@@ -27,11 +28,11 @@ import { readFileSync } from 'node:fs';
 //
 function sendSVMTransaction(
   svm: LiteSVM,
-  instruction: TransactionInstruction,
+  instructions: TransactionInstruction[],
   payer: Keypair,
 ) {
   let transaction = new Transaction();
-  transaction.instructions = [instruction];
+  transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
@@ -91,7 +92,7 @@ let id = Uint8Array.from(Array(32).fill(2));
 //
 // * Find a swig pda by id
 //
-let [swigAddress] = findSwigPda(id);
+let swigAddress = findSwigPda(id);
 
 console.log('swig address:', swigAddress.toBase58());
 
@@ -102,14 +103,14 @@ console.log('swig address:', swigAddress.toBase58());
 //
 let rootActions = Actions.set().all().get();
 
-let createSwigInstruction = Swig.create({
+let createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createEd25519AuthorityInfo(userRootKeypair.publicKey),
   id,
   payer: userRootKeypair.publicKey,
   actions: rootActions,
 });
 
-sendSVMTransaction(svm, createSwigInstruction, userRootKeypair);
+sendSVMTransaction(svm, [createSwigInstruction], userRootKeypair);
 
 //
 // * fetch swig
@@ -140,9 +141,9 @@ let manageAuthorityActions = Actions.set().manageAuthority().get();
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityIx = await addAuthorityInstruction(
-  rootRole,
-  userRootKeypair.publicKey,
+let addAuthorityIx = await getAddAuthorityInstructions(
+  swig,
+  rootRole.id,
   createEd25519AuthorityInfo(userAuthorityManagerKeypair.publicKey),
   manageAuthorityActions,
 );
@@ -167,7 +168,7 @@ let managerRole = managerRoles[0];
 // * role.canSpendToken
 // * e.t.c
 //
-if (!managerRole.canManageAuthority())
+if (!managerRole.actions.canManageAuthority())
   throw new Error('Selected role cannot manage authority');
 
 //
@@ -180,9 +181,9 @@ let dappAuthorityActions = Actions.set()
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = await addAuthorityInstruction(
-  managerRole,
-  userAuthorityManagerKeypair.publicKey,
+let addDappAuthorityInstruction = await getAddAuthorityInstructions(
+  swig,
+  managerRole.id,
   createEd25519AuthorityInfo(dappAuthorityKeypair.publicKey),
   dappAuthorityActions,
 );
@@ -202,19 +203,23 @@ swig = fetchSwig(svm, swigAddress);
 //
 console.log(
   'Has ability to spend sol:',
-  swig.roles.map((role) => role.canSpendSol()),
+  swig.roles.map((role) => role.actions.canSpendSol()),
 );
 console.log(
   'Can spend 0.1 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)),
+  ),
 );
 console.log(
   'Can spend 0.11 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL)),
+  ),
 );
 
 let roleIdCanSpendSol = swig.roles
-  .filter((role) => role.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)))
+  .filter((role) => role.actions.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)))
   .map((role) => role.id);
 
 //
@@ -252,11 +257,9 @@ if (!dappAuthorityRoles.length) throw new Error('Role not found for authority');
 
 let dappAuthorityRole = dappAuthorityRoles[0];
 
-let signTransfer = await signInstruction(
-  dappAuthorityRole,
-  dappAuthorityKeypair.publicKey,
-  [transfer],
-);
+let signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
+  transfer,
+]);
 
 sendSVMTransaction(svm, signTransfer, dappAuthorityKeypair);
 
@@ -277,11 +280,9 @@ transfer = SystemProgram.transfer({
 
 // if (!dappAutorityRole) throw new Error('Role not found for authority');
 
-signTransfer = await signInstruction(
-  dappAuthorityRole,
-  dappAuthorityKeypair.publicKey,
-  [transfer],
-);
+signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
+  transfer,
+]);
 
 sendSVMTransaction(svm, signTransfer, dappAuthorityKeypair);
 

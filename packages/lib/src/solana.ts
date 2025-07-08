@@ -11,7 +11,7 @@ import {
   type IInstructionWithData,
   type ReadonlyUint8Array,
 } from '@solana/kit';
-import { SWIG_PROGRAM_ADDRESS } from './consts';
+import { SWIG_PROGRAM_ADDRESS_STRING } from './consts';
 
 /**
  * Utility representing a Solana PublicKey
@@ -25,7 +25,7 @@ export class SolPublicKey implements Web3PublicKey {
    * @param data 32-byte publickey bytes or Base58-enoded publickey
    */
   constructor(data: SolPublicKeyData) {
-    let bytes =
+    const bytes =
       typeof data === 'string'
         ? new Uint8Array(getAddressEncoder().encode(address(data)))
         : isWeb3PublicKey(data)
@@ -143,6 +143,15 @@ export class SolAccountMeta {
   static writableSigner = (publicKey: SolPublicKey): SolAccountMeta => {
     return new SolAccountMeta({ publicKey, signer: true, writable: true });
   };
+
+  static from<Meta extends Web3AccountMeta | KitAccountMeta>(
+    meta: Meta,
+  ): SolAccountMeta {
+    if (isKitAccountMeta(meta)) {
+      return SolAccountMeta.fromKitAccountMeta(meta);
+    }
+    return SolAccountMeta.fromWeb3AccountMeta(meta);
+  }
 
   static fromWeb3AccountMeta = <T extends Web3PublicKey = Web3PublicKey>(
     meta: Web3AccountMeta<T>,
@@ -268,7 +277,7 @@ export function swigInstruction(
   return new SolInstruction({
     data,
     accounts,
-    program: new SolPublicKey(SWIG_PROGRAM_ADDRESS),
+    program: new SolPublicKey(SWIG_PROGRAM_ADDRESS_STRING),
   });
 }
 

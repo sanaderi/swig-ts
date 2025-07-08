@@ -3,42 +3,42 @@ import { describe, test } from 'bun:test';
 import assert from 'node:assert';
 import {
   Actions,
-  addAuthorityInstruction,
   createEd25519AuthorityInfo,
-  createSubAccountInstruction,
   findSwigPda,
   findSwigSubAccountPda,
-  signInstruction,
-  Swig,
+  getAddAuthorityInstructions,
+  getCreateSubAccountInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
 } from '../src';
 import { fetchSwig, getFundedKeys, getSvm } from './context';
 import { randomBytes, sendSVMTransaction } from './utils';
 
 describe('SubAccount Test', () => {
   const swigId = randomBytes(32);
-  const [swigAddress] = findSwigPda(swigId);
+  const swigAddress = findSwigPda(swigId);
 
   test('SubAccount', async () => {
     const svm = getSvm();
     const [rootAuthority, subAccountAuthority] = getFundedKeys(svm);
 
     // create a swig
-    const createSwigIx = Swig.create({
+    const createSwigIx = await getCreateSwigInstruction({
       payer: rootAuthority.publicKey,
       actions: Actions.set().all().get(),
       authorityInfo: createEd25519AuthorityInfo(rootAuthority.publicKey),
       id: swigId,
     });
-    sendSVMTransaction(svm, createSwigIx, rootAuthority);
+    sendSVMTransaction(svm, [createSwigIx], rootAuthority);
 
     let swig = fetchSwig(svm, swigAddress);
 
     let rootRole = swig.roles[0];
 
     // add a sub account authority
-    const addAuthorityIx = await addAuthorityInstruction(
-      rootRole,
-      rootAuthority.publicKey,
+    const addAuthorityIx = await getAddAuthorityInstructions(
+      swig,
+      rootRole.id,
       createEd25519AuthorityInfo(subAccountAuthority.publicKey),
       Actions.set().subAccount().get(),
     );
@@ -49,9 +49,9 @@ describe('SubAccount Test', () => {
     let subAccountAuthRole = swig.roles[1];
 
     // create sub account
-    const createSubAccountIx = await createSubAccountInstruction(
-      subAccountAuthRole,
-      subAccountAuthority.publicKey,
+    const createSubAccountIx = await getCreateSubAccountInstructions(
+      swig,
+      subAccountAuthRole.id,
     );
     sendSVMTransaction(svm, createSubAccountIx, subAccountAuthority);
 
@@ -63,7 +63,7 @@ describe('SubAccount Test', () => {
     const subAccountAddress = findSwigSubAccountPda(
       subAccountAuthRole.swigId,
       subAccountAuthRole.id,
-    )[0];
+    );
 
     svm.airdrop(subAccountAddress, BigInt(LAMPORTS_PER_SOL));
 
@@ -77,11 +77,10 @@ describe('SubAccount Test', () => {
       lamports: 0.1 * LAMPORTS_PER_SOL,
     });
 
-    const signIx = await signInstruction(
-      subAccountAuthRole,
-      subAccountAuthority.publicKey,
+    const signIx = await getSignInstructions(
+      swig,
+      subAccountAuthRole.id,
       [transfer],
-      undefined,
       true,
     );
     sendSVMTransaction(svm, signIx, subAccountAuthority);

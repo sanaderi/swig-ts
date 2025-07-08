@@ -10,10 +10,7 @@ import { Secp256k1Authority, Secp256k1SessionAuthority } from './secp256k1';
  * @param [roleId] Role ID
  * @returns Parsed authority
  */
-export function getAuthority(
-  type: AuthorityType,
-  data: Uint8Array,
-): Authority {
+export function getAuthority(type: AuthorityType, data: Uint8Array): Authority {
   if (type === AuthorityType.Ed25519) {
     return new Ed25519Authority(data);
   }

@@ -1,5 +1,6 @@
 import { address } from '@solana/kit';
 import bs58 from 'bs58';
+import { SolInstruction, SwigInstructionContext } from '../src';
 import { Ed25519Instruction } from '../src/authority/instructions/ed25519';
 import { Secp256k1Instruction } from '../src/authority/instructions/secp256k1';
 
@@ -16,7 +17,7 @@ const dummyOptions = {
 
 const dummyKitIx = {
   programAddress: dummyAddress('prog'),
-  keys: [],
+  accounts: [],
   data: dummyUint8(8),
 };
 
@@ -42,9 +43,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
-    expect(ix).toHaveProperty('programAddress');
-    expect(ix).toHaveProperty('data');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('removeAuthorityV1Instruction', async () => {
@@ -57,7 +56,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('signV1Instruction', async () => {
@@ -68,10 +67,10 @@ describe('Ed25519Instruction', () => {
     const data = {
       authorityData,
       roleId: 1,
-      innerInstructions: dummyInnerInstructions,
+      innerInstructions: dummyInnerInstructions.map(SolInstruction.from),
     };
     const ix = await Ed25519Instruction.signV1Instruction(accounts, data);
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('createSessionV1Instruction', async () => {
@@ -89,7 +88,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountCreateV1Instruction', async () => {
@@ -112,7 +111,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountWithdrawV1SolInstruction', async () => {
@@ -131,7 +130,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountWithdrawV1TokenInstruction', async () => {
@@ -153,7 +152,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountToggleV1Instruction', async () => {
@@ -172,7 +171,7 @@ describe('Ed25519Instruction', () => {
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountSignV1Instruction', async () => {
@@ -184,13 +183,13 @@ describe('Ed25519Instruction', () => {
     const data = {
       authorityData,
       roleId: 1,
-      innerInstructions: dummyInnerInstructions,
+      innerInstructions: dummyInnerInstructions.map(SolInstruction.from),
     };
     const ix = await Ed25519Instruction.subAccountSignV1Instruction(
       accounts,
       data,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 });
 
@@ -213,7 +212,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('removeAuthorityV1Instruction', async () => {
@@ -231,7 +230,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('signV1Instruction', async () => {
@@ -242,14 +241,14 @@ describe('Secp256k1Instruction', () => {
     const data = {
       authorityData: dummyUint8(32),
       roleId: 1,
-      innerInstructions: dummyInnerInstructions,
+      innerInstructions: dummyInnerInstructions.map(SolInstruction.from),
     };
     const ix = await Secp256k1Instruction.signV1Instruction(
       accounts,
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('createSessionV1Instruction', async () => {
@@ -268,7 +267,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountCreateV1Instruction', async () => {
@@ -287,7 +286,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountWithdrawV1SolInstruction', async () => {
@@ -306,7 +305,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountWithdrawV1TokenInstruction', async () => {
@@ -328,7 +327,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountToggleV1Instruction', async () => {
@@ -347,7 +346,7 @@ describe('Secp256k1Instruction', () => {
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 
   it('subAccountSignV1Instruction', async () => {
@@ -359,13 +358,13 @@ describe('Secp256k1Instruction', () => {
     const data = {
       authorityData: dummyUint8(32),
       roleId: 1,
-      innerInstructions: dummyInnerInstructions,
+      innerInstructions: dummyInnerInstructions.map(SolInstruction.from),
     };
     const ix = await Secp256k1Instruction.subAccountSignV1Instruction(
       accounts,
       data,
       dummyOptions,
     );
-    expect(ix).toHaveProperty('keys');
+    expect(ix).toBeInstanceOf(SwigInstructionContext);
   });
 });
