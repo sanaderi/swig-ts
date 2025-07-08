@@ -174,7 +174,6 @@ export class Actions {
     // check for unlimited spend action
     for (const action of this.actions) {
       const limit = action.tokenControl(mint).spendLimit;
-      console.log('limit:', limit);
       if (limit === null) {
         return null;
       }
