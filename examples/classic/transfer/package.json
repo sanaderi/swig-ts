@@ -38,8 +38,6 @@
     "@solana/kit": "^2.1.1",
     "@solana-program/system": "^0.7.0",
     "@swig-wallet/classic": "workspace:*",
-    "@swig-wallet/classic-x": "workspace:*",
-    "@swig-wallet/kit-x": "workspace:*",
     "@swig-wallet/lib": "workspace:*",
     "chalk": "5",
     "ethers": "^6.13.5",
