@@ -23,7 +23,5 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  },
-  // Add this to include tests
-  "include": ["src", "tests"]
+  }
 }

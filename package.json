@@ -24,7 +24,7 @@
     "format:fix": "prettier --write packages/",
     "lint": "nx run-many --target=lint --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit','@swig-wallet/lib'",
     "lint:fix": "nx run-many --target=lint:fix --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit','@swig-wallet/lib'",
-    "release": "bun run build && bun update:package-version && changeset publish",
+    "release": "bun run build:packages && bun update:package-version && changeset publish",
     "test": "nx run-many --target=test --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit','@swig-wallet/lib'",
     "typecheck": "nx run-many --target=typecheck --projects='@swig-wallet/classic','@swig-wallet/coder','@swig-wallet/kit','@swig-wallet/lib'",
     "update:package-version": "bun scripts/update-internal-pkg-version.ts",

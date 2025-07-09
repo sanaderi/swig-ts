@@ -1,12 +1,11 @@
-import { address } from '@solana/kit';
-import bs58 from 'bs58';
+import { getAddressDecoder } from '@solana/kit';
 import { SolInstruction, SwigInstructionContext } from '../src';
 import { Ed25519Instruction } from '../src/authority/instructions/ed25519';
 import { Secp256k1Instruction } from '../src/authority/instructions/secp256k1';
 
 // Dummy data helpers
 const dummyAddress = (label: string) =>
-  address(bs58.encode(Buffer.from(label.padEnd(32, '1'))));
+  getAddressDecoder().decode(Buffer.from(label.padEnd(32, '1')));
 
 const dummyUint8 = (len = 32) => new Uint8Array(len).fill(1);
 
