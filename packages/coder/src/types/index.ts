@@ -5,6 +5,7 @@ export * from './compactInstruction';
 export * from './ed25519Session';
 export * from './permissions';
 export * from './position';
+export * from './programCurated';
 export * from './programLimit';
 export * from './programScope';
 export * from './role';

@@ -82,6 +82,14 @@ export class Actions {
   }
 
   /**
+   * Check if any program-related action is present (Program, ProgramAll, ProgramCurated, or All)
+   * @returns boolean
+   */
+  hasProgramAction(): boolean {
+    return !!this.actions.find((action) => action.hasProgramAction());
+  }
+
+  /**
    * Check if Sol Spend is uncapped
    * @returns boolean
    */
@@ -326,6 +334,14 @@ class Action {
       return true;
     }
 
+    if (isActionPayload(Permission.ProgramAll, this.payload)) {
+      return true;
+    }
+
+    if (isActionPayload(Permission.ProgramCurated, this.payload)) {
+      return true;
+    }
+
     if (isActionPayload(Permission.Program, this.payload)) {
       if (
         new SolPublicKey(program).toBase58() ===
@@ -335,6 +351,19 @@ class Action {
     }
 
     return false;
+  }
+
+  /**
+   * Check if this action is a program-related action (Program, ProgramAll, ProgramCurated, or All)
+   * @returns boolean
+   */
+  hasProgramAction(): boolean {
+    return (
+      this.permission === Permission.All ||
+      this.permission === Permission.Program ||
+      this.permission === Permission.ProgramAll ||
+      this.permission === Permission.ProgramCurated
+    );
   }
 
   // todo: ProgramScope
