@@ -9,7 +9,7 @@ export const payerKeypair = Keypair.fromSecretKey(
 
 export function getSwigAddress() {
   const swigId = SwigIdStore.getId();
-  const [swigAddress] = findSwigPda(swigId);
+  const swigAddress = findSwigPda(swigId);
   
   return { swigId, swigAddress };
 }
