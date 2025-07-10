@@ -172,6 +172,7 @@ let signTransfer = await getSignInstructions(
   [transfer],
   false,
   {
+    ...instOptions,
     payer: dappSessionKeypair.publicKey,
   },
 );

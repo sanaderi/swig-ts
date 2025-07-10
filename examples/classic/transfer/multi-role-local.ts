@@ -61,7 +61,6 @@ async function sendTransaction(
   const swigId = randomBytes(32);
   const swigAddress = findSwigPda(swigId);
 
-  // const rootAuthority = Ed25519Authority.fromPublicKey(rootKeypair.publicKey);
   const rootActions = Actions.set().all().get();
   const ix = await getCreateSwigInstruction({
     actions: rootActions,
@@ -69,6 +68,8 @@ async function sendTransaction(
     authorityInfo: createEd25519AuthorityInfo(rootKeypair.publicKey),
     payer: rootKeypair.publicKey
   });
+
+  await sendTransaction(connection, [ix], rootKeypair)
 
   await sleep(2);
 

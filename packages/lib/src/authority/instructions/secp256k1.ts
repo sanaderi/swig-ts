@@ -32,7 +32,7 @@ import type { AuthorityInstruction, SigningFn } from './interface';
  */
 export const Secp256k1Instruction: AuthorityInstruction = {
   async addAuthorityV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -61,7 +61,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async removeAuthorityV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -91,7 +91,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async signV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -129,7 +129,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async createSessionV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -159,7 +159,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountCreateV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -187,7 +187,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountSignV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -227,7 +227,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1SolInstruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -255,7 +255,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountWithdrawV1TokenInstruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );
@@ -283,7 +283,7 @@ export const Secp256k1Instruction: AuthorityInstruction = {
   },
 
   async subAccountToggleV1Instruction(accounts, data, options) {
-    if (!options?.signingFn || !options?.currentSlot)
+    if (!options?.signingFn || options?.currentSlot === undefined)
       throw new Error(
         'Current slot or Signing function not provided for Secp256k1 based authority',
       );

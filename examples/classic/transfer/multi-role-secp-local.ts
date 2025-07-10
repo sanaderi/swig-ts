@@ -44,12 +44,6 @@ function randomBytes(length: number): Uint8Array {
   const swigId = randomBytes(32);
   const swigAddress = findSwigPda(swigId);
 
-  const slot = await connection.getSlot();
-  const instOptions: InstructionDataOptions = {
-    currentSlot: BigInt(slot),
-    signingFn,
-  };
-
   // Create Swig
   const ix = await getCreateSwigInstruction({
     id: swigId,
@@ -79,6 +73,8 @@ function randomBytes(length: number): Uint8Array {
   ];
 
   for (const { name, amount } of rolesToCreate) {
+    await sleep(2);
+
     let roleAuthorityInfo = createSecp256k1AuthorityInfo(
       Wallet.generate().getPublicKey(),
     );
@@ -92,7 +88,12 @@ function randomBytes(length: number): Uint8Array {
       rootRole.id,
       roleAuthorityInfo,
       actions,
-      { ...instOptions, payer: payer.publicKey },
+      {
+        preFetch: true,
+        currentSlot: BigInt(await connection.getSlot()),
+        signingFn,
+        payer: payer.publicKey,
+      },
     );
 
     const tx = new Transaction().add(...ix);

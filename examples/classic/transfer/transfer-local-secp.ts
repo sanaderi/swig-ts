@@ -16,7 +16,6 @@ import {
   getSignInstructions,
   Swig,
   type InstructionDataOptions,
-  type SwigOptions,
 } from '@swig-wallet/classic';
 
 //
@@ -106,10 +105,9 @@ const signingFn = getSigningFnForSecp256k1PrivateKey(
   userWallet.getPrivateKey(),
 );
 const slot = await connection.getSlot('finalized');
-const instOptions: SwigOptions = {
+const instOptions: InstructionDataOptions = {
   currentSlot: BigInt(slot),
   signingFn,
-  payer: signer.publicKey,
 };
 
 //
@@ -132,8 +130,8 @@ const signedTransfer = await getSignInstructions(
   swig,
   rootRole.id,
   [transfer],
-  undefined,
-  instOptions
+  false,
+  { ...instOptions, payer: signer.publicKey },
 );
 
 const tx = new Transaction().add(...signedTransfer);
