@@ -237,6 +237,15 @@ let dappAuthorityActions = Actions.set()
   .solLimit({ amount: BigInt(0.1 * LAMPORTS_PER_SOL) })
   .get();
 
+console.log('Dapp authority actions:');
+console.log('- Bytes:', Array.from(dappAuthorityActions.bytes()));
+console.log('- Count:', dappAuthorityActions.count);
+console.log('- Can spend SOL:', dappAuthorityActions.canSpendSol());
+console.log(
+  '- Can use program (system):',
+  dappAuthorityActions.canUseProgram('11111111111111111111111111111111'),
+);
+
 //
 // * makes the dapp an authority
 //
@@ -246,6 +255,8 @@ let addDappAuthorityInstruction = await getAddAuthorityInstructions(
   createEd25519AuthorityInfo(dappAuthorityKeypair.address),
   dappAuthorityActions,
 );
+
+console.log(addDappAuthorityInstruction);
 
 await sendTransaction(
   connection,

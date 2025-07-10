@@ -1,4 +1,5 @@
 import type {
+  ProgramCurated,
   ProgramLimit,
   ProgramScope,
   SolLimit,
@@ -8,6 +9,7 @@ import type {
   TokenRecurringLimit,
 } from '@swig-wallet/coder';
 import {
+  getProgramCuratedDecoder,
   getProgramLimitDecoder,
   getProgramScopeDecoder,
   getSolLimitDecoder,
@@ -26,6 +28,13 @@ export type ActionPayload =
   | {
       permission: Permission.Program;
       data: ProgramLimit;
+    }
+  | {
+      permission: Permission.ProgramAll;
+    }
+  | {
+      permission: Permission.ProgramCurated;
+      data: ProgramCurated;
     }
   | {
       permission: Permission.ProgramScope;
@@ -73,6 +82,14 @@ export function decodeActionPayload(
 
   if (permission === Permission.Program) {
     return { permission, data: getProgramLimitDecoder().decode(data) };
+  }
+
+  if (permission === Permission.ProgramAll) {
+    return { permission };
+  }
+
+  if (permission === Permission.ProgramCurated) {
+    return { permission, data: getProgramCuratedDecoder().decode(data) };
   }
 
   if (permission === Permission.ProgramScope) {

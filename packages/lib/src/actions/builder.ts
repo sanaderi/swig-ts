@@ -1,6 +1,7 @@
 import {
   ACTION_HEADER_LENGTH,
   getActionHeaderEncoder,
+  getProgramCuratedEncoder,
   getProgramLimitEncoder,
   getProgramScopeEncoder,
   getSolLimitEncoder,
@@ -96,6 +97,22 @@ export class ActionsBuilder {
         programId: new SolPublicKey(payload.programId).toBytes(),
       }),
     );
+    return this;
+  }
+
+  /**
+   * Enable all programs
+   */
+  programAll(): this {
+    this._actionConfigs.push(new ProgramAllConfig());
+    return this;
+  }
+
+  /**
+   * Enable curated programs
+   */
+  programCurated(): this {
+    this._actionConfigs.push(new ProgramCuratedConfig());
     return this;
   }
 
@@ -460,5 +477,41 @@ class ProgramScopeConfig extends ActionConfig {
 
   encode(): Uint8Array {
     return Uint8Array.from(getProgramScopeEncoder().encode(this.payload));
+  }
+}
+
+class ProgramAllConfig extends ActionConfig {
+  constructor() {
+    super();
+  }
+
+  get length() {
+    return 0;
+  }
+
+  get permission() {
+    return Permission.ProgramAll;
+  }
+
+  encode(): Uint8Array {
+    return new Uint8Array(0);
+  }
+}
+
+class ProgramCuratedConfig extends ActionConfig {
+  constructor() {
+    super();
+  }
+
+  get length() {
+    return 0;
+  }
+
+  get permission() {
+    return Permission.ProgramCurated;
+  }
+
+  encode(): Uint8Array {
+    return Uint8Array.from(getProgramCuratedEncoder().encode({}));
   }
 }
