@@ -1,5 +1,3 @@
-// Cleaned up and fixed transfer example for @swig-wallet/kit + @solana/kit
-
 import {
   createSolanaRpc,
   createSolanaRpcSubscriptions,
