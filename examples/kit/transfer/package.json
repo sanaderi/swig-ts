@@ -13,7 +13,10 @@
     "transfer-sponsor": "bun transfer-sponsor.ts",
     "transfer-local-secp": "bun transfer-local-secp.ts",
     "multi-role-local": "bun multi-role-local.ts",
-    "multi-role-secp-local": "bun multi-role-secp-local.ts"
+    "multi-role-secp-local": "bun multi-role-secp-local.ts",
+    "tutorial-1": "bun tutorial/tutorial-1.ts",
+    "tutorial-2": "bun tutorial/tutorial-2.ts",
+    "tutorial-3": "bun tutorial/tutorial-3.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
