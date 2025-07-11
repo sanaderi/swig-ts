@@ -21,10 +21,9 @@
     "dist"
   ],
   "devDependencies": {
-    "@types/bs58": "4.0.4",
+    "@types/bn.js": "^5.2.0",
     "@types/bun": "^1.2.5",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^24.0.1",
+    "@types/jest": "^30.0.0",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "eslint": "^9.22.0",
@@ -37,11 +36,11 @@
   },
   "dependencies": {
     "@noble/curves": "^1.8.2",
-    "@solana-program/token": "^0.5.1",
     "@solana/kit": "^2.1.0",
-    "@swig-wallet/coder": "workspace:*"
+    "@solana-program/token": "^0.5.1",
+    "@swig-wallet/coder": "workspace:*",
+    "@swig-wallet/lib": "workspace:*",
+    "bn.js": "^5.2.2"
   },
-  "peerDependencies": {
-    "@solana/kit": "^2.1.0"
-  }
+  "peerDependencies": {}
 }

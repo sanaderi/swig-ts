@@ -9,9 +9,10 @@ import {
 import {
   Actions,
   createEd25519SessionAuthorityInfo,
-  createSessionInstruction,
   findSwigPda,
-  signInstruction,
+  getCreateSessionInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
   Swig,
   SWIG_PROGRAM_ADDRESS,
 } from '@swig-wallet/classic';
@@ -27,12 +28,12 @@ import { readFileSync } from 'node:fs';
 //
 function sendSVMTransaction(
   svm: LiteSVM,
-  instruction: TransactionInstruction,
+  instructions: TransactionInstruction[],
   payer: Keypair,
   signers: Keypair[] = [],
 ) {
   let transaction = new Transaction();
-  transaction.instructions = [instruction];
+  transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
@@ -89,7 +90,7 @@ let id = Uint8Array.from(Array(32).fill(0));
 //
 // * Find a swig pda by id
 //
-let [swigAddress] = findSwigPda(id);
+let swigAddress = findSwigPda(id);
 
 //
 // * create swig instruction
@@ -98,7 +99,7 @@ let [swigAddress] = findSwigPda(id);
 //
 let rootActions = Actions.set().all().get();
 
-let createSwigInstruction = Swig.create({
+let createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createEd25519SessionAuthorityInfo(
     userRootKeypair.publicKey,
     100n,
@@ -108,7 +109,7 @@ let createSwigInstruction = Swig.create({
   actions: rootActions,
 });
 
-sendSVMTransaction(svm, createSwigInstruction, userRootKeypair);
+sendSVMTransaction(svm, [createSwigInstruction], userRootKeypair);
 
 //
 // * fetch swig
@@ -127,9 +128,9 @@ if (!rootRole) throw new Error('Role not found for authority');
 
 svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 
-let newSessionInstruction = await createSessionInstruction(
-  rootRole,
-  userRootKeypair.publicKey,
+let newSessionInstruction = await getCreateSessionInstructions(
+  swig,
+  rootRole.id,
   dappSessionKeypair.publicKey,
   50n,
 );
@@ -152,15 +153,19 @@ console.log('session key:', rootRole.authority.sessionKey.toBase58());
 //
 console.log(
   'Has ability to spend sol:',
-  swig.roles.map((role) => role.canSpendSol()),
+  swig.roles.map((role) => role.actions.canSpendSol()),
 );
 console.log(
   'Can spend 0.1 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)),
+  ),
 );
 console.log(
   'Can spend 0.11 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL)),
+  ),
 );
 
 console.log('swig balance before first transfer:', svm.getBalance(swigAddress));
@@ -178,10 +183,12 @@ let transfer = SystemProgram.transfer({
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let signTransfer = await signInstruction(
-  rootRole,
-  dappSessionKeypair.publicKey,
+let signTransfer = await getSignInstructions(
+  swig,
+  rootRole.id,
   [transfer],
+  false,
+  { payer: dappSessionKeypair.publicKey },
 );
 
 sendSVMTransaction(svm, signTransfer, dappSessionKeypair);

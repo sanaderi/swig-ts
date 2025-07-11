@@ -53,7 +53,7 @@ jobs:
         run: bun install
       
       - name: "Build repo"
-        run: bun run build
+        run: bun run build:packages
 
       - name: "Build documentation"
         run: bun build:docs

@@ -10,12 +10,11 @@ import {
 import {
   Actions,
   createEd25519SessionAuthorityInfo,
-  createSessionInstruction,
-  createSwig,
-  Ed25519SessionAuthority,
   fetchSwig,
   findSwigPda,
-  signInstruction,
+  getCreateSessionInstructions,
+  getCreateSwigInstruction,
+  getSignInstructions,
 } from '@swig-wallet/classic';
 
 //
@@ -23,12 +22,12 @@ import {
 //
 async function sendTransaction(
   connection: Connection,
-  instruction: TransactionInstruction,
+  instructions: TransactionInstruction[],
   payer: Keypair,
   signers: Signer[] = [],
 ) {
   let transaction = new Transaction();
-  transaction.instructions = [instruction];
+  transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = (
     await connection.getLatestBlockhash()
@@ -77,21 +76,24 @@ let id = randomBytes(32);
 //
 // * Find a swig pda by id
 //
-let [swigAddress] = findSwigPda(id);
+let swigAddress = findSwigPda(id);
 
 let rootActions = Actions.set().all().get();
 
 //
 // * create swig
 //
-await createSwig(
-  connection,
+let ix = await getCreateSwigInstruction({
   id,
-  createEd25519SessionAuthorityInfo(userRootKeypair.publicKey, 100n),
-  rootActions,
-  userRootKeypair.publicKey,
-  [userRootKeypair],
-);
+  authorityInfo: createEd25519SessionAuthorityInfo(
+    userRootKeypair.publicKey,
+    100n,
+  ),
+  actions: rootActions,
+  payer: userRootKeypair.publicKey,
+});
+
+await sendTransaction(connection, [ix], userRootKeypair);
 
 await sleep(3);
 
@@ -113,12 +115,12 @@ if (!rootRole) throw new Error('Role not found for authority');
 // * role.replaceAuthority
 // * role.sign
 //
-let createSessionIx = await createSessionInstruction(
-  rootRole,
-  userRootKeypair.publicKey,
+let createSessionIx = await getCreateSessionInstructions(
+  swig,
+  rootRole.id,
   dappSessionKeypair.publicKey,
   50n,
-)!;
+);
 
 await sendTransaction(connection, createSessionIx, userRootKeypair);
 
@@ -128,22 +130,26 @@ await connection.requestAirdrop(swigAddress, LAMPORTS_PER_SOL);
 
 await sleep(3);
 
-await swig.refetch(connection);
+await swig.refetch();
 
 //
 // * role array methods (we check what roles can spend sol)
 //
 console.log(
   'Has ability to spend sol:',
-  swig.roles.map((role) => role.canSpendSol()),
+  swig.roles.map((role) => role.actions.canSpendSol()),
 );
 console.log(
   'Can spend 0.1 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)),
+  ),
 );
 console.log(
   'Can spend 0.11 sol:',
-  swig.roles.map((role) => role.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL))),
+  swig.roles.map((role) =>
+    role.actions.canSpendSol(BigInt(0.11 * LAMPORTS_PER_SOL)),
+  ),
 );
 
 console.log(
@@ -176,10 +182,12 @@ if (
   throw new Error('wrong session authority authority');
 }
 
-let signTransfer = await signInstruction(
-  rootRole,
-  dappSessionKeypair.publicKey,
+let signTransfer = await getSignInstructions(
+  swig,
+  rootRole.id,
   [transfer],
+  false,
+  { payer: dappSessionKeypair.publicKey },
 );
 
 tx = await sendTransaction(connection, signTransfer, dappSessionKeypair);

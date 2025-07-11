@@ -16,7 +16,6 @@
     "multi-role-secp-local": "bun multi-role-secp-local.ts"
   },
   "devDependencies": {
-    "@swig-wallet/classic": "workspace:*",
     "@types/bun": "^1.2.5",
     "@types/node": "^22.14.0",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
@@ -35,9 +34,15 @@
   "dependencies": {
     "@ethereumjs/wallet": "^2.0.4",
     "@noble/secp256k1": "^2.2.3",
+    "@solana-program/system": "^0.7.0",
+    "@solana/kit": "^2.1.1",
+    "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.0",
+    "@swig-wallet/classic": "workspace:*",
+    "@swig-wallet/lib": "workspace:*",
     "chalk": "5",
     "ethers": "^6.13.5",
+    "gill": "^0.10.2",
     "viem": "^2.30.0"
   }
 }

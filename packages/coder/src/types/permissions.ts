@@ -70,6 +70,16 @@ export enum Permission {
   StakeLimit,
   StakeRecurringLimit,
   StakeAll,
+
+  /**
+   * Grants permission to sign on behalf of the Swig account for all programs.
+   */
+  ProgramAll,
+
+  /**
+   * Grants permission to sign on behalf of the Swig account for curated programs.
+   */
+  ProgramCurated,
 }
 
 /**

@@ -8,12 +8,13 @@ import {
 } from '@solana/web3.js';
 import {
   Actions,
-  addAuthorityInstruction,
+  getAddAuthorityInstructions,
   createEd25519AuthorityInfo,
   findSwigPda,
-  signInstruction,
+  getSignInstructions,
   Swig,
   SWIG_PROGRAM_ADDRESS,
+  getCreateSwigInstruction,
 } from '@swig-wallet/classic';
 import chalk from 'chalk';
 import {
@@ -37,12 +38,12 @@ function fetchSwig(
 // Helper to send transactions through LiteSVM
 function sendSVMTransaction(
   svm: LiteSVM,
-  instruction: TransactionInstruction,
+  instructions: TransactionInstruction[],
   payer: Keypair,
 ): TransactionMetadata | FailedTransactionMetadata {
   svm.expireBlockhash();
   let transaction = new Transaction();
-  transaction.instructions = [instruction];
+  transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
   transaction.sign(payer);
@@ -79,7 +80,7 @@ async function main() {
   // Initialize LiteSVM with SWIG program
   let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
   let svm = new LiteSVM();
-  svm.addProgram(SWIG_PROGRAM_ADDRESS, swigProgram);
+  svm.addProgram(new PublicKey(SWIG_PROGRAM_ADDRESS), swigProgram);
   printSuccess('SWIG program loaded');
 
   // Create keypairs for different roles
@@ -100,21 +101,21 @@ async function main() {
   printSection('Creating SWIG wallet');
   // Create SWIG wallet
   let swigId = Uint8Array.from(Array(32).fill(3));
-  let [swigAddress] = findSwigPda(swigId);
+  let swigAddress = findSwigPda(swigId);
 
   printInfo(`SWIG wallet address: ${chalk.yellow(swigAddress.toBase58())}`);
 
   printSection('Configuring SWIG wallet');
   // Create SWIG with root authority
   let rootActions = Actions.set().all().get();
-  let createSwigInstruction = Swig.create({
+  let createSwigInstruction = await getCreateSwigInstruction({
     authorityInfo: createEd25519AuthorityInfo(rootKeypair.publicKey),
     id: swigId,
     payer: rootKeypair.publicKey,
     actions: rootActions,
   });
 
-  let result = sendSVMTransaction(svm, createSwigInstruction, rootKeypair);
+  let result = sendSVMTransaction(svm, [createSwigInstruction], rootKeypair);
   if (result instanceof FailedTransactionMetadata) {
     throw new Error(`Failed to create SWIG wallet: ${result.err}`);
   }
@@ -135,11 +136,12 @@ async function main() {
     })
     .get();
 
-  let addSubscriptionAuthorityIx = await addAuthorityInstruction(
-    rootRole,
-    rootKeypair.publicKey,
+  let addSubscriptionAuthorityIx = await getAddAuthorityInstructions(
+    swig,
+    rootRole.id,
     createEd25519AuthorityInfo(subscriptionServiceKeypair.publicKey),
     subscriptionActions,
+    { payer: rootKeypair.publicKey },
   );
 
   result = sendSVMTransaction(svm, addSubscriptionAuthorityIx, rootKeypair);
@@ -165,9 +167,9 @@ async function main() {
   );
   let subscriptionRole = subscriptionRoles[0];
 
-  let signTransferIx = await signInstruction(
-    subscriptionRole,
-    subscriptionServiceKeypair.publicKey,
+  let signTransferIx = await getSignInstructions(
+    swig,
+    subscriptionRole.id,
     [transferIx],
   );
 
@@ -186,9 +188,9 @@ async function main() {
     lamports: BigInt(0.1 * LAMPORTS_PER_SOL),
   });
 
-  signTransferIx = await signInstruction(
-    subscriptionRole,
-    subscriptionServiceKeypair.publicKey,
+  signTransferIx = await getSignInstructions(
+    swig,
+    subscriptionRole.id,
     [transferIx],
   );
 
@@ -227,9 +229,9 @@ async function main() {
     lamports: BigInt(0.1 * LAMPORTS_PER_SOL),
   });
 
-  signTransferIx = await signInstruction(
-    subscriptionRole,
-    subscriptionServiceKeypair.publicKey,
+  signTransferIx = await getSignInstructions(
+    swig,
+    subscriptionRole.id,
     [transferIx],
   );
 

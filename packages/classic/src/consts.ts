@@ -1,5 +1,4 @@
 import { PublicKey } from '@solana/web3.js';
+import { SWIG_PROGRAM_ADDRESS_STRING } from '@swig-wallet/lib';
 
-export const SWIG_PROGRAM_ADDRESS = new PublicKey(
-  'swigypWHEksbC64pWKwah1WTeh9JXwx8H1rJHLdbQMB',
-);
+export const SWIG_PROGRAM_ADDRESS = new PublicKey(SWIG_PROGRAM_ADDRESS_STRING);

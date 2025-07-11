@@ -1,14 +1,20 @@
 import { GoToExplorer } from '@/components/GoToExplorer';
 import { getSwigAddress, payerKeypair } from '@/helpers/solana';
 import { useConnection } from '@solana/wallet-adapter-react';
-import { Keypair, LAMPORTS_PER_SOL, SystemProgram } from '@solana/web3.js';
+import {
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from '@solana/web3.js';
 import {
   Actions,
   createSecp256k1AuthorityInfo,
-  createSwig,
   fetchSwig,
+  getCreateSwigInstruction,
   getEvmPersonalSignPrefix,
-  signAndSend,
+  getSignInstructions,
 } from '@swig-wallet/classic';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -103,14 +109,18 @@ export function useCreateSwig() {
   // Mutations
   const mutation = useMutation({
     mutationFn: async () => {
-      return createSwig(
-        connection,
-        swigId,
-        createSecp256k1AuthorityInfo(await getPublicKey()),
-        Actions.set().all().get(),
-        payerKeypair.publicKey,
-        [payerKeypair],
-      );
+      const createSwigInstruction = await getCreateSwigInstruction({
+        payer: payerKeypair.publicKey,
+        id: swigId,
+        actions: Actions.set().all().get(),
+        authorityInfo: createSecp256k1AuthorityInfo(await getPublicKey()),
+      });
+      const transaction = new Transaction({
+        feePayer: payerKeypair.publicKey,
+        recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+      }).add(createSwigInstruction);
+
+      return sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
     },
     onSuccess: (tx) => {
       toast.success('Transaction successful!', {
@@ -160,8 +170,10 @@ export function useSwigTransfer() {
       let signerRoles = swig.findRolesBySecp256k1SignerAddress(address);
       if (!signerRoles)
         throw new Error(`No roles found from wallet address ${address}`);
-      return signAndSend(
-        connection,
+
+      const ixs = await getSignInstructions(
+        swig,
+        signerRoles[0].id,
         [
           SystemProgram.transfer({
             lamports: 0.1 * LAMPORTS_PER_SOL,
@@ -169,22 +181,28 @@ export function useSwigTransfer() {
             toPubkey: Keypair.generate().publicKey,
           }),
         ],
-        swigAddress,
-        signerRoles[0].authority,
-        payerKeypair.publicKey,
-        [payerKeypair],
+        false,
+        {
+          payer: payerKeypair.publicKey,
+          currentSlot: BigInt(await connection.getSlot()),
+          signingFn: async (message: Uint8Array) => {
+            let signed = await signMessageAsync({
+              message: { raw: message },
+            });
 
-        async (message: Uint8Array) => {
-          let signed = await signMessageAsync({
-            message: { raw: message },
-          });
-
-          return {
-            signature: hexToBytes(signed),
-            prefix: getEvmPersonalSignPrefix(message.length),
-          };
+            return {
+              signature: hexToBytes(signed),
+              prefix: getEvmPersonalSignPrefix(message.length),
+            };
+          },
         },
       );
+      const transaction = new Transaction({
+        feePayer: payerKeypair.publicKey,
+        recentBlockhash: (await connection.getLatestBlockhash()).blockhash,
+      }).add(...ixs);
+
+      return sendAndConfirmTransaction(connection, transaction, [payerKeypair]);
     },
     onSuccess: (tx) => {
       toast.success('Transaction successful!', {
