@@ -6,14 +6,16 @@
   "type": "module",
   "scripts": {
     "start-validator": "solana-test-validator --reset --bpf-program swigypWHEksbC64pWKwah1WTeh9JXwx8H1rJHLdbQMB ../../../swig.so",
+    "local-subscription": "bun local-subscription.ts",
     "transfer-local": "bun transfer-local.ts",
-    "tranfer-local-session": "bun transfer-local-session.ts",
-    "transfer-svm": "bun transfer-svm.ts",
-    "transfer-svm-session": "bun transfer-svm-session.ts",
+    "transfer-local-session": "bun transfer-local-session.ts",
     "transfer-sponsor": "bun transfer-sponsor.ts",
     "transfer-local-secp": "bun transfer-local-secp.ts",
     "multi-role-local": "bun multi-role-local.ts",
-    "multi-role-secp-local": "bun multi-role-secp-local.ts"
+    "multi-role-secp-local": "bun multi-role-secp-local.ts",
+    "tutorial-1": "bun tutorial/tutorial-1.ts",
+    "tutorial-2": "bun tutorial/tutorial-2.ts",
+    "tutorial-3": "bun tutorial/tutorial-3.ts"
   },
   "devDependencies": {
     "@types/bun": "^1.2.5",
