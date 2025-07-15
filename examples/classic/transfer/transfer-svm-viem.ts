@@ -35,14 +35,14 @@ function sendSVMTransaction(
   instructions: TransactionInstruction[],
   payer: Keypair,
 ) {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
   transaction.sign(payer);
 
-  let tx = svm.sendTransaction(transaction);
+  const tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
     console.log('tx:', tx.meta().logs());
@@ -57,7 +57,7 @@ function fetchSwig(
   svm: LiteSVM,
   swigAddress: PublicKey,
 ): ReturnType<typeof Swig.fromRawAccountData> {
-  let swigAccount = svm.getAccount(swigAddress);
+  const swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
   // Ensure we have a proper Uint8Array for the account data
   const accountData = Uint8Array.from(swigAccount.data);
@@ -68,28 +68,27 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
-
-let svm = new LiteSVM();
+const swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
+const svm = new LiteSVM();
 
 svm.addProgram(SWIG_PROGRAM_ADDRESS, swigProgram);
 
-let userWallet = Wallet.generate();
+const userWallet = Wallet.generate();
 
-let transactionPayer = Keypair.generate();
+const transactionPayer = Keypair.generate();
 svm.airdrop(transactionPayer.publicKey, BigInt(LAMPORTS_PER_SOL));
 
-let dappTreasury = Keypair.generate().publicKey;
+const dappTreasury = Keypair.generate().publicKey;
 
-let id = Uint8Array.from(Array(32).fill(0));
+const id = Uint8Array.from(Array(32).fill(0));
 
-let privateKeyAccount = privateKeyToAccount(userWallet.getPrivateKeyString());
+const privateKeyAccount = privateKeyToAccount(userWallet.getPrivateKeyString());
 
-let swigAddress = findSwigPda(id);
+const swigAddress = findSwigPda(id);
 
-let rootActions = Actions.set().all().get();
+const rootActions = Actions.set().all().get();
 
-let createSwigInstruction = await getCreateSwigInstruction({
+const createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createSecp256k1AuthorityInfo(privateKeyAccount.publicKey),
   id,
   payer: transactionPayer.publicKey,
@@ -118,8 +117,8 @@ swig = fetchSwig(svm, swigAddress);
 
 console.log('balance before transfers:', svm.getBalance(swigAddress));
 
-let viemSign: SigningFn = async (message: Uint8Array) => {
-  let sig = await privateKeyAccount.sign({ hash: keccak256(message) }); // eth_sign
+const viemSign: SigningFn = async (message: Uint8Array) => {
+  const sig = await privateKeyAccount.sign({ hash: keccak256(message) }); // eth_sign
 
   return { signature: hexToBytes(sig) };
 };
@@ -127,7 +126,7 @@ let viemSign: SigningFn = async (message: Uint8Array) => {
 //
 // * transfer with viem sign
 //
-let transfer = SystemProgram.transfer({
+const transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
   toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
@@ -160,14 +159,14 @@ rootRole = swig.findRolesBySecp256k1SignerAddress(privateKeyAccount.address)[0];
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let viemSignWithPrefix: SigningFn = async (message: Uint8Array) => {
-  let prefix = getEvmPersonalSignPrefix(message.length);
-  let prefixedMessage = new Uint8Array(prefix.length + message.length);
+const viemSignWithPrefix: SigningFn = async (message: Uint8Array) => {
+  const prefix = getEvmPersonalSignPrefix(message.length);
+  const prefixedMessage = new Uint8Array(prefix.length + message.length);
 
   prefixedMessage.set(prefix);
   prefixedMessage.set(message, prefix.length);
 
-  let sig = await privateKeyAccount.sign({ hash: keccak256(prefixedMessage) }); // eth_sign with personal_sign prefix
+  const sig = await privateKeyAccount.sign({ hash: keccak256(prefixedMessage) }); // eth_sign with personal_sign prefix
 
   return { signature: hexToBytes(sig), prefix };
 };
@@ -188,8 +187,8 @@ rootRole = swig.findRolesBySecp256k1SignerAddress(privateKeyAccount.address)[0];
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let viemSignMessage: SigningFn = async (message: Uint8Array) => {
-  let sig = await privateKeyAccount.signMessage({ message: { raw: message } }); // personal_sign
+const viemSignMessage: SigningFn = async (message: Uint8Array) => {
+  const sig = await privateKeyAccount.signMessage({ message: { raw: message } }); // personal_sign
 
   return {
     signature: hexToBytes(sig),

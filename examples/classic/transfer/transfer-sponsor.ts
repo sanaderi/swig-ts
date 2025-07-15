@@ -77,7 +77,7 @@ const ix = await getCreateSwigInstruction({
 await sendAndConfirm(conn, [ix], userRoot);
 
 await new Promise((r) => setTimeout(r, 3_000));
-let swig = await fetchSwig(conn, swigAddr);
+const swig = await fetchSwig(conn, swigAddr);
 
 //manage role
 const mgrIx = await getAddAuthorityInstructions(

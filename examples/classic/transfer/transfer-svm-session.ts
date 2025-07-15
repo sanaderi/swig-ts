@@ -32,14 +32,14 @@ function sendSVMTransaction(
   payer: Keypair,
   signers: Keypair[] = [],
 ) {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
   transaction.sign(payer, ...signers);
 
-  let tx = svm.sendTransaction(transaction);
+  const tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
     console.log('tx logs:', tx.meta().logs());
@@ -54,7 +54,7 @@ function fetchSwig(
   svm: LiteSVM,
   swigAddress: PublicKey,
 ): ReturnType<typeof Swig.fromRawAccountData> {
-  let swigAccount = svm.getAccount(swigAddress);
+  const swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
   // Ensure we have a proper Uint8Array for the account data
   const accountData = Uint8Array.from(swigAccount.data);
@@ -65,41 +65,40 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
-
-let svm = new LiteSVM();
+const swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
+const svm = new LiteSVM();
 
 svm.addProgram(SWIG_PROGRAM_ADDRESS, swigProgram);
 
 // user root
 //
-let userRootKeypair = Keypair.generate();
+const userRootKeypair = Keypair.generate();
 svm.airdrop(userRootKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // user authority manager
 //
-let dappSessionKeypair = Keypair.generate();
+const dappSessionKeypair = Keypair.generate();
 svm.airdrop(dappSessionKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // dapp authority
 //
-let dappTreasury = Keypair.generate().publicKey;
+const dappTreasury = Keypair.generate().publicKey;
 
-let id = Uint8Array.from(Array(32).fill(0));
+const id = Uint8Array.from(Array(32).fill(0));
 
 //
 // * Find a swig pda by id
 //
-let swigAddress = findSwigPda(id);
+const swigAddress = findSwigPda(id);
 
 //
 // * create swig instruction
 //
 // * createSwig(connection, ...args) imperative method available
 //
-let rootActions = Actions.set().all().get();
+const rootActions = Actions.set().all().get();
 
-let createSwigInstruction = await getCreateSwigInstruction({
+const createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createEd25519SessionAuthorityInfo(
     userRootKeypair.publicKey,
     100n,
@@ -128,7 +127,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 
 svm.airdrop(swigAddress, BigInt(LAMPORTS_PER_SOL));
 
-let newSessionInstruction = await getCreateSessionInstructions(
+const newSessionInstruction = await getCreateSessionInstructions(
   swig,
   rootRole.id,
   dappSessionKeypair.publicKey,
@@ -177,13 +176,13 @@ console.log(
 //
 // * spend max sol permitted
 //
-let transfer = SystemProgram.transfer({
+const transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
   toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let signTransfer = await getSignInstructions(
+const signTransfer = await getSignInstructions(
   swig,
   rootRole.id,
   [transfer],

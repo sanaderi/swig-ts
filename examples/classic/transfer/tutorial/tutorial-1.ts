@@ -54,11 +54,11 @@ async function createSwigAccount(connection: Connection, user: Keypair) {
   console.log(chalk.blue('🚀 Starting tutorial'));
   const connection = new Connection('http://localhost:8899', 'confirmed');
   const userKeypair = Keypair.generate();
-  let f = await connection.requestAirdrop(
+  const f = await connection.requestAirdrop(
     userKeypair.publicKey,
     100 * LAMPORTS_PER_SOL,
   );
-  let blockhash = await connection.getLatestBlockhash();
+  const blockhash = await connection.getLatestBlockhash();
   await connection.confirmTransaction({
     signature: f,
     blockhash: blockhash.blockhash,
@@ -68,7 +68,7 @@ async function createSwigAccount(connection: Connection, user: Keypair) {
     chalk.green('👤 User public key:'),
     chalk.cyan(userKeypair.publicKey.toBase58()),
   );
-  let swigAddress = await createSwigAccount(connection, userKeypair);
+  const swigAddress = await createSwigAccount(connection, userKeypair);
   setTimeout(() => {
     console.log(chalk.green('\n✨ Everything looks good!'));
     console.log(

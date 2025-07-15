@@ -28,7 +28,7 @@ function fetchSwig(
   svm: LiteSVM,
   swigAddress: PublicKey,
 ): ReturnType<typeof Swig.fromRawAccountData> {
-  let swigAccount = svm.getAccount(swigAddress);
+  const swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
   // Ensure we have a proper Uint8Array for the account data
   const accountData = Uint8Array.from(swigAccount.data);
@@ -42,12 +42,12 @@ function sendSVMTransaction(
   payer: Keypair,
 ): TransactionMetadata | FailedTransactionMetadata {
   svm.expireBlockhash();
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
   transaction.sign(payer);
-  let tx = svm.sendTransaction(transaction);
+  const tx = svm.sendTransaction(transaction);
   return tx;
 }
 
@@ -57,10 +57,6 @@ function printSection(title: string) {
 
 function printSuccess(message: string) {
   console.log(chalk.green('✓ ' + message));
-}
-
-function printError(message: string) {
-  console.log(chalk.red('✗ ' + message));
 }
 
 function printInfo(message: string) {
@@ -78,14 +74,14 @@ async function main() {
   printSection('Setting up the environment');
 
   // Initialize LiteSVM with SWIG program
-  let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
-  let svm = new LiteSVM();
+  const swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
+  const svm = new LiteSVM();
   svm.addProgram(new PublicKey(SWIG_PROGRAM_ADDRESS), swigProgram);
   printSuccess('SWIG program loaded');
 
   // Create keypairs for different roles
-  let rootKeypair = Keypair.generate();
-  let subscriptionServiceKeypair = Keypair.generate();
+  const rootKeypair = Keypair.generate();
+  const subscriptionServiceKeypair = Keypair.generate();
   printSuccess('Generated keypairs for swig root and subscription service');
 
   // Airdrop SOL to all participants
@@ -100,15 +96,15 @@ async function main() {
 
   printSection('Creating SWIG wallet');
   // Create SWIG wallet
-  let swigId = Uint8Array.from(Array(32).fill(3));
-  let swigAddress = findSwigPda(swigId);
+  const swigId = Uint8Array.from(Array(32).fill(3));
+  const swigAddress = findSwigPda(swigId);
 
   printInfo(`SWIG wallet address: ${chalk.yellow(swigAddress.toBase58())}`);
 
   printSection('Configuring SWIG wallet');
   // Create SWIG with root authority
-  let rootActions = Actions.set().all().get();
-  let createSwigInstruction = await getCreateSwigInstruction({
+  const rootActions = Actions.set().all().get();
+  const createSwigInstruction = await getCreateSwigInstruction({
     authorityInfo: createEd25519AuthorityInfo(rootKeypair.publicKey),
     id: swigId,
     payer: rootKeypair.publicKey,
@@ -123,20 +119,20 @@ async function main() {
   svm.airdrop(swigAddress, BigInt(10 * LAMPORTS_PER_SOL));
   // Add subscription service authority with SOL limit
   let swig = await fetchSwig(svm, swigAddress);
-  let rootRoles = swig.findRolesByEd25519SignerPk(rootKeypair.publicKey);
-  let rootRole = rootRoles[0];
+  const rootRoles = swig.findRolesByEd25519SignerPk(rootKeypair.publicKey);
+  const rootRole = rootRoles[0];
 
   printSection('Setting up subscription limits');
   // Set subscription service authority with 0.1 SOL monthly limit
   // 400ms per block, so ~216000 blocks per month
-  let subscriptionActions = Actions.set()
+  const subscriptionActions = Actions.set()
     .solRecurringLimit({
       recurringAmount: BigInt(0.1 * LAMPORTS_PER_SOL), // 0.1 SOL
       window: BigInt(216000),
     })
     .get();
 
-  let addSubscriptionAuthorityIx = await getAddAuthorityInstructions(
+  const addSubscriptionAuthorityIx = await getAddAuthorityInstructions(
     swig,
     rootRole.id,
     createEd25519AuthorityInfo(subscriptionServiceKeypair.publicKey),
@@ -162,10 +158,10 @@ async function main() {
     lamports: BigInt(0.1 * LAMPORTS_PER_SOL),
   });
 
-  let subscriptionRoles = swig.findRolesByEd25519SignerPk(
+  const subscriptionRoles = swig.findRolesByEd25519SignerPk(
     subscriptionServiceKeypair.publicKey,
   );
-  let subscriptionRole = subscriptionRoles[0];
+  const subscriptionRole = subscriptionRoles[0];
 
   let signTransferIx = await getSignInstructions(
     swig,

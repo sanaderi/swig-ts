@@ -34,14 +34,14 @@ function sendSVMTransaction(
   instructions: TransactionInstruction[],
   payer: Keypair,
 ) {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = svm.latestBlockhash();
 
   transaction.sign(payer);
 
-  let tx = svm.sendTransaction(transaction);
+  const tx = svm.sendTransaction(transaction);
 
   if (tx instanceof FailedTransactionMetadata) {
     console.log('tx:', tx.meta().logs());
@@ -53,7 +53,7 @@ function sendSVMTransaction(
 }
 
 function fetchSwig(svm: LiteSVM, swigAddress: PublicKey): Swig {
-  let swigAccount = svm.getAccount(swigAddress);
+  const swigAccount = svm.getAccount(swigAddress);
   if (!swigAccount) throw new Error('swig account not created');
   return Swig.fromRawAccountData(swigAddress, swigAccount.data);
 }
@@ -62,46 +62,46 @@ console.log('starting...');
 //
 // Start program
 //
-let swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
+const swigProgram = Uint8Array.from(readFileSync('../../../swig.so'));
 
-let svm = new LiteSVM();
+const svm = new LiteSVM();
 
 svm.addProgram(SWIG_PROGRAM_ADDRESS, swigProgram);
 
-let userWallet = Wallet.generate();
+const userWallet = Wallet.generate();
 
 // user root
 //
-let userRootKeypair = Keypair.generate();
+const userRootKeypair = Keypair.generate();
 svm.airdrop(userRootKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // user authority manager
 //
-let userAuthorityManagerKeypair = Keypair.generate();
+const userAuthorityManagerKeypair = Keypair.generate();
 svm.airdrop(userAuthorityManagerKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
 // dapp authority
 //
-let dappSessionKeypair = Keypair.generate();
+const dappSessionKeypair = Keypair.generate();
 svm.airdrop(dappSessionKeypair.publicKey, BigInt(LAMPORTS_PER_SOL));
 
-let dappTreasury = Keypair.generate().publicKey;
+const dappTreasury = Keypair.generate().publicKey;
 
-let id = Uint8Array.from(Array(32).fill(0));
+const id = Uint8Array.from(Array(32).fill(0));
 
 //
 // * Find a swig pda by id
 //
-let swigAddress = findSwigPda(id);
+const swigAddress = findSwigPda(id);
 
 //
 // * create swig instruction
 //
 // * createSwig(connection, ...args) imperative method available
 //
-let rootActions = Actions.set().all().get();
+const rootActions = Actions.set().all().get();
 
-let createSwigInstruction = await getCreateSwigInstruction({
+const createSwigInstruction = await getCreateSwigInstruction({
   authorityInfo: createSecp256k1SessionAuthorityInfo(
     userWallet.getPublicKey(),
     100n,
@@ -125,15 +125,15 @@ let rootRole = swig.findRoleById(0);
 
 if (!rootRole) throw new Error('Role not found for authority');
 
-let currentSlot = svm.getClock().slot;
+const currentSlot = svm.getClock().slot;
 
-let signingFn = getSigningFnForSecp256k1PrivateKey(
+const signingFn = getSigningFnForSecp256k1PrivateKey(
   userWallet.getPrivateKeyString(),
 );
 
-let instOptions: InstructionDataOptions = { currentSlot, signingFn };
+const instOptions: InstructionDataOptions = { currentSlot, signingFn };
 
-let newSessionInstruction = await getCreateSessionInstructions(
+const newSessionInstruction = await getCreateSessionInstructions(
   swig,
   rootRole.id,
   dappSessionKeypair.publicKey,
@@ -160,13 +160,13 @@ console.log('balance before first transfer:', svm.getBalance(swigAddress));
 //
 // * spend max sol permitted
 //
-let transfer = SystemProgram.transfer({
+const transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
   toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
 });
 
-let signTransfer = await getSignInstructions(
+const signTransfer = await getSignInstructions(
   swig,
   rootRole.id,
   [transfer],
