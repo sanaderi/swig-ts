@@ -1,7 +1,12 @@
 import { hexToBytes } from '@noble/curves/abstract/utils';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { keccak_256 } from '@noble/hashes/sha3';
-import { address, getProgramDerivedAddress } from '@solana/kit';
+import {
+  address,
+  getBytesEncoder,
+  getProgramDerivedAddress,
+  getUtf8Encoder,
+} from '@solana/kit';
 import { SWIG_PROGRAM_ADDRESS_STRING } from './consts';
 import { SolPublicKey } from './solana';
 
@@ -18,7 +23,7 @@ export function uint8ArraysEqual(a: Uint8Array, b: Uint8Array): boolean {
 async function findSwigPda(id: Uint8Array) {
   return await getProgramDerivedAddress({
     programAddress: address(SWIG_PROGRAM_ADDRESS_STRING),
-    seeds: [Buffer.from('swig'), Buffer.from(id)],
+    seeds: [getUtf8Encoder().encode('swig'), getBytesEncoder().encode(id)],
   });
 }
 
@@ -50,9 +55,9 @@ async function findSwigSubAccountPda(swigId: Uint8Array, roleId: number) {
   return await getProgramDerivedAddress({
     programAddress: address(SWIG_PROGRAM_ADDRESS_STRING),
     seeds: [
-      Buffer.from('sub-account'),
-      Buffer.from(swigId),
-      Buffer.from(roleIdU32),
+      getUtf8Encoder().encode('sub-account'),
+      getBytesEncoder().encode(swigId),
+      getBytesEncoder().encode(roleIdU32),
     ],
   });
 }

@@ -4,7 +4,9 @@ import {
   decodeAccount,
   fetchEncodedAccount,
   fetchEncodedAccounts,
+  getBytesEncoder,
   getProgramDerivedAddress,
+  getUtf8Encoder,
   type Account,
   type Address,
   type Commitment,
@@ -132,7 +134,7 @@ export async function findSwigPda(id: Uint8Array) {
   return (
     await getProgramDerivedAddress({
       programAddress: SWIG_PROGRAM_ADDRESS,
-      seeds: [Buffer.from('swig'), Buffer.from(id)],
+      seeds: [getUtf8Encoder().encode('swig'), getBytesEncoder().encode(id)],
     })
   )[0];
 }
@@ -156,9 +158,9 @@ export async function findSwigSubAccountPda(
     await getProgramDerivedAddress({
       programAddress: SWIG_PROGRAM_ADDRESS,
       seeds: [
-        Buffer.from('sub-account'),
-        Buffer.from(swigId),
-        Buffer.from(roleIdU32),
+        getUtf8Encoder().encode('sub-account'),
+        getBytesEncoder().encode(swigId),
+        getBytesEncoder().encode(roleIdU32),
       ],
     })
   )[0];
