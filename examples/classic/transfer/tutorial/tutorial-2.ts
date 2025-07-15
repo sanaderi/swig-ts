@@ -108,11 +108,11 @@ async function addNewAuthority(
     chalk.cyan(rootUser.publicKey.toBase58()),
   );
 
-  let airdrop = await connection.requestAirdrop(
+  const airdrop = await connection.requestAirdrop(
     rootUser.publicKey,
     100 * LAMPORTS_PER_SOL,
   );
-  let blockhash = await connection.getLatestBlockhash();
+  const blockhash = await connection.getLatestBlockhash();
   await connection.confirmTransaction({
     signature: airdrop,
     blockhash: blockhash.blockhash,

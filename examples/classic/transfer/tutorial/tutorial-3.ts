@@ -128,11 +128,11 @@ async function displayTokenBalance(
     chalk.cyan(rootUser.publicKey.toBase58()),
   );
 
-  let airdrop = await connection.requestAirdrop(
+  const airdrop = await connection.requestAirdrop(
     rootUser.publicKey,
     100 * LAMPORTS_PER_SOL,
   );
-  let blockhash = await connection.getLatestBlockhash();
+  const blockhash = await connection.getLatestBlockhash();
   await connection.confirmTransaction({
     signature: airdrop,
     blockhash: blockhash.blockhash,
@@ -282,7 +282,7 @@ async function displayTokenBalance(
       skipPreflight: true,
     });
     console.error(chalk.red('✗ Second transfer unexpectedly succeeded!'));
-  } catch (error) {
+  } catch {
     console.log(
       chalk.green('✓ Second transfer failed as expected:'),
       'Authority has no remaining token allowance',

@@ -14,7 +14,6 @@ import {
   getAddAuthorityInstructions,
   getCreateSwigInstruction,
   getSigningFnForSecp256k1PrivateKey,
-  type InstructionDataOptions,
 } from '@swig-wallet/classic';
 
 function sleep(s: number) {
@@ -75,7 +74,7 @@ function randomBytes(length: number): Uint8Array {
   for (const { name, amount } of rolesToCreate) {
     await sleep(2);
 
-    let roleAuthorityInfo = createSecp256k1AuthorityInfo(
+    const roleAuthorityInfo = createSecp256k1AuthorityInfo(
       Wallet.generate().getPublicKey(),
     );
 

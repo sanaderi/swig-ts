@@ -26,7 +26,7 @@ async function sendTransaction(
   payer: Keypair,
   signers: Signer[] = [],
 ) {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instructions;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = (
@@ -50,11 +50,11 @@ export function sleep(s: number): Promise<void> {
 
 console.log('starting...');
 
-let connection = new Connection('http://localhost:8899', 'confirmed');
+const connection = new Connection('http://localhost:8899', 'confirmed');
 
 // user root
 //
-let userRootKeypair = Keypair.generate();
+const userRootKeypair = Keypair.generate();
 let tx = await connection.requestAirdrop(
   userRootKeypair.publicKey,
   LAMPORTS_PER_SOL,
@@ -62,28 +62,28 @@ let tx = await connection.requestAirdrop(
 
 // user authority manager
 //
-let dappSessionKeypair = Keypair.generate();
+const dappSessionKeypair = Keypair.generate();
 await connection.requestAirdrop(dappSessionKeypair.publicKey, LAMPORTS_PER_SOL);
 
 // dapp authority
 //
-let dappTreasury = Keypair.generate().publicKey;
+const dappTreasury = Keypair.generate().publicKey;
 
 await sleep(3);
 
-let id = randomBytes(32);
+const id = randomBytes(32);
 
 //
 // * Find a swig pda by id
 //
-let swigAddress = findSwigPda(id);
+const swigAddress = findSwigPda(id);
 
-let rootActions = Actions.set().all().get();
+const rootActions = Actions.set().all().get();
 
 //
 // * create swig
 //
-let ix = await getCreateSwigInstruction({
+const ix = await getCreateSwigInstruction({
   id,
   authorityInfo: createEd25519SessionAuthorityInfo(
     userRootKeypair.publicKey,
@@ -100,7 +100,7 @@ await sleep(3);
 //
 // * fetch swig
 //
-let swig = await fetchSwig(connection, swigAddress);
+const swig = await fetchSwig(connection, swigAddress);
 
 //
 // * find role by id
@@ -115,7 +115,7 @@ if (!rootRole) throw new Error('Role not found for authority');
 // * role.replaceAuthority
 // * role.sign
 //
-let createSessionIx = await getCreateSessionInstructions(
+const createSessionIx = await getCreateSessionInstructions(
   swig,
   rootRole.id,
   dappSessionKeypair.publicKey,
@@ -164,7 +164,7 @@ console.log(
 //
 // * spend max sol permitted
 //
-let transfer = SystemProgram.transfer({
+const transfer = SystemProgram.transfer({
   fromPubkey: swigAddress,
   toPubkey: dappTreasury,
   lamports: 0.1 * LAMPORTS_PER_SOL,
@@ -182,7 +182,7 @@ if (
   throw new Error('wrong session authority authority');
 }
 
-let signTransfer = await getSignInstructions(
+const signTransfer = await getSignInstructions(
   swig,
   rootRole.id,
   [transfer],

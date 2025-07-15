@@ -2,7 +2,6 @@ import {
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
-  PublicKey,
   SystemProgram,
   Transaction,
   TransactionInstruction,
@@ -21,18 +20,12 @@ import { sleepSync } from 'bun';
 //
 // Helpers
 //
-function formatSolLimit(limit: bigint | null): string {
-  return limit === null
-    ? 'unlimited'
-    : `${Number(limit) / LAMPORTS_PER_SOL} SOL`;
-}
-
 async function sendTransaction(
   connection: Connection,
   instruction: TransactionInstruction[],
   payer: Keypair,
 ) {
-  let transaction = new Transaction();
+  const transaction = new Transaction();
   transaction.instructions = instruction;
   transaction.feePayer = payer.publicKey;
   transaction.recentBlockhash = (
@@ -52,16 +45,16 @@ function randomBytes(length: number): Uint8Array {
 
 console.log('starting...');
 
-let connection = new Connection('http://localhost:8899', 'confirmed');
+const connection = new Connection('http://localhost:8899', 'confirmed');
 
 // user root
 //
-let userRootKeypair = Keypair.generate();
+const userRootKeypair = Keypair.generate();
 await connection.requestAirdrop(userRootKeypair.publicKey, LAMPORTS_PER_SOL);
 
 // user authority manager
 //
-let userAuthorityManagerKeypair = Keypair.generate();
+const userAuthorityManagerKeypair = Keypair.generate();
 await connection.requestAirdrop(
   userAuthorityManagerKeypair.publicKey,
   LAMPORTS_PER_SOL,
@@ -69,7 +62,7 @@ await connection.requestAirdrop(
 
 // dapp authority
 //
-let dappAuthorityKeypair = Keypair.generate();
+const dappAuthorityKeypair = Keypair.generate();
 await connection.requestAirdrop(
   dappAuthorityKeypair.publicKey,
   LAMPORTS_PER_SOL,
@@ -77,7 +70,7 @@ await connection.requestAirdrop(
 
 sleepSync(3000);
 
-let id = randomBytes(32);
+const id = randomBytes(32);
 
 const swigAddress = findSwigPda(id);
 
@@ -85,7 +78,7 @@ const swigAddress = findSwigPda(id);
 // * Find a swig pda by id
 //
 
-let rootActions = Actions.set().all().get();
+const rootActions = Actions.set().all().get();
 
 //
 // * create swig
@@ -105,17 +98,17 @@ sleepSync(3000);
 //
 // * fetch swig
 //
-let swig = await fetchSwig(connection, swigAddress);
+const swig = await fetchSwig(connection, swigAddress);
 
 //
 // * find role by authority
 //
-let rootRole = swig.findRolesByEd25519SignerPk(userRootKeypair.publicKey)[0];
+const rootRole = swig.findRolesByEd25519SignerPk(userRootKeypair.publicKey)[0];
 
 //
 // * helper for creating actions
 //
-let manageAuthorityActions = Actions.set().manageAuthority().get();
+const manageAuthorityActions = Actions.set().manageAuthority().get();
 
 //
 // * can call instructions associated with a role (or authority)
@@ -124,7 +117,7 @@ let manageAuthorityActions = Actions.set().manageAuthority().get();
 // * role.replaceAuthority
 // * role.sign
 //
-let addAuthorityIx = await getAddAuthorityInstructions(
+const addAuthorityIx = await getAddAuthorityInstructions(
   swig,
   rootRole.id,
   createEd25519AuthorityInfo(userAuthorityManagerKeypair.publicKey),
@@ -141,7 +134,7 @@ sleepSync(3000);
 // swig = await fetchSwig(connection, swigAddress);
 await swig.refetch();
 
-let managerRole = swig.findRolesByEd25519SignerPk(
+const managerRole = swig.findRolesByEd25519SignerPk(
   userAuthorityManagerKeypair.publicKey,
 )[0];
 
@@ -161,14 +154,14 @@ if (!managerRole.actions.canManageAuthority())
 //
 // * allocate 0.1 max sol spend, for the dapp
 //
-let dappAuthorityActions = Actions.set()
+const dappAuthorityActions = Actions.set()
   .solLimit({ amount: BigInt(0.1 * LAMPORTS_PER_SOL) })
   .get();
 
 //
 // * makes the dapp an authority
 //
-let addDappAuthorityInstruction = await getAddAuthorityInstructions(
+const addDappAuthorityInstruction = await getAddAuthorityInstructions(
   swig,
   managerRole.id,
   createEd25519AuthorityInfo(dappAuthorityKeypair.publicKey),
@@ -208,14 +201,14 @@ console.log(
   ),
 );
 
-let roleIdCanSpendSol = swig.roles
+const roleIdCanSpendSol = swig.roles
   .filter((role) => role.actions.canSpendSol(BigInt(0.1 * LAMPORTS_PER_SOL)))
   .map((role) => role.id);
 
 //
 // * find a role by id
 //
-let maybeDappRole = await swig.findRoleById(roleIdCanSpendSol[1]);
+const maybeDappRole = await swig.findRoleById(roleIdCanSpendSol[1]);
 if (!maybeDappRole) throw new Error('Role does not exist');
 
 //
@@ -250,7 +243,7 @@ let signTransfer = await getSignInstructions(swig, dappAuthorityRole.id, [
   transfer,
 ]);
 
-let tx = await sendTransaction(connection, signTransfer, dappAuthorityKeypair);
+const tx = await sendTransaction(connection, signTransfer, dappAuthorityKeypair);
 
 console.log(`https://explorer.solana.com/tx/${tx}?cluster=custom`);
 
