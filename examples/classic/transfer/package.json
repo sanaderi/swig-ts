@@ -8,6 +8,7 @@
     "start-validator": "solana-test-validator --reset --bpf-program swigypWHEksbC64pWKwah1WTeh9JXwx8H1rJHLdbQMB ../../../swig.so",
     "transfer-local": "bun transfer-local.ts",
     "tranfer-local-session": "bun transfer-local-session.ts",
+    "transfer-local-session-secp": "bun transfer-local-session-secp256k1.ts",
     "transfer-svm": "bun transfer-svm.ts",
     "transfer-svm-session": "bun transfer-svm-session.ts",
     "transfer-sponsor": "bun transfer-sponsor.ts",
