@@ -9,6 +9,7 @@
     "local-subscription": "bun local-subscription.ts",
     "transfer-local": "bun transfer-local.ts",
     "transfer-local-session": "bun transfer-local-session.ts",
+    "transfer-local-session-secp": "bun transfer-local-session-secp256k1.ts",
     "transfer-sponsor": "bun transfer-sponsor.ts",
     "transfer-local-secp": "bun transfer-local-secp.ts",
     "multi-role-local": "bun multi-role-local.ts",
